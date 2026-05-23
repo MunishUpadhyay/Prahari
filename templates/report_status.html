@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prahari — Report Status</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(22, 28, 45, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-indigo: #6366f1;
+            --color-indigo-hover: #4f46e5;
+            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
+            
+            --color-critical: #ef4444;
+            --color-high: #f97316;
+            --color-medium: #eab308;
+            --color-low: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-indigo);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--color-indigo);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .login-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .login-link:hover {
+            color: var(--text-main);
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Loading / Checking Checklist Card */
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .status-card-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .status-card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .status-card-title[lang="hi"] {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .uuid-label {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Progress List styling */
+        .progress-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+
+        .progress-step.active {
+            color: var(--text-main);
+        }
+
+        .progress-step.done {
+            color: var(--color-low);
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .progress-step.active .step-icon {
+            border-color: var(--color-indigo);
+            color: var(--color-indigo);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+            animation: pulse-border 1.5s infinite;
+        }
+
+        .progress-step.done .step-icon {
+            border-color: var(--color-low);
+            background-color: rgba(34, 197, 94, 0.15);
+            color: var(--color-low);
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        /* Final Result Section (hidden initially) */
+        #result-section {
+            display: none;
+            flex-direction: column;
+            gap: 2rem;
+            animation: fade-in-card 0.5s ease-out forwards;
+        }
+
+        @keyframes fade-in-card {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Incident Card styling */
+        .incident-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .card-banner {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .card-banner[lang="hi"] {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.25rem;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .incident-title-en {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .incident-title-hi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.critical { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge.high { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .badge.medium { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge.low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        .badge.domain { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+        /* Bilingual columns */
+        .briefs-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .briefs-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .brief-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .brief-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .brief-text-en {
+            font-size: 1rem;
+            line-height: 1.55;
+            color: #e2e8f0;
+        }
+
+        .brief-text-hi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.65;
+            color: #f1f5f9;
+        }
+
+        /* Rights violated */
+        .rights-box {
+            background: rgba(239, 68, 68, 0.04);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .rights-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #f87171;
+            font-weight: 700;
+        }
+
+        .rights-list {
+            margin-left: 1.25rem;
+            font-weight: 500;
+            color: #fca5a5;
+        }
+
+        /* Actions list */
+        .actions-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.5rem;
+        }
+
+        .actions-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+        }
+
+        .action-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-item {
+            display: flex;
+            gap: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+
+        .action-num {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .action-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .action-text-en {
+            font-size: 0.95rem;
+            line-height: 1.45;
+            color: #f1f5f9;
+        }
+
+        .action-text-hi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.05rem;
+            line-height: 1.55;
+            color: #cbd5e1;
+        }
+
+        .action-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .action-owner {
+            color: #f472b6;
+            font-weight: 600;
+        }
+
+        .action-window {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(9, 13, 22, 0.5);
+            margin-top: auto;
+        }
+
+        .loc-hi {
+            display: none !important;
+        }
+        
+        html[lang="hi"] .loc-en {
+            display: none !important;
+        }
+
+        html[lang="hi"] .loc-hi {
+            display: block !important;
+        }
+
+        html[lang="hi"] span.loc-hi,
+        html[lang="hi"] a.loc-hi,
+        html[lang="hi"] button.loc-hi,
+        html[lang="hi"] h3.loc-hi {
+            display: inline-block !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo-container">
+            <div class="logo-pulse"></div>
+            <h1>Prahari</h1>
+        </a>
+        <div class="nav-right">
+            <a href="/login/" class="login-link loc-en">Coordinator Login</a>
+            <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+            <button class="lang-btn" onclick="toggleLanguage()">
+                <span class="loc-en">हिन्दी</span>
+                <span class="loc-hi">English</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Loading Checklist card -->
+        <div id="loading-card" class="status-card">
+            <div class="status-card-header">
+                <h2 class="status-card-title loc-en">Analyzing Incident Report</h2>
+                <h2 class="status-card-title loc-hi" lang="hi">घटना रिपोर्ट का विश्लेषण</h2>
+                <div class="uuid-label">Signal ID: {{ signal_id }}</div>
+            </div>
+
+            <ul class="progress-list">
+                <li id="step-received" class="progress-step done">
+                    <span class="step-icon">✓</span>
+                    <span class="loc-en">Signal Received</span>
+                    <span class="loc-hi" lang="hi">सिग्नल प्राप्त हुआ</span>
+                </li>
+                <li id="step-classified" class="progress-step">
+                    <span class="step-icon">⟳</span>
+                    <span class="loc-en">Classifying Domain</span>
+                    <span class="loc-hi" lang="hi">डोमेन वर्गीकरण</span>
+                </li>
+                <li id="step-analyzed" class="progress-step">
+                    <span class="step-icon">⟳</span>
+                    <span class="loc-en">Analyzing Rights & Triage</span>
+                    <span class="loc-hi" lang="hi">अधिकार और वर्गीकरण विश्लेषण</span>
+                </li>
+                <li id="step-coordinated" class="progress-step">
+                    <span class="step-icon">⟳</span>
+                    <span class="loc-en">Generating Brief</span>
+                    <span class="loc-hi" lang="hi">समन्वय संक्षिप्त विवरण</span>
+                </li>
+                <li id="step-translated" class="progress-step">
+                    <span class="step-icon">⟳</span>
+                    <span class="loc-en">Translating Details</span>
+                    <span class="loc-hi" lang="hi">विवरण का अनुवाद</span>
+                </li>
+            </ul>
+
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">
+                <span class="loc-en">Please do not close this window. Analysis takes 10-15 seconds.</span>
+                <span class="loc-hi" lang="hi">कृपया इस विंडो को बंद न करें। विश्लेषण में 10-15 सेकंड लगते हैं।</span>
+            </div>
+        </div>
+
+        <!-- Result section -->
+        <div id="result-section">
+            <div id="sms-banner" class="card-banner loc-en">
+                Your report has been received by our coordinators.
+            </div>
+            <div id="sms-banner-hi" class="card-banner loc-hi" lang="hi">
+                आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है।
+            </div>
+
+            <div class="incident-card" id="incident-view">
+                <!-- Injected Dynamically by JS -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
+        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
+    </footer>
+
+    <script>
+        const signalId = "{{ signal_id }}";
+        const pollInterval = 3000;
+        let pollTimer = null;
+
+        function initLanguage() {
+            let selectedLang = localStorage.getItem('prahari_lang');
+            if (!selectedLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                localStorage.setItem('prahari_lang', selectedLang);
+            }
+            setLanguageTheme(selectedLang);
+        }
+
+        function setLanguageTheme(lang) {
+            document.documentElement.setAttribute('lang', lang);
+            localStorage.setItem('prahari_lang', lang);
+        }
+
+        function toggleLanguage() {
+            const currentLang = document.documentElement.getAttribute('lang') || 'en';
+            const nextLang = currentLang === 'en' ? 'hi' : 'en';
+            setLanguageTheme(nextLang);
+        }
+
+        // Poll Pipeline Status via AJAX
+        async function checkPipelineStatus() {
+            try {
+                const response = await fetch(`/report/${signalId}/status/`);
+                if (!response.ok) throw new Error("HTTP error polling status");
+                
+                const data = await response.json();
+                console.log("Pipeline status update:", data);
+
+                updateChecklistUI(data.steps);
+
+                if (data.status === "processed" && data.result) {
+                    clearInterval(pollTimer);
+                    renderResult(data.result);
+                } else if (data.status === "failed") {
+                    clearInterval(pollTimer);
+                    showError();
+                }
+            } catch (e) {
+                console.error("Polling error:", e);
+            }
+        }
+
+        function updateChecklistUI(steps) {
+            // Helper to set class on list elements
+            const updateStepState = (id, isDone, isActive) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                
+                if (isDone) {
+                    el.className = "progress-step done";
+                    el.querySelector('.step-icon').textContent = "✓";
+                } else if (isActive) {
+                    el.className = "progress-step active";
+                    el.querySelector('.step-icon').textContent = "⟳";
+                } else {
+                    el.className = "progress-step";
+                    el.querySelector('.step-icon').textContent = " ";
+                }
+            };
+
+            updateStepState("step-received", true, false);
+            updateStepState("step-classified", steps.classified, !steps.classified);
+            updateStepState("step-analyzed", steps.analyzed, steps.classified && !steps.analyzed);
+            updateStepState("step-coordinated", steps.coordinated, steps.analyzed && !steps.coordinated);
+            updateStepState("step-translated", steps.translated, steps.coordinated && !steps.translated);
+        }
+
+        function renderResult(result) {
+            // Hide loading card
+            document.getElementById("loading-card").style.display = "none";
+            
+            // Set dynamic banners based on contact_number
+            if (result.contact_number) {
+                const bannerEn = document.getElementById("sms-banner");
+                const bannerHi = document.getElementById("sms-banner-hi");
+                if (bannerEn) bannerEn.textContent = `Your report has been received by our coordinators. You will receive updates on ${result.contact_number}.`;
+                if (bannerHi) bannerHi.textContent = `आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है। आपको ${result.contact_number} पर अपडेट प्राप्त होंगे।`;
+            }
+
+            // Show result section
+            document.getElementById("result-section").style.display = "flex";
+
+            const incidentView = document.getElementById("incident-view");
+            if (!incidentView) return;
+
+            // Render Badges
+            const severityLabel = result.severity_label.toLowerCase();
+            const severityScore = result.severity_score;
+            
+            let badgesHTML = `
+                <div class="badge-row">
+                    <span class="badge ${severityLabel}">${severityLabel} (${severityScore.toFixed(2)})</span>
+                    <span class="badge domain">${result.domain}</span>
+                </div>
+            `;
+
+            // Title Block
+            let headerHTML = `
+                <div class="card-header">
+                    <div class="title-block">
+                        <div class="incident-title-en">${result.title_en}</div>
+                        ${result.title_hi ? `<div class="incident-title-hi">${result.title_hi}</div>` : ''}
+                    </div>
+                    ${badgesHTML}
+                </div>
+            `;
+
+            // Briefs Block
+            let briefsHTML = `
+                <div class="briefs-grid">
+                    <div class="brief-box">
+                        <div class="brief-label">Situation Brief (EN)</div>
+                        <div class="brief-text-en">${result.brief_en}</div>
+                    </div>
+                    ${result.brief_hi ? `
+                    <div class="brief-box">
+                        <div class="brief-label">स्थिति विवरण (HI)</div>
+                        <div class="brief-text-hi">${result.brief_hi}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Rights violated (if any)
+            let rightsHTML = '';
+            if (result.rights_violated && result.rights_violated.length > 0) {
+                let items = result.rights_violated.map(r => `<li>${r}</li>`).join('');
+                rightsHTML = `
+                    <div class="rights-box">
+                        <div class="rights-label">Rights Violated / अधिकार उल्लंघन</div>
+                        <ul class="rights-list">${items}</ul>
+                    </div>
+                `;
+            }
+
+            // Actions Block
+            let actionsHTML = '';
+            const actionsEn = result.immediate_actions || [];
+            const actionsHi = result.immediate_actions_hi || [];
+            
+            if (actionsEn.length > 0) {
+                let actionItems = '';
+                actionsEn.forEach((act, idx) => {
+                    const actHi = actionsHi[idx] || {};
+                    actionItems += `
+                        <li class="action-item">
+                            <div class="action-num">${idx + 1}</div>
+                            <div class="action-details">
+                                <div class="action-text-en">${act.action}</div>
+                                ${actHi.action ? `<div class="action-text-hi">${actHi.action}</div>` : ''}
+                                <div class="action-meta">
+                                    Owner: <span class="action-owner">${act.responsible_party || 'Unassigned'}</span>
+                                    ${act.time_window ? `&bull; Window: <span class="action-window">${act.time_window}</span>` : ''}
+                                </div>
+                            </div>
+                        </li>
+                    `;
+                });
+
+                actionsHTML = `
+                    <div class="actions-section">
+                        <h4 class="actions-title">Immediate Response Directives / तत्काल निर्देश</h4>
+                        <ul class="action-list">
+                            ${actionItems}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            incidentView.innerHTML = `
+                ${headerHTML}
+                ${briefsHTML}
+                ${rightsHTML}
+                ${actionsHTML}
+            `;
+        }
+
+        function showError() {
+            document.getElementById("loading-card").innerHTML = `
+                <div class="status-card-header">
+                    <h2 class="status-card-title loc-en" style="color: var(--color-critical)">Analysis Failed</h2>
+                    <h2 class="status-card-title loc-hi" lang="hi" style="color: var(--color-critical)">विश्लेषण विफल रहा</h2>
+                </div>
+                <p class="loc-en">An error occurred during multi-agent pipeline routing. Coordinators have been notified.</p>
+                <p class="loc-hi" lang="hi">मल्टी-एजेंट पाइपलाइन रूटिंग के दौरान एक त्रुटि उत्पन्न हुई। समन्वयकों को सूचित कर दिया गया है।</p>
+            `;
+        }
+
+        // Start Polling loop
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            checkPipelineStatus();
+            pollTimer = setInterval(checkPipelineStatus, pollInterval);
+        });
+    </script>
+</body>
+</html>

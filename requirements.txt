@@ -1,0 +1,57 @@
+# ============================================================
+# Prahari — Python Dependencies
+# ============================================================
+
+# ---- Django core ----
+Django==5.0.6
+djangorestframework==3.15.2
+drf-spectacular==0.29.0
+django-cors-headers==4.4.0
+
+# ---- Geospatial ----
+# Requires GDAL, GEOS, and PostGIS to be installed on the host
+django-environ==0.11.2
+GDAL==3.8.5
+
+# ---- Channels / WebSocket ----
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.2
+
+# ---- Celery / Task queue ----
+celery==5.4.0
+redis==5.0.8
+django-celery-results==2.5.1
+django-celery-beat==2.7.0
+
+# ---- Database ----
+psycopg2-binary==2.9.9        # PostgreSQL adapter (binary for easy install)
+dj-database-url==2.2.0
+# For production, prefer psycopg2 (compiled) over psycopg2-binary
+
+# ---- Auth ----
+djangorestframework-simplejwt==5.3.1
+
+# ---- AI / LLM ----
+groq==0.13.1                  # Official Groq Python client
+
+# ---- RAG ----
+chromadb==0.6.3               # Vector store for RAG
+langchain==0.3.25             # LangChain orchestration
+langchain-community==0.3.24   # Community integrations (ChromaDB, etc.)
+sentence-transformers==3.4.1   # For local embedding generation
+
+# ---- Utilities ----
+python-dotenv==1.0.1          # .env file loading in dev
+Pillow==10.4.0                # Image field support
+asgiref==3.8.1                # ASGI utilities (channels dependency)
+
+# ---- Logging (prod) ----
+python-json-logger==2.0.7
+
+# ---- Dev / Testing ----
+pytest==8.3.2
+pytest-django==4.8.0
+pytest-asyncio==0.23.8
+factory-boy==3.3.1
+coverage==7.6.1

@@ -1,0 +1,329 @@
+"""
+Prahari Celery Task Chain
+=========================
+
+Execution flow:
+
+    ingest_signal(signal_id)
+        └─► classify_domain(signal_id)
+                └─► route_to_agents(signal_id)
+                        └─► coordination_agent(signal_id)
+                                └─► push_to_websocket(incident_id)
+
+Each task is currently a stub.  Business logic will be added after the
+scaffold review.  The chaining uses Celery's `.si()` (immutable signature)
+to pass only explicit arguments — not the previous task's return value.
+
+Usage:
+    from pipeline.tasks import ingest_signal
+    ingest_signal.delay(str(signal.id))
+"""
+
+import logging
+
+from asgiref.sync import async_to_sync
+from celery import shared_task
+from channels.layers import get_channel_layer
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# 1. Ingest
+# ---------------------------------------------------------------------------
+
+@shared_task(name="pipeline.ingest_signal")
+def ingest_signal(signal_id: str):
+    """
+    Step 1 — Entry point for the processing pipeline.
+    """
+    logger.info("[ingest_signal] Processing signal_id=%s", signal_id)
+    from apps.signals.models import Signal
+    signal = Signal.objects.get(id=signal_id)
+    signal.status = 'processing'
+    signal.save(update_fields=['status'])
+    return classify_domain.delay(signal_id)
+
+
+# ---------------------------------------------------------------------------
+# 2. Classify
+# ---------------------------------------------------------------------------
+
+@shared_task(name="pipeline.classify_domain")
+def classify_domain(signal_id: str):
+    """
+    Step 2 — Domain classification.
+    """
+    logger.info("[classify_domain] Classifying signal_id=%s", signal_id)
+    from apps.signals.models import Signal
+    from apps.agents.agents import SentinelAgent
+    
+    signal = Signal.objects.get(id=signal_id)
+    agent = SentinelAgent()
+    result = agent.run(signal)
+    
+    # Update signal with classified domain
+    # Ensure "cross_domain" is mapped to "cross" to fit within max_length=10
+    domain_val = result.get('domain')
+    if domain_val == 'cross_domain':
+        domain_val = 'cross'
+    
+    signal.domain = domain_val
+    signal.status = 'classified'
+    signal.save(update_fields=['domain', 'status'])
+    
+    # Store result and chain to next task
+    return route_to_agents.delay(signal_id, result)
+
+
+# ---------------------------------------------------------------------------
+# 3. Route to agents
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=5, name="pipeline.route_to_agents")
+def route_to_agents(self, signal_id: str, sentinel_result: dict = None):
+    """
+    Step 3 — Parallel agent dispatch.
+    """
+    logger.info("[route_to_agents] signal_id=%s, sentinel_result=%s", signal_id, sentinel_result)
+    from apps.signals.models import Signal
+    from apps.incidents.models import Incident, SeverityLevel
+    from apps.agents.agents import RightsAgent, TriageAgent
+
+    signal = Signal.objects.get(id=signal_id)
+    sentinel_result = sentinel_result or {}
+    domain = sentinel_result.get("domain") or signal.domain
+
+    # Normalize domain to match Domain choices
+    domain_val = domain
+    if domain_val == 'cross_domain':
+        domain_val = 'cross'
+
+    is_legal_domain = domain_val in ["legal", "cross"]
+    is_health_domain = domain_val in ["health", "emergency", "cross"]
+    
+    agent_outputs = {
+        "sentinel": sentinel_result
+    }
+
+    # Run TriageAgent if health, emergency, or cross
+    if is_health_domain:
+        logger.info("[route_to_agents] Running TriageAgent for signal_id=%s", signal_id)
+        triage_agent = TriageAgent()
+        triage_result = triage_agent.run(signal, sentinel_result)
+        agent_outputs["triage"] = triage_result
+
+    # Run RightsAgent if legal or cross
+    if is_legal_domain:
+        logger.info("[route_to_agents] Running RightsAgent for signal_id=%s", signal_id)
+        rights_agent = RightsAgent()
+        rights_result = rights_agent.run(signal, sentinel_result)
+        agent_outputs["rights"] = rights_result
+
+    # Cross-domain handoff/escalation: if triage results recommend rights escalation and rights agent has not run
+    if "triage" in agent_outputs and agent_outputs["triage"].get("escalate_to_rights_agent") and "rights" not in agent_outputs:
+        logger.info("[route_to_agents] Escalating to RightsAgent for signal_id=%s due to triage recommendation", signal_id)
+        rights_agent = RightsAgent()
+        rights_result = rights_agent.run(signal, sentinel_result)
+        agent_outputs["rights"] = rights_result
+
+    # Determine severity properties using a predefined mapping
+    SEVERITY_MAP = {
+        "critical": 1.0,
+        "high": 0.75,
+        "medium": 0.5,
+        "low": 0.25,
+        "immediate": 1.0,
+        "delayed": 0.75,
+        "minor": 0.25,
+        "deceased": 0.0,
+    }
+
+    scores = []
+    
+    # 1. Sentinel Score
+    sent_score = sentinel_result.get("severity_score")
+    if sent_score is not None:
+        try:
+            scores.append(float(sent_score))
+        except (ValueError, TypeError):
+            pass
+
+    # 1b. Sentinel Requires Immediate Action
+    if sentinel_result.get("requires_immediate_action") is True:
+        scores.append(0.75)
+    
+    # 2. Sentinel Label Mapped
+    sent_label = sentinel_result.get("severity_label", "").lower()
+    if sent_label in SEVERITY_MAP:
+        scores.append(SEVERITY_MAP[sent_label])
+
+    # 3. Triage Severity Mapped
+    if "triage" in agent_outputs:
+        triage_sev = agent_outputs["triage"].get("triage_severity", "").lower()
+        if triage_sev in SEVERITY_MAP:
+            scores.append(SEVERITY_MAP[triage_sev])
+
+    # 4. Rights Severity Mapped
+    if "rights" in agent_outputs:
+        rights_sev = agent_outputs["rights"].get("severity", "").lower()
+        if rights_sev in SEVERITY_MAP:
+            scores.append(SEVERITY_MAP[rights_sev])
+
+    # Fallback if no scores collected
+    if not scores:
+        scores.append(0.0)
+
+    severity_score = max(scores)
+
+    # Normalize back to SeverityLevel choices
+    if severity_score >= 0.9:
+        severity_label = "critical"
+    elif severity_score >= 0.6:
+        severity_label = "high"
+    elif severity_score >= 0.3:
+        severity_label = "medium"
+    else:
+        severity_label = "low"
+
+    incident, created = Incident.objects.update_or_create(
+        signal=signal,
+        defaults={
+            "severity_score": severity_score,
+            "severity_label": severity_label,
+            "domain": domain_val,
+            "agent_outputs": agent_outputs,
+        }
+    )
+
+    logger.info("[route_to_agents] Incident %s (created=%s) updated with domain=%s, severity=%s (score=%s). Chaining to coordination_agent.", 
+                incident.id, created, domain_val, severity_label, severity_score)
+
+    return coordination_agent.delay(str(incident.id), agent_outputs)
+
+
+# ---------------------------------------------------------------------------
+# 4. Coordination
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=5, name="pipeline.coordination_agent")
+def coordination_agent(self, incident_id: str, agent_outputs: dict = None):
+    """
+    Step 4 — Resource coordination and situation brief.
+
+    Args:
+        incident_id (str): UUID string of the Incident.
+        agent_outputs (dict): Outputs of preceding agents.
+    """
+    logger.info("[coordination_agent] Running for incident_id=%s", incident_id)
+    from apps.incidents.models import Incident
+    from apps.signals.models import Signal
+    from apps.agents.agents import CoordinationAgent
+
+    agent_outputs = agent_outputs or {}
+
+    incident = Incident.objects.select_related('signal').get(
+        id=incident_id
+    )
+    signal = incident.signal
+
+    # Rebuild sentinel result from signal fields and preceding outputs
+    sentinel_from_outputs = agent_outputs.get('sentinel', {})
+    requires_immediate = sentinel_from_outputs.get('requires_immediate_action', True)
+    keywords = sentinel_from_outputs.get('keywords', [])
+
+    sentinel_result = {
+        'domain': signal.domain,
+        'requires_immediate_action': requires_immediate,
+        'keywords': keywords
+    }
+
+    coord_agent = CoordinationAgent()
+    coord_result = coord_agent.run(signal, sentinel_result, agent_outputs)
+
+    # Update incident with coordination output
+    agent_outputs['coordination'] = coord_result
+    incident.agent_outputs = agent_outputs
+    incident.situation_brief = coord_result.get('situation_brief', '')
+    incident.severity_score = coord_result.get('overall_severity_score', incident.severity_score)
+    incident.save(update_fields=[
+        'agent_outputs', 'situation_brief', 'severity_score'
+    ])
+
+    # Chain to websocket/language agent
+    return push_to_websocket.delay(str(incident_id), coord_result)
+
+
+# ---------------------------------------------------------------------------
+# 5. WebSocket push
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=5, name="pipeline.push_to_websocket")
+def push_to_websocket(self, incident_id: str, coord_result: dict = None):
+    """
+    Step 5 — Push live update to all dashboard WebSocket clients.
+
+    Responsibilities:
+        - Load Incident from DB.
+        - Run Language Agent to translate the coordination brief to Hindi.
+        - Push a message to the channel group ``dashboard_<tenant_id>``
+          so all connected DashboardConsumer instances forward it to clients.
+    """
+    logger.info("[push_to_websocket] incident_id=%s, coord_result=%s", incident_id, coord_result)
+    from apps.incidents.models import Incident
+    from apps.agents.agents import LanguageAgent
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    import json
+
+    incident = Incident.objects.select_related('signal').get(
+        id=incident_id
+    )
+
+    # Run Language Agent to get Hindi translation
+    hindi_brief = None
+    if coord_result:
+        try:
+            lang_agent = LanguageAgent()
+            hindi_brief = lang_agent.run(coord_result, "hindi")
+            # Store Hindi brief in agent_outputs
+            agent_outputs = incident.agent_outputs or {}
+            agent_outputs['language'] = {
+                'hindi': hindi_brief,
+                'original_language': 'english'
+            }
+            incident.agent_outputs = agent_outputs
+            incident.save(update_fields=['agent_outputs'])
+        except Exception as e:
+            # Language translation is non-critical — log and continue
+            logger.error("Language agent error (non-critical): %s", e)
+
+    # Push to WebSocket dashboard
+    channel_layer = get_channel_layer()
+    tenant_id = str(incident.signal.tenant_id)
+
+    message = {
+        'type': 'incident_update',
+        'incident_id': str(incident.id),
+        'severity': str(incident.severity_score),
+        'domain': incident.domain,
+        'situation_brief': incident.situation_brief,
+        'situation_brief_hindi': hindi_brief.get('situation_brief', '') if hindi_brief else '',
+        'agent_outputs': incident.agent_outputs,
+        'timestamp': incident.updated_at.isoformat() if incident.updated_at else incident.created_at.isoformat()
+    }
+
+    try:
+        async_to_sync(channel_layer.group_send)(
+            f"dashboard_{tenant_id}",
+            {
+                'type': 'dashboard.update',
+                'message': message
+            }
+        )
+        incident.status = 'resolved'
+        incident.save(update_fields=['status'])
+    except Exception as e:
+        logger.error("WebSocket push error (non-critical): %s", e)
+
+    return {'incident_id': str(incident_id), 'status': 'complete'}
