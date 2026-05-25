@@ -54,23 +54,63 @@ class BaseAgent(abc.ABC):
 
     def call_groq(self, user_message: str) -> str:
         """
-        Initializes Groq client and sends system + user messages to the model.
-        """
-        api_key = getattr(settings, "GROQ_API_KEY", "")
-        if not api_key:
-            raise ValueError("GROQ_API_KEY is not configured in Django settings.")
+        Send system + user messages to Groq, rotating across available API keys
+        on rate-limit (429) errors.
 
-        client = Groq(api_key=api_key)
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": self.load_prompt()},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.1,  # low temperature for consistent classification
-            max_tokens=self.max_tokens
-        )
-        return response.choices[0].message.content
+        Keys tried in order:
+            1. settings.GROQ_API_KEY
+            2. settings.GROQ_API_KEY_2  (if configured)
+
+        Raises:
+            ValueError: if no API keys are configured.
+            groq.RateLimitError / httpx.HTTPStatusError: if all keys are exhausted.
+        """
+        # Build ordered list of non-empty keys
+        api_keys = [
+            k for k in [
+                getattr(settings, "GROQ_API_KEY", ""),
+                getattr(settings, "GROQ_API_KEY_2", ""),
+            ]
+            if k
+        ]
+        if not api_keys:
+            raise ValueError("No GROQ_API_KEY is configured in Django settings.")
+
+        system_prompt = self.load_prompt()
+        last_exc = None
+
+        for idx, api_key in enumerate(api_keys, start=1):
+            try:
+                client = Groq(api_key=api_key)
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": user_message},
+                    ],
+                    temperature=0.1,
+                    max_tokens=self.max_tokens,
+                )
+                return response.choices[0].message.content
+
+            except Exception as exc:
+                # Detect rate-limit errors from groq SDK or httpx
+                is_rate_limit = (
+                    "429" in str(exc)
+                    or "rate_limit" in str(exc).lower()
+                    or "too many requests" in str(exc).lower()
+                    or getattr(getattr(exc, "response", None), "status_code", None) == 429
+                )
+                if is_rate_limit and idx < len(api_keys):
+                    logger.warning(
+                        "[BaseAgent] Key %d hit rate limit (429) — switching to key %d.",
+                        idx, idx + 1
+                    )
+                    last_exc = exc
+                    continue
+                raise  # non-429 error or last key exhausted
+
+        raise last_exc  # all keys rate-limited
 
     def parse_json_response(self, raw: str) -> dict:
         """
@@ -94,6 +134,33 @@ class BaseAgent(abc.ABC):
                 cleaned = cleaned[:-3]
             
             cleaned = cleaned.strip()
+
+        # Pre-process cleaned text to escape raw control characters inside string literals
+        cleaned_for_json = []
+        in_string = False
+        escaped = False
+        for char in cleaned:
+            if char == '"' and not escaped:
+                in_string = not in_string
+                cleaned_for_json.append(char)
+            elif in_string:
+                if char == '\\':
+                    escaped = not escaped
+                    cleaned_for_json.append(char)
+                else:
+                    if char == '\n':
+                        cleaned_for_json.append('\\n')
+                    elif char == '\r':
+                        cleaned_for_json.append('\\r')
+                    elif char == '\t':
+                        cleaned_for_json.append('\\t')
+                    else:
+                        cleaned_for_json.append(char)
+                    escaped = False
+            else:
+                cleaned_for_json.append(char)
+                escaped = False
+        cleaned = "".join(cleaned_for_json)
 
         try:
             return json.loads(cleaned)

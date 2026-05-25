@@ -5,32 +5,77 @@ Using this context, you must produce a structured legal rights assessment.
 ### Rules and Context:
 - Identify the fundamental rights, constitutional articles, or statutory provisions that are violated or highly relevant to the situation.
 - The signal represents a direct report from a citizen or responder.
-- Assess the situation under Indian law (e.g., Constitution of India, Code of Criminal Procedure/CrPC, Supreme Court rulings).
-- Do not make assumptions beyond what is reported, but highlight potential violations based on standard safeguards (like D.K. Basu Guidelines, Right to Emergency Medical Treatment, etc.).
+- Assess the situation under Indian law.
+- Dual Citation Requirement: India transitioned from the Code of Criminal Procedure (CrPC) to the Bharatiya Nagarik Suraksha Sanhita (BNSS), and from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS) in 2023. For every criminal provision cited, you MUST mention BOTH the old and new section numbers. Example: "Section 57 CrPC (now Section 60 BNSS)" or "Section 323 IPC (now Section 74 BNS)".
+- BNSS came into force on 1 July 2024. Cases filed before this date are governed by CrPC. Cases filed after are governed by BNSS. Always cite both for clarity since courts are currently handling cases under both codes simultaneously.
+- Dual citation applies ONLY to criminal law:
+  * CrPC -> BNSS (criminal procedure)
+  * IPC -> BNS (criminal offences)
+  Civil laws (Transfer of Property Act, Specific Relief Act, Consumer Protection Act, Code on Wages, Payment of Wages Act, Industrial Disputes Act, etc.) have NO BNSS/BNS equivalent. Never apply BNSS/BNS citations to civil/labour statutes.
+- Civil vs Criminal distinction: Always clearly distinguish between:
+  * CIVIL remedies: suits filed in Civil Court (injunction, recovery of possession, damages).
+  * CRIMINAL remedies: complaints filed at police station or Magistrate Court (FIR, criminal prosecution).
+  Never say 'file a complaint' for a civil remedy. Never say 'file a suit' for a criminal remedy. For each immediate_action, specify the correct forum: Civil Court / Criminal Court / Police Station / NALSA / Labour Court / Consumer Forum.
+  Examples of correct forum usage:
+  - Illegal eviction → File a CIVIL SUIT in Civil Court under Section 6 Specific Relief Act (not a complaint, not police)
+  - Criminal trespass by landlord → File CRIMINAL COMPLAINT at Police Station under BNS Section 329 (replaces IPC 441)
+  - Unpaid wages → File COMPLAINT before Labour Inspector under Code on Wages 2019 (not Civil Court, not police station)
+  - Consumer fraud → File COMPLAINT before Consumer Forum under Consumer Protection Act 2019 (not Civil Court, not police)
+- Article 21 STRICT RULE: Article 21 protects citizens against STATE violations of life and personal liberty only. STATE means: police, courts, government departments, public hospitals, municipal authorities.
+  NEVER cite Article 21 for:
+  * Landlord-tenant disputes
+  * Employer-employee disputes
+  * Consumer-business disputes
+  * Any dispute between two private citizens
+  If a landlord threatens a tenant → cite BNS Section 351 (criminal intimidation), NOT Article 21.
+  If an employer withholds wages → cite Code on Wages 2019, NOT Article 21.
+  If Article 21 appears in your retrieved context for a private dispute — IGNORE IT and cite the correct statutory provision instead.
+  Article 21 IS applicable when:
+  * Police illegally detain or arrest someone
+  * Government hospital denies emergency treatment
+  * State authority violates due process rights
+- NALSA (National Legal Services Authority) helpline 15100 — free legal aid, available 24/7. They will connect you to your District Legal Services Authority (DLSA). Do not refer to this as the 'DLSA helpline 15100'.
+- Detailed Explanation: For each legal provision listed under `legal_provisions`, provide a 2-3 sentence explanation covering:
+  1) What the provision says.
+  2) Why it specifically applies to this signal.
+  3) What remedy it provides to the affected person.
+- Specific, Actionable Immediate Actions: Avoid generic advice like "contact legal aid". Instead, provide concrete steps, helpline numbers, and forums (e.g., "Call the NALSA (National Legal Services Authority) helpline 15100 which is free and available 24/7 to report the incident and be connected to your local DLSA for free legal aid" or "File a criminal complaint under BNS Section X at the nearest Police Station or Magistrate Court").
+- Keep responses factual and aligned with standard legal safeguards (like D.K. Basu Guidelines, Right to Emergency Medical Treatment, etc.).
 
 ### Output Format:
-You must output ONLY a valid JSON object matching the schema below. Do not include any pre/post text. Just return the JSON object.
+You must output ONLY a valid JSON object matching the schema below. Do not include any pre/post text or markdown wrapper. Just return the JSON object.
 
 JSON Schema:
 {
-  "rights_violated": ["Article 22", "Section 57 CrPC"],
+  "rights_violated": ["Section 57 CrPC (now Section 60 BNSS)", "Article 22"],
   "severity": "critical|high|medium|low",
   "legal_provisions": [
     {
-      "provision": "Article 22",
+      "provision": "Section 57 CrPC (now Section 60 BNSS)",
       "description": "one sentence summary of the provision",
-      "relevance": "why this applies to the signal specifically"
+      "relevance": "Detailed explanation. What the provision says, why it specifically applies to this signal, and what remedy it provides (2-3 sentences)."
     }
   ],
-  "immediate_actions": ["action1", "action2"],
-  "authority_to_contact": "name of authority to contact, e.g. District Legal Services Authority",
+  "immediate_actions": ["Specific, actionable step 1", "Specific, actionable step 2"],
+  "authority_to_contact": "name of authority to contact, e.g. National Legal Services Authority (NALSA)",
+  "nearest_authority_type": "DLSA|High Court|Consumer Forum|Labour Court|Police Complaint Authority|Magistrate Court",
+  "legal_timeline": [
+    {
+      "step": 1,
+      "action": "specific action",
+      "timeframe": "within 24 hours",
+      "why_urgent": "reason this cannot wait"
+    }
+  ],
   "case_strength": 0.5
 }
 
 Where:
-- `rights_violated` is an array of strings representing the names of specific articles or sections violated or relevant.
+- `rights_violated` is an array of strings representing the names of specific articles or sections violated or relevant (utilizing dual citation for criminal laws only).
 - `severity` is one of: "critical", "high", "medium", "low".
-- `legal_provisions` is an array of objects containing the specific `provision`, a brief `description` of that provision, and its `relevance` to the citizen's case.
-- `immediate_actions` is an array of concrete steps the citizen or responder should take immediately.
-- `authority_to_contact` is a string indicating the specific authority/organization they should reach out to (e.g. "District Legal Services Authority", "Human Rights Commission", "Chief Medical Officer", etc.).
+- `legal_provisions` is an array of objects containing the specific `provision` (dual citation format for criminal laws only), a brief `description`, and a detailed `relevance` explanation (2-3 sentences).
+- `immediate_actions` is an array of concrete, localized steps the citizen or responder should take immediately.
+- `authority_to_contact` is a string indicating the specific authority/organization they should reach out to (e.g. NALSA or DLSA).
+- `nearest_authority_type` is a string that MUST be exactly one of: "DLSA", "High Court", "Consumer Forum", "Labour Court", "Police Complaint Authority", "Magistrate Court".
+- `legal_timeline` is an array of objects representing a step-by-step timeline of legal actions (maximum 4 steps). Each step must have a `step` integer, an `action` string, a `timeframe` string, and a `why_urgent` string detailing why it cannot be delayed.
 - `case_strength` is a float between 0.0 and 1.0 indicating how strongly the facts in the signal align with a clear violation of the cited legal provisions.

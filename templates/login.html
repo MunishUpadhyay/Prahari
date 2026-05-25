@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prahari — Coordinator Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(22, 28, 45, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-indigo: #6366f1;
+            --color-indigo-hover: #4f46e5;
+            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
+            --color-error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-indigo);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--color-indigo);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Login Card */
+        main {
+            flex: 1;
+            max-width: 440px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem 2.25rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .login-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.25rem;
+        }
+
+        .login-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .login-title[lang="hi"] {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .login-subtitle[lang="hi"] {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-label[lang="hi"] {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-indigo);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .form-error {
+            color: var(--color-error);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--color-indigo), #8b5cf6);
+            color: white;
+            padding: 0.85rem 2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(9, 13, 22, 0.5);
+        }
+
+        .loc-hi {
+            display: none !important;
+        }
+        
+        html[lang="hi"] .loc-en {
+            display: none !important;
+        }
+
+        html[lang="hi"] .loc-hi {
+            display: block !important;
+        }
+
+        html[lang="hi"] span.loc-hi,
+        html[lang="hi"] label.loc-hi,
+        html[lang="hi"] button.loc-hi {
+            display: inline-block !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo-container">
+            <div class="logo-pulse"></div>
+            <h1>Prahari</h1>
+        </a>
+        <div class="nav-right">
+            <button class="lang-btn" onclick="toggleLanguage()">
+                <span class="loc-en">हिन्दी</span>
+                <span class="loc-hi">English</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="login-card">
+            <div class="login-header">
+                <h2 class="login-title loc-en">Coordinator Access</h2>
+                <h2 class="login-title loc-hi" lang="hi">समन्वयक पहुंच</h2>
+                
+                <p class="login-subtitle loc-en">Authorized Prahari personnel only.</p>
+                <p class="login-subtitle loc-hi" lang="hi">केवल अधिकृत प्रहरी कर्मी।</p>
+            </div>
+
+            <form method="POST" action="/login/">
+                {% csrf_token %}
+
+                {% if error %}
+                    <div class="form-error" style="margin-bottom: 1.25rem;">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label loc-en" for="username">Username</label>
+                    <label class="form-label loc-hi" lang="hi" for="username">उपयोगकर्ता नाम</label>
+                    <input type="text" name="username" id="username" class="form-control" required placeholder="e.g. coordinator">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.75rem;">
+                    <label class="form-label loc-en" for="password">Password</label>
+                    <label class="form-label loc-hi" lang="hi" for="password">पासवर्ड</label>
+                    <input type="password" name="password" id="password" class="form-control" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="login-btn loc-en">Login</button>
+                <button type="submit" class="login-btn loc-hi" lang="hi">लॉगिन करें</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
+        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
+    </footer>
+
+    <script>
+        function initLanguage() {
+            let selectedLang = localStorage.getItem('prahari_lang');
+            if (!selectedLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                localStorage.setItem('prahari_lang', selectedLang);
+            }
+            setLanguageTheme(selectedLang);
+        }
+
+        function setLanguageTheme(lang) {
+            document.documentElement.setAttribute('lang', lang);
+            localStorage.setItem('prahari_lang', lang);
+        }
+
+        function toggleLanguage() {
+            const currentLang = document.documentElement.getAttribute('lang') || 'en';
+            const nextLang = currentLang === 'en' ? 'hi' : 'en';
+            setLanguageTheme(nextLang);
+        }
+
+        window.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+</body>
+</html>

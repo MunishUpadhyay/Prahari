@@ -18,6 +18,13 @@ from apps.signals.citizen_views import (
     citizen_report_status,
     citizen_signal_status_api,
 )
+from apps.incidents.coordinator_views import (
+    coordinator_login,
+    coordinator_logout,
+    coordinator_dashboard,
+    coordinator_incident_detail,
+    coordinator_resolve_incident,
+)
 
 urlpatterns = [
     # Citizen Portal
@@ -26,8 +33,16 @@ urlpatterns = [
     path("report/<uuid:signal_id>/", citizen_report_status, name="citizen_report_status"),
     path("report/<uuid:signal_id>/status/", citizen_signal_status_api, name="citizen_signal_status_api"),
 
-    # Dashboard
+    # Coordinator Portal
+    path("login/", coordinator_login, name="login"),
+    path("logout/", coordinator_logout, name="logout"),
+    path("coordinator/dashboard/", coordinator_dashboard, name="coordinator_dashboard"),
+    path("coordinator/incident/<uuid:incident_id>/", coordinator_incident_detail, name="coordinator_incident_detail"),
+    path("coordinator/incident/<uuid:incident_id>/resolve/", coordinator_resolve_incident, name="coordinator_resolve_incident"),
+
+    # Old dashboard path (redirects or keeps for reference)
     path("dashboard/", TemplateView.as_view(template_name="dashboard.html"), name="dashboard"),
+
 
 
     # Admin

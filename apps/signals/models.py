@@ -80,7 +80,14 @@ class Signal(models.Model):
         blank=True,
         help_text="Arbitrary extra data from the ingestion source.",
     )
+    contact_number = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        help_text="Optional contact number for updates.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         ordering = ["-created_at"]

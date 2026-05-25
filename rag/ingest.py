@@ -188,6 +188,166 @@ def ingest_legal_documents():
                 "act": "Legal Services Authorities Act",
                 "section": "Section 12"
             }
+        },
+        {
+            "id": "bnss_sec60",
+            "document": (
+                "Section 60 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested not to be detained more than twenty-four hours. "
+                "This provision replaces Section 57 of the old Code of Criminal Procedure (CrPC). It mandates that no police officer shall "
+                "detain in custody a person arrested without warrant for a longer period than under all the circumstances of the case is reasonable, "
+                "and such period shall not, in the absence of a special order of a Magistrate under Section 187 BNSS (formerly Section 167 CrPC), "
+                "exceed twenty-four hours exclusive of the time necessary for the journey from the place of arrest to the Magistrate's court. "
+                "Detaining an individual beyond 24 hours without a Magistrate's authorization is an illegal detention and a direct violation of constitutional rights."
+            ),
+            "metadata": {
+                "category": "arrest_procedure",
+                "act": "Bharatiya Nagarik Suraksha Sanhita",
+                "section": "Section 60"
+            }
+        },
+        {
+            "id": "bnss_sec35",
+            "document": (
+                "Section 35 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — When police may arrest without warrant. "
+                "This provision replaces Section 41 of the old Code of Criminal Procedure (CrPC). It outlines the strict conditions under which "
+                "a police officer may arrest a person without a warrant, particularly for offenses punishable with imprisonment for a term less "
+                "than seven years. It requires the police officer to satisfy themselves that the arrest is necessary to prevent the person from "
+                "committing further offenses, for proper investigation, to prevent tampering with evidence, or to prevent threatening witnesses. "
+                "It also introduces safeguards like prior approval from an officer not below the rank of Deputy Superintendent of Police for arrests of individuals "
+                "who are infirm or aged."
+            ),
+            "metadata": {
+                "category": "arrest_procedure",
+                "act": "Bharatiya Nagarik Suraksha Sanhita",
+                "section": "Section 35"
+            }
+        },
+        {
+            "id": "bnss_sec58",
+            "document": (
+                "Section 58 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested to be informed of grounds of arrest and right to bail. "
+                "This provision replaces Section 50 of the old Code of Criminal Procedure (CrPC). It mandates that every police officer or other person "
+                "arresting any person without a warrant must immediately communicate to him full particulars of the offense for which he is arrested "
+                "or other grounds for such arrest. Additionally, if the offense is bailable, the officer must inform the arrested person of their right "
+                "to be released on bail so they may arrange for sureties on their behalf."
+            ),
+            "metadata": {
+                "category": "arrest_procedure",
+                "act": "Bharatiya Nagarik Suraksha Sanhita",
+                "section": "Section 58"
+            }
+        },
+        {
+            "id": "bns_sec74",
+            "document": (
+                "Section 74 of the Bharatiya Nyaya Sanhita (BNS) — Punishment for voluntarily causing hurt. "
+                "This provision replaces Section 323 of the old Indian Penal Code (IPC). It states that whoever voluntarily causes hurt "
+                "to any person shall be punished with imprisonment for a term which may extend to one year, or with fine which may extend "
+                "to ten thousand rupees, or with both. Voluntarily causing hurt is a cognizable or non-cognizable offense depending on severity, "
+                "and under BNS, the penalty structure has been modernized."
+            ),
+            "metadata": {
+                "category": "assault_provisions",
+                "act": "Bharatiya Nyaya Sanhita",
+                "section": "Section 74"
+            }
+        },
+        {
+            "id": "consumer_protection_act_2019",
+            "document": (
+                "Consumer Protection Act 2019 — Key provisions for consumer disputes, e-commerce fraud, and service deficiencies. "
+                "The Consumer Protection Act 2019 provides a robust mechanism to protect the rights of consumers. It defines a 'consumer' "
+                "and establishes Central Consumer Protection Authority (CCPA) to regulate matters relating to violation of consumer rights, "
+                "unfair trade practices, and false or misleading advertisements. It provides for a three-tier consumer dispute redressal machinery: "
+                "District Commission (for claims up to 1 crore), State Commission (up to 10 crores), and National Commission (above 10 crores). "
+                "Service deficiency includes any fault, imperfection, shortcoming or inadequacy in the quality, nature and manner of performance "
+                "required by law or contract."
+            ),
+            "metadata": {
+                "category": "consumer_disputes",
+                "act": "Consumer Protection Act 2019",
+                "section": "Key Provisions"
+            }
+        },
+        {
+            "id": "minimum_wages_and_code_on_wages",
+            "document": (
+                "Minimum Wages Act 1948 and Code on Wages 2019 — Wage theft, inspector powers, and penalties. "
+                "Under the Minimum Wages Act 1948 and the Code on Wages 2019, failure of an employer to pay wages on time or paying less than "
+                "the prescribed minimum wages constitutes a serious statutory violation, commonly termed wage theft. The Code on Wages 2019 consolidates "
+                "laws relating to wages, bonus, and gender equality. It mandates timely payment of wages (weekly, fortnightly, or monthly) "
+                "and empowers Inspectors-cum-Facilitators to inspect workplaces, examine records, and prosecute errant employers. "
+                "Employers who default on payment or pay below minimum wages face steep fines and penalties, and workers can claim up to ten times "
+                "the difference under recovery procedures before designated authorities."
+            ),
+            "metadata": {
+                "category": "labour_rights",
+                "act": "Code on Wages 2019",
+                "section": "Wage Theft Provisions"
+            }
+        },
+        {
+            "id": "tpa_sec106",
+            "document": (
+                "Section 106 of the Transfer of Property Act 1882 — Tenancy termination and illegal lockout provisions. "
+                "Section 106 regulates the duration of certain leases in the absence of written contracts. A lease of immovable property for "
+                "agricultural or manufacturing purposes is deemed to be from year to year, terminable by six months' notice, while a lease for "
+                "other purposes is deemed to be from month to month, terminable by fifteen days' notice. An illegal lockout—where a landlord "
+                "forcibly locks a tenant out of the premises without following due process of law—is a civil wrong and a violation of the tenant's "
+                "right to peaceful possession. Tenants can seek immediate restoration of possession and damages under civil remedies."
+            ),
+            "metadata": {
+                "category": "property_tenancy",
+                "act": "Transfer of Property Act 1882",
+                "section": "Section 106"
+            }
+        },
+        {
+            "id": "specific_relief_act_1963",
+            "document": (
+                "Specific Relief Act 1963 — Injunction against illegal eviction and recovery of possession. "
+                "Under Section 6 of the Specific Relief Act 1963, if any person is dispossessed without their consent of immovable property "
+                "otherwise than in due course of law, they or any person claiming through them may, by suit, recover possession thereof. "
+                "This suit must be filed within six months from the date of dispossession. Additionally, tenants or occupants facing threats "
+                "of illegal eviction can seek a temporary or permanent injunction under Section 37 and 38 of the Specific Relief Act to restrain the "
+                "landlord from forcibly evicting them without following the legal due process."
+            ),
+            "metadata": {
+                "category": "property_tenancy",
+                "act": "Specific Relief Act 1963",
+                "section": "Section 6"
+            }
+        },
+        {
+            "id": "illegal_eviction_remedies",
+            "document": (
+                "Illegal Eviction Remedies India. For illegal eviction by a landlord: "
+                "1. Section 6 Specific Relief Act 1963 — suit for recovery of possession must be filed in Civil Court within 6 months of dispossession. "
+                "2. Section 38 Specific Relief Act 1963 — suit for permanent injunction to prevent eviction, filed in Civil Court. "
+                "3. BNS Section 329 (replaces IPC 441) — criminal trespass if landlord physically enters and locks out tenant — complaint to police or Magistrate. "
+                "4. BNS Section 351 (replaces IPC 503) — criminal intimidation if landlord threatens tenant — complaint to police. "
+                "5. Section 106 Transfer of Property Act 1882 — requires landlord to give 15 days notice for monthly tenancy, 6 months for yearly tenancy before termination. Violation = wrongful termination. Remedy: civil suit for damages. This is NOT a criminal provision."
+            ),
+            "metadata": {
+                "category": "civil_remedy",
+                "act": "SRA_TPA_BNS",
+                "section": "Illegal Eviction Remedies"
+            }
+        },
+        {
+            "id": "wage_theft_remedies",
+            "document": (
+                "Wage Theft Remedies India. For non-payment of wages: "
+                "1. Code on Wages 2019 Section 45 — file written complaint with Inspector-cum-Facilitator (not a court, not police — a labour inspector). "
+                "2. Payment of Wages Act 1936 — claim before Authority under Payment of Wages Act (Labour Court). NOT a Magistrate Court complaint. "
+                "3. BNS Section 111 (replaces IPC 420 cheating) — only if employer fraudulently induced workers under false promise of payment. "
+                "4. Industrial Disputes Act 1947 — if 10+ workers affected, can raise industrial dispute before Labour Commissioner."
+            ),
+            "metadata": {
+                "category": "labour_law",
+                "act": "Code_on_Wages",
+                "section": "Wage Theft Remedies"
+            }
         }
     ]
 
@@ -373,6 +533,127 @@ def ingest_medical_protocols():
                 "act": "Obstetric Protocol",
                 "section": "Obstetric Emergency"
             }
+        },
+        {
+            "id": "stemi_protocol",
+            "document": (
+                "STEMI (ST-Elevation Myocardial Infarction / Heart Attack) Protocol. "
+                "STEMI is a life-threatening medical emergency requiring immediate coronary reperfusion. "
+                "Door-to-Balloon Time: Strict golden window of 90 minutes for primary percutaneous coronary intervention (PCI). "
+                "Immediate Pharmacological Actions: Administer Aspirin 325mg orally (to be chewed immediately) to prevent further platelet aggregation. "
+                "Diagnostics: Obtain a 12-lead ECG within 10 minutes of patient arrival. "
+                "Alternative Therapy: If PCI is not available within 120 minutes, initiate thrombolytic therapy (thrombolysis) immediately unless contraindicated."
+            ),
+            "metadata": {
+                "category": "emergency_medicine",
+                "act": "STEMI Protocol",
+                "section": "STEMI Heart Attack"
+            }
+        },
+        {
+            "id": "eclampsia_protocol_detailed",
+            "document": (
+                "Eclampsia and Severe Pre-eclampsia Medical Protocol. "
+                "Eclampsia is the onset of tonic-clonic seizures in a patient with pre-eclampsia, representing a severe obstetric emergency. "
+                "Golden Window: Seizure control and stabilization must occur within 30 minutes to prevent maternal and fetal hypoxia or death. "
+                "Seizure Management: Administer Magnesium Sulfate (MgSO4) loading dose of 4g IV slowly over 5 minutes, followed by maintenance infusion. "
+                "Hypertension Control: Administer antihypertensives (such as IV Labetalol or Hydralazine) to control blood pressure. "
+                "Definitive Treatment: Arrange for emergency Cesarean section or induction of labor once the patient is stabilized."
+            ),
+            "metadata": {
+                "category": "obstetric_care",
+                "act": "Eclampsia Protocol",
+                "section": "Eclampsia Protocol"
+            }
+        },
+        {
+            "id": "spinal_injury_protocol",
+            "document": (
+                "Spinal Injury and Cervical Spine Protection Protocol. "
+                "Suspected spinal trauma requires strict immobilization to prevent secondary, permanent neurological damage. "
+                "Immobilization Rules: Do NOT move the patient without proper spinal precautions. Apply a hard cervical collar immediately. "
+                "Movement Technique: Use the 'log roll' technique only, requiring at least three trained responders to keep the spine in neutral alignment. "
+                "Consequence of Deviation: Improper movement or lifting can cause permanent spinal cord transection and irreversible paralysis."
+            ),
+            "metadata": {
+                "category": "trauma_care",
+                "act": "Spinal Injury Protocol",
+                "section": "Spinal Injury"
+            }
+        },
+        {
+            "id": "drowning_protocol",
+            "document": (
+                "Drowning resuscitation and emergency management protocol. "
+                "Drowning requires immediate, aggressive rescue breathing and cardiovascular resuscitation. "
+                "Resuscitation Priority: Initiate immediate CPR (starting with 5 rescue breaths, then 30 compressions) as soon as the victim is removed from water. "
+                "Ambulance Wait: Do NOT wait for an ambulance or medical team before starting resuscitation. "
+                "Thermoregulation: Remove wet clothing and initiate passive or active rewarming to prevent severe hypothermia."
+            ),
+            "metadata": {
+                "category": "emergency_medicine",
+                "act": "Drowning Protocol",
+                "section": "Drowning"
+            }
+        },
+        {
+            "id": "burns_protocol",
+            "document": (
+                "Burns Assessment and Treatment Protocol. "
+                "Thermal burns require rapid cooling and sterile coverage. "
+                "First-line Action: Apply cool, gently running water over the burn area for a minimum of 20 minutes immediately. "
+                "Prohibited Agents: Do NOT apply ice, butter, toothpaste, oil, or home remedies, as they trap heat and worsen tissue destruction. "
+                "Triage and Severity: Estimate the total burn surface area (TBSA) using the Rule of Nines. Refer burns >10% TBSA or burns involving face, hands, or perineum to a specialized burn center."
+            ),
+            "metadata": {
+                "category": "trauma_care",
+                "act": "Burns Protocol",
+                "section": "Burns"
+            }
+        },
+        {
+            "id": "pediatric_emergency",
+            "document": (
+                "Pediatric Emergency Resuscitation and Vital Ranges. "
+                "Pediatric patients have distinct physiological and anatomical characteristics. "
+                "Resuscitation Dosing: Always use weight-based or age-based length-tapes (e.g. Broselow tape) for drug dosages and equipment sizing. "
+                "Airway Management: Pediatric airways are narrower and more anterior; avoid hyperextension of the neck. "
+                "Vital Signs Monitoring: Be alert to age-specific heart and respiratory rates. Children compensate for shock longer than adults, but deteriorate rapidly once compensation fails."
+            ),
+            "metadata": {
+                "category": "pediatric_care",
+                "act": "Pediatric Protocol",
+                "section": "Pediatric Emergency"
+            }
+        },
+        {
+            "id": "diabetic_emergency",
+            "document": (
+                "Diabetic Emergency and Glycemic Crisis Protocol. "
+                "Manages acute hypoglycemia and diabetic ketoacidosis (DKA) or hyperosmolar hyperglycemic state (HHS). "
+                "Differentiation: Hypoglycemia presents with rapid onset, sweating, confusion, and tremors. DKA/HHS presents with gradual onset, dehydration, and rapid deep breathing. "
+                "Unconscious Patient Management: If a diabetic patient is unconscious and blood glucose cannot be checked immediately, administer immediate intravenous dextrose (or oral glucose gel if airway is secure) as a life-saving measure; hypoglycemia causes permanent brain damage within minutes."
+            ),
+            "metadata": {
+                "category": "emergency_medicine",
+                "act": "Diabetic Emergency Guidelines",
+                "section": "Diabetic Emergency"
+            }
+        },
+        {
+            "id": "snake_bite_protocol",
+            "document": (
+                "Snake Bite Triage and Anti-Venom Administration Protocol. "
+                "Suspected venomous snake bites require absolute immobilization and rapid hospital transfer. "
+                "Limb Stabilization: Keep the affected limb completely immobilized and at or below heart level to slow venom spread. "
+                "Prohibited Actions: Do NOT cut the wound, do NOT attempt to suck venom out (either by mouth or suction device), and do NOT apply a tight arterial tourniquet. "
+                "Anti-Venom Window: Reach a designated hospital equipped with polyvalent anti-snake venom (ASV) within a strict golden window of 2 hours."
+            ),
+            "metadata": {
+                "category": "emergency_medicine",
+                "act": "Snake Bite Protocol",
+                "section": "Snake Bite"
+            }
         }
     ]
 
@@ -386,4 +667,54 @@ def ingest_medical_protocols():
         print(f"Ingested: {doc['id']} - {doc['metadata']['section']}")
 
     logger.info("Successfully ingested %d medical protocols into ChromaDB.", len(documents))
+
+
+def ingest_incident_to_history(incident_id: str, situation_brief: str,
+                               domain: str, severity: str, resolved: bool):
+    """
+    Ingest a processed incident into the 'incident_history' collection.
+    Embeds the situation_brief and stores metadata:
+    - incident_id
+    - domain
+    - severity
+    - resolved (bool)
+    - created_at
+    """
+    from datetime import datetime, timezone
+    import chromadb
+    from chromadb.utils import embedding_functions
+
+    logger.info("[ingest_incident_to_history] Ingesting incident_id=%s to incident_history", incident_id)
+    try:
+        # 1. Initialize persistent client
+        client = chromadb.PersistentClient(path="rag/chroma_db")
+        
+        # 2. Use local sentence-transformers model
+        emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name="all-MiniLM-L6-v2"
+        )
+        
+        # 3. Create or get collection
+        collection = client.get_or_create_collection(
+            name="incident_history",
+            embedding_function=emb_fn
+        )
+        
+        # 4. Ingest/upsert the incident
+        metadata = {
+            "incident_id": str(incident_id),
+            "domain": str(domain),
+            "severity": str(severity),
+            "resolved": bool(resolved),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        collection.upsert(
+            ids=[str(incident_id)],
+            documents=[situation_brief],
+            metadatas=[metadata]
+        )
+        logger.info("[ingest_incident_to_history] Successfully ingested incident_id=%s", incident_id)
+    except Exception as e:
+        logger.exception("Error ingesting incident %s to history: %s", incident_id, e)
 

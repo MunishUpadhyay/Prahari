@@ -20,6 +20,7 @@ Usage:
 """
 
 import logging
+from datetime import datetime, timezone
 
 from asgiref.sync import async_to_sync
 from celery import shared_task
@@ -60,7 +61,18 @@ def classify_domain(signal_id: str):
     
     signal = Signal.objects.get(id=signal_id)
     agent = SentinelAgent()
+    
+    start_time = datetime.now(timezone.utc)
     result = agent.run(signal)
+    end_time = datetime.now(timezone.utc)
+    duration_ms = int((end_time - start_time).total_seconds() * 1000)
+    
+    # Add timing info to sentinel result dictionary
+    result['timing'] = {
+        'start': start_time.isoformat(),
+        'end': end_time.isoformat(),
+        'duration_ms': duration_ms
+    }
     
     # Update signal with classified domain
     # Ensure "cross_domain" is mapped to "cross" to fit within max_length=10
@@ -102,30 +114,63 @@ def route_to_agents(self, signal_id: str, sentinel_result: dict = None):
     is_legal_domain = domain_val in ["legal", "cross"]
     is_health_domain = domain_val in ["health", "emergency", "cross"]
     
+    # Extract sentinel timing from sentinel result
+    sentinel_timing = sentinel_result.pop('timing', None)
+
     agent_outputs = {
-        "sentinel": sentinel_result
+        "sentinel": sentinel_result,
+        "timing": {}
     }
+    if sentinel_timing:
+        agent_outputs["timing"]["sentinel"] = sentinel_timing
 
     # Run TriageAgent if health, emergency, or cross
     if is_health_domain:
         logger.info("[route_to_agents] Running TriageAgent for signal_id=%s", signal_id)
         triage_agent = TriageAgent()
+        start_time = datetime.now(timezone.utc)
         triage_result = triage_agent.run(signal, sentinel_result)
+        end_time = datetime.now(timezone.utc)
+        duration_ms = int((end_time - start_time).total_seconds() * 1000)
+        
         agent_outputs["triage"] = triage_result
+        agent_outputs["timing"]["triage"] = {
+            'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
+            'duration_ms': duration_ms
+        }
 
     # Run RightsAgent if legal or cross
     if is_legal_domain:
         logger.info("[route_to_agents] Running RightsAgent for signal_id=%s", signal_id)
         rights_agent = RightsAgent()
+        start_time = datetime.now(timezone.utc)
         rights_result = rights_agent.run(signal, sentinel_result)
+        end_time = datetime.now(timezone.utc)
+        duration_ms = int((end_time - start_time).total_seconds() * 1000)
+        
         agent_outputs["rights"] = rights_result
+        agent_outputs["timing"]["rights"] = {
+            'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
+            'duration_ms': duration_ms
+        }
 
     # Cross-domain handoff/escalation: if triage results recommend rights escalation and rights agent has not run
     if "triage" in agent_outputs and agent_outputs["triage"].get("escalate_to_rights_agent") and "rights" not in agent_outputs:
         logger.info("[route_to_agents] Escalating to RightsAgent for signal_id=%s due to triage recommendation", signal_id)
         rights_agent = RightsAgent()
+        start_time = datetime.now(timezone.utc)
         rights_result = rights_agent.run(signal, sentinel_result)
+        end_time = datetime.now(timezone.utc)
+        duration_ms = int((end_time - start_time).total_seconds() * 1000)
+        
         agent_outputs["rights"] = rights_result
+        agent_outputs["timing"]["rights"] = {
+            'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
+            'duration_ms': duration_ms
+        }
 
     # Determine severity properties using a predefined mapping
     SEVERITY_MAP = {
@@ -239,10 +284,20 @@ def coordination_agent(self, incident_id: str, agent_outputs: dict = None):
     }
 
     coord_agent = CoordinationAgent()
+    start_time = datetime.now(timezone.utc)
     coord_result = coord_agent.run(signal, sentinel_result, agent_outputs)
+    end_time = datetime.now(timezone.utc)
+    duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
     # Update incident with coordination output
     agent_outputs['coordination'] = coord_result
+    if 'timing' not in agent_outputs:
+        agent_outputs['timing'] = {}
+    agent_outputs['timing']['coordination'] = {
+        'start': start_time.isoformat(),
+        'end': end_time.isoformat(),
+        'duration_ms': duration_ms
+    }
     incident.agent_outputs = agent_outputs
     incident.situation_brief = coord_result.get('situation_brief', '')
     incident.severity_score = coord_result.get('overall_severity_score', incident.severity_score)
@@ -283,20 +338,46 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
     # Run Language Agent to get Hindi translation
     hindi_brief = None
     if coord_result:
+        agent_outputs = incident.agent_outputs or {}
+        if 'timing' not in agent_outputs:
+            agent_outputs['timing'] = {}
+        
+        start_time = datetime.now(timezone.utc)
         try:
             lang_agent = LanguageAgent()
             hindi_brief = lang_agent.run(coord_result, "hindi")
+            
             # Store Hindi brief in agent_outputs
-            agent_outputs = incident.agent_outputs or {}
             agent_outputs['language'] = {
                 'hindi': hindi_brief,
                 'original_language': 'english'
             }
-            incident.agent_outputs = agent_outputs
-            incident.save(update_fields=['agent_outputs'])
         except Exception as e:
             # Language translation is non-critical — log and continue
             logger.error("Language agent error (non-critical): %s", e)
+        finally:
+            end_time = datetime.now(timezone.utc)
+            duration_ms = int((end_time - start_time).total_seconds() * 1000)
+            agent_outputs['timing']['language'] = {
+                'start': start_time.isoformat(),
+                'end': end_time.isoformat(),
+                'duration_ms': duration_ms
+            }
+            incident.agent_outputs = agent_outputs
+            incident.save(update_fields=['agent_outputs'])
+
+            # Ingest incident to history collection for RAG
+            try:
+                from rag.ingest import ingest_incident_to_history
+                ingest_incident_to_history(
+                    str(incident.id),
+                    incident.situation_brief or '',
+                    incident.domain,
+                    incident.severity_label,
+                    incident.is_resolved
+                )
+            except Exception as e:
+                logger.error("Failed to ingest incident to history (non-critical): %s", e)
 
     # Push to WebSocket dashboard
     channel_layer = get_channel_layer()
@@ -321,9 +402,16 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                 'message': message
             }
         )
-        incident.status = 'resolved'
-        incident.save(update_fields=['status'])
+        incident.signal.status = 'processed'
+        incident.signal.save(update_fields=['status'])
     except Exception as e:
         logger.error("WebSocket push error (non-critical): %s", e)
+
+    # Trigger SMS notification if contact number is available
+    contact_number = incident.signal.contact_number or incident.signal.metadata.get("contact_number")
+    if contact_number:
+        logger.info("[push_to_websocket] Dispatching send_notification task for signal %s", incident.signal.id)
+        from apps.notifications.tasks import send_notification
+        send_notification.delay(str(incident.signal.id), str(incident.id))
 
     return {'incident_id': str(incident_id), 'status': 'complete'}

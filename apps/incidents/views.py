@@ -11,10 +11,13 @@ Tenant filtering:
 
 import logging
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rag.retriever import retrieve_similar_incidents
 
 from .models import Incident
 from .serializers import IncidentDetailSerializer, IncidentListSerializer
@@ -55,3 +58,24 @@ class IncidentDetailView(RetrieveAPIView):
     def get_queryset(self):
         # TODO: scope to tenant
         return Incident.objects.select_related("signal").all()
+
+
+class SimilarIncidentsView(APIView):
+    """
+    GET /api/incidents/<uuid:id>/similar/
+    Returns the top 3 similar past incidents using RAG situation_brief embeddings.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
+        query_text = incident.situation_brief or ""
+        if not query_text:
+            query_text = incident.signal.raw_text
+
+        results = retrieve_similar_incidents(
+            query=query_text,
+            n_results=3,
+            exclude_id=str(id)
+        )
+        return Response(results, status=status.HTTP_200_OK)

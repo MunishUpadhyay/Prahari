@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prahari — Incident Detail #{{ incident.id }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(22, 28, 45, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-indigo: #6366f1;
+            --color-indigo-hover: #4f46e5;
+            
+            --color-critical: #ef4444;
+            --color-high: #f97316;
+            --color-medium: #eab308;
+            --color-low: #22c55e;
+            
+            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.05) 0px, transparent 50%);
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-indigo);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--color-indigo);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .dashboard-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .dashboard-link:hover {
+            color: var(--text-main);
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Detail Container */
+        main {
+            flex: 1;
+            max-width: 1100px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .detail-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .incident-title-en {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .incident-title-hi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.critical { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge.high { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .badge.medium { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge.low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge.domain { background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .badge.resolved-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        /* Timeline row */
+        .timeline-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .timeline-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .timeline-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow-x: auto;
+            gap: 1.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 120px;
+            gap: 0.5rem;
+            flex: 1;
+            position: relative;
+        }
+
+        .timeline-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background-color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            z-index: 2;
+        }
+
+        .timeline-item.done .timeline-circle {
+            border-color: var(--color-low);
+            background-color: var(--color-low);
+            color: var(--bg-primary);
+        }
+
+        .timeline-item.skipped .timeline-circle {
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .timeline-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .timeline-item.done .timeline-label {
+            color: var(--text-main);
+        }
+
+        /* Detail Information Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .info-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .info-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .info-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        /* Tabs Interface */
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.85rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--color-indigo);
+            border-bottom-color: var(--color-indigo);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 0 0 12px 12px;
+            padding: 1.75rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Raw Data JSON display */
+        pre {
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit;
+            font-family: inherit;
+        }
+
+        /* General Buttons */
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success.disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-pdf {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-pdf:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .detail-meta-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .detail-meta-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        /* Timing Chart Styles */
+        .timing-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .timing-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .timing-label {
+            width: 170px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .timing-bar-container {
+            flex: 1;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timing-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 1s ease-out;
+            width: 0;
+        }
+
+        .timing-bar.sentinel {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .timing-bar.rights {
+            background: linear-gradient(90deg, #a855f7, #c084fc);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        .timing-bar.triage {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .timing-bar.coordination {
+            background: linear-gradient(90deg, #f97316, #fb923c);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        .timing-bar.language {
+            background: linear-gradient(90deg, #ec4899, #f472b6);
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+        }
+
+        .timing-value {
+            width: 80px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .timing-total {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .timing-total-badge {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        /* Similar Incidents Styles */
+        .similar-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .similar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .similar-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .similar-card:hover {
+            background: rgba(22, 28, 45, 0.8);
+            border-color: var(--color-indigo);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .similar-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .similar-badges {
+            display: flex;
+            gap: 0.35rem;
+            flex-wrap: wrap;
+        }
+
+        .similar-brief {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+
+        .similar-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 0.5rem;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .similar-resolved-status {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        
+        .similar-resolved-status.resolved {
+            color: #4ade80;
+        }
+        
+        .similar-resolved-status.unresolved {
+            color: #f87171;
+        }
+
+        /* Print formatting */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            header, footer, .header-actions, .timeline-section, .tabs-header, .tab-btn, .btn, .lang-btn {
+                display: none !important;
+            }
+            .detail-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                background: none !important;
+            }
+            .info-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .info-right {
+                background: none !important;
+                border: 1px solid #ddd !important;
+                color: black !important;
+            }
+            .tab-content {
+                display: block !important;
+                background: none !important;
+                border: 1px solid #ddd !important;
+                color: black !important;
+            }
+            .incident-title-en {
+                color: black !important;
+            }
+            .incident-title-hi {
+                color: #444 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo-container">
+            <div class="logo-pulse"></div>
+            <h1>Prahari</h1>
+        </a>
+        <div class="nav-right">
+            <a href="/coordinator/dashboard/" class="dashboard-link loc-en">← Back to Dashboard</a>
+            <a href="/coordinator/dashboard/" class="dashboard-link loc-hi">← डैशबोर्ड पर वापस जाएं</a>
+            <button class="lang-btn" onclick="toggleLanguage()">
+                <span class="loc-en">हिन्दी</span>
+                <span class="loc-hi">English</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="detail-card">
+            
+            <!-- Banner / Header -->
+            <div class="detail-header">
+                <div class="title-block">
+                    <div class="incident-title-en">{{ coordination.situation_title|default:incident.situation_brief }}</div>
+                    {% if language.situation_title %}
+                        <div class="incident-title-hi">{{ language.situation_title }}</div>
+                    {% endif %}
+                    <div class="badge-row">
+                        <span class="badge {{ incident.severity_label|lower }}">{{ incident.severity_label }} ({{ incident.severity_score|floatformat:2 }})</span>
+                        <span class="badge domain">{{ incident.domain }}</span>
+                        {% if incident.is_resolved %}
+                            <span class="badge resolved-badge" id="res-badge">RESOLVED</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-pdf" onclick="window.print()">Export as PDF / प्रिंट</button>
+                    {% if not incident.is_resolved %}
+                        <button class="btn btn-success" id="resolve-btn" onclick="resolveIncident('{{ incident.id }}')">Mark as Resolved</button>
+                    {% else %}
+                        <button class="btn btn-success disabled" id="resolve-btn" disabled>Resolved</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-section">
+                <div class="timeline-title">Diagnostic Pipeline Timeline</div>
+                <div class="timeline-steps">
+                    {% for step in timeline %}
+                        <div class="timeline-item {{ step.status }}">
+                            <div class="timeline-circle">
+                                {% if step.status == 'done' %}✓{% else %}•{% endif %}
+                            </div>
+                            <div class="timeline-label">{{ step.name }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Agent Timing Timeline -->
+            <div class="timeline-section" style="margin-top: -1rem;">
+                <div class="timeline-title">Agent Execution Timeline</div>
+                <div id="timing-chart-content">
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">Loading agent timing data...</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Split Information -->
+            <div class="info-grid">
+                
+                <!-- Tabbed Agent Payloads (Left Side) -->
+                <div class="info-left">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" onclick="switchTab('tab-sentinel')">Sentinel</button>
+                        <button class="tab-btn" onclick="switchTab('tab-triage')">Triage (Medical)</button>
+                        <button class="tab-btn" onclick="switchTab('tab-rights')">Rights (Legal)</button>
+                        <button class="tab-btn" onclick="switchTab('tab-coordination')">Coordination</button>
+                        <button class="tab-btn" onclick="switchTab('tab-language')">Translation</button>
+                    </div>
+
+                    <!-- Sentinel Output -->
+                    <div id="tab-sentinel" class="tab-content active">
+                        {% if sentinel %}
+                            <pre>{{ sentinel|pprint }}</pre>
+                        {% else %}
+                            <div style="color: var(--text-muted);">Sentinel agent payload not recorded.</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Triage Output -->
+                    <div id="tab-triage" class="tab-content">
+                        {% if triage %}
+                            <pre>{{ triage|pprint }}</pre>
+                        {% else %}
+                            <div style="color: var(--text-muted);">Triage agent did not run (domain classification: {{ incident.domain }}).</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Rights Output -->
+                    <div id="tab-rights" class="tab-content">
+                        {% if rights %}
+                            <pre>{{ rights|pprint }}</pre>
+                        {% else %}
+                            <div style="color: var(--text-muted);">Rights agent did not run (domain classification: {{ incident.domain }}).</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Coordination Output -->
+                    <div id="tab-coordination" class="tab-content">
+                        {% if coordination %}
+                            <pre>{{ coordination|pprint }}</pre>
+                        {% else %}
+                            <div style="color: var(--text-muted);">Coordination agent payload not recorded.</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Language Output -->
+                    <div id="tab-language" class="tab-content">
+                        {% if language %}
+                            <pre>{{ language|pprint }}</pre>
+                        {% else %}
+                            <div style="color: var(--text-muted);">Hindi language agent did not run.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Signal & Contact Details (Right Side) -->
+                <div class="info-right">
+                    <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.75rem;">
+                        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700;">Raw Ingestion Meta</h4>
+                    </div>
+
+                    <div>
+                        <div class="detail-meta-label">Signal ID</div>
+                        <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">{{ incident.signal.id }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-meta-label">Raw Reported Text</div>
+                        <div class="detail-meta-value" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;">"{{ incident.signal.raw_text }}"</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-meta-label">Location (Citizen Input)</div>
+                        <div class="detail-meta-value">{{ incident.signal.metadata.location|default:"Not Provided" }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-meta-label">Citizen Phone (Outbound Contact)</div>
+                        <div class="detail-meta-value" style="font-family: monospace; font-weight: 600; color: #f472b6;">{{ incident.signal.metadata.contact_number|default:"Not Provided" }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-meta-label">Created At</div>
+                        <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem;">{{ incident.created_at }}</div>
+                    </div>
+
+                    {% if incident.is_resolved %}
+                        <div>
+                            <div class="detail-meta-label" style="color: var(--color-low);">Resolved At</div>
+                            <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem; color: var(--color-low);" id="resolved-time">{{ incident.resolved_at }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- Similar Past Incidents Section -->
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 2rem; margin-top: 1.5rem;">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 1.25rem;">Similar Past Incidents</h3>
+                <div id="similar-incidents-container" class="similar-grid">
+                    <div style="color: var(--text-muted); font-size: 0.95rem;">Loading similar past incidents...</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <span class="loc-en">PRAHARI Coordinator Command Centre. For official monitoring use only.</span>
+        <span class="loc-hi" lang="hi">प्रहरी समन्वयक कमांड सेंटर। केवल आधिकारिक निगरानी उपयोग के लिए।</span>
+    </footer>
+
+    {{ timing|json_script:"timing-data" }}
+
+    <script>
+        // CSRF helper
+        const csrfToken = "{{ csrf_token }}";
+
+        function initLanguage() {
+            let selectedLang = localStorage.getItem('prahari_lang');
+            if (!selectedLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                localStorage.setItem('prahari_lang', selectedLang);
+            }
+            setLanguageTheme(selectedLang);
+        }
+
+        function setLanguageTheme(lang) {
+            document.documentElement.setAttribute('lang', lang);
+            localStorage.setItem('prahari_lang', lang);
+        }
+
+        function toggleLanguage() {
+            const currentLang = document.documentElement.getAttribute('lang') || 'en';
+            const nextLang = currentLang === 'en' ? 'hi' : 'en';
+            setLanguageTheme(nextLang);
+        }
+
+        // Tab selection logic
+        function switchTab(tabId) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Remove active class from all content panels
+            document.querySelectorAll('.tab-content').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Find current trigger button and add active class
+            event.currentTarget.classList.add('active');
+            // Show corresponding tab content
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // AJAX Action to resolve
+        async function resolveIncident(id) {
+            try {
+                const response = await fetch(`/coordinator/incident/${id}/resolve/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update UI state
+                    const resolveBtn = document.getElementById("resolve-btn");
+                    if (resolveBtn) {
+                        resolveBtn.textContent = "Resolved";
+                        resolveBtn.className = "btn btn-success disabled";
+                        resolveBtn.disabled = true;
+                    }
+
+                    // Add resolved badge if not exists
+                    const titleBlock = document.querySelector(".title-block .badge-row");
+                    if (titleBlock && !document.getElementById("res-badge")) {
+                        const span = document.createElement("span");
+                        span.className = "badge resolved-badge";
+                        span.id = "res-badge";
+                        span.textContent = "RESOLVED";
+                        titleBlock.appendChild(span);
+                    }
+                } else {
+                    console.error("Failed to resolve incident");
+                }
+            } catch (err) {
+                console.error("Resolve error:", err);
+            }
+        }
+
+        function initTimingChart() {
+            const timingScript = document.getElementById('timing-data');
+            if (!timingScript) return;
+            
+            let timingData = null;
+            try {
+                timingData = JSON.parse(timingScript.textContent);
+            } catch (e) {
+                console.error("Failed to parse timing data:", e);
+            }
+
+            const container = document.getElementById('timing-chart-content');
+            if (!container) return;
+
+            if (!timingData || Object.keys(timingData).length === 0) {
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">Agent timing metrics not available for this incident (processed before Improvement 5).</div>`;
+                return;
+            }
+
+            const agents = ['sentinel', 'triage', 'rights', 'coordination', 'language'];
+            let minStart = null;
+            let maxEnd = null;
+            let durations = {};
+            
+            agents.forEach(agent => {
+                if (timingData[agent] && timingData[agent].start && timingData[agent].end) {
+                    const start = new Date(timingData[agent].start);
+                    const end = new Date(timingData[agent].end);
+                    const duration = timingData[agent].duration_ms;
+                    
+                    durations[agent] = duration;
+                    if (minStart === null || start < minStart) minStart = start;
+                    if (maxEnd === null || end > maxEnd) maxEnd = end;
+                }
+            });
+
+            if (Object.keys(durations).length === 0) {
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">No agent timing records found.</div>`;
+                return;
+            }
+
+            const totalPipelineMs = maxEnd && minStart ? (maxEnd - minStart) : 0;
+            const sumDurations = Object.values(durations).reduce((a, b) => a + b, 0);
+            const displayTotal = totalPipelineMs > 0 ? totalPipelineMs : sumDurations;
+
+            const scaleMax = displayTotal;
+
+            let html = '<div class="timing-chart">';
+            agents.forEach(agent => {
+                if (durations[agent] !== undefined) {
+                    const ms = durations[agent];
+                    const pct = scaleMax > 0 ? (ms / scaleMax) * 100 : 0;
+                    
+                    const displayNames = {
+                        'sentinel': 'Sentinel (Classify)',
+                        'triage': 'Triage (Medical)',
+                        'rights': 'Rights (Legal)',
+                        'coordination': 'Coordination',
+                        'language': 'Translation (Hindi)'
+                    };
+                    
+                    html += `
+                        <div class="timing-row">
+                            <div class="timing-label">${displayNames[agent]}</div>
+                            <div class="timing-bar-container">
+                                <div class="timing-bar ${agent}" data-width="${pct.toFixed(1)}%"></div>
+                            </div>
+                            <div class="timing-value">${ms} ms</div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                <div class="timing-total">
+                    <span style="margin-right: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">TOTAL PIPELINE TIME:</span>
+                    <span class="timing-total-badge">${displayTotal} ms</span>
+                </div>
+            </div>
+            `;
+
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                document.querySelectorAll('.timing-bar').forEach(bar => {
+                    const w = bar.getAttribute('data-width');
+                    bar.style.width = w;
+                });
+            }, 100);
+        }
+
+        async function loadSimilarIncidents(incidentId) {
+            const container = document.getElementById("similar-incidents-container");
+            if (!container) return;
+
+            try {
+                const response = await fetch(`/api/incidents/${incidentId}/similar/`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch similar incidents");
+                }
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.95rem;">No similar past incidents found yet</div>`;
+                    return;
+                }
+
+                let html = "";
+                data.forEach(inc => {
+                    const domain = inc.domain || "unknown";
+                    const severity = inc.severity || "low";
+                    const resolvedStr = inc.resolved ? "Resolved" : "Active";
+                    const resolvedClass = inc.resolved ? "resolved" : "unresolved";
+                    const shortBrief = inc.situation_brief ? (inc.situation_brief.substring(0, 100) + (inc.situation_brief.length > 100 ? "..." : "")) : "No description";
+                    const scorePct = Math.round(inc.similarity_score * 100);
+
+                    html += `
+                        <a href="/coordinator/incident/${inc.incident_id}/" class="similar-card">
+                            <div class="similar-card-header">
+                                <div class="similar-badges">
+                                    <span class="badge domain" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${domain}</span>
+                                    <span class="badge ${severity}" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${severity}</span>
+                                </div>
+                                <span class="similar-resolved-status ${resolvedClass}">${resolvedStr}</span>
+                            </div>
+                            <div class="similar-brief">"${shortBrief}"</div>
+                            <div class="similar-footer">
+                                <span>Match: ${scorePct}%</span>
+                                <span style="color: var(--color-indigo);">View Details →</span>
+                            </div>
+                        </a>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                console.error("Error loading similar incidents:", err);
+                container.innerHTML = `<div style="color: var(--color-critical); font-size: 0.95rem;">Failed to load similar past incidents.</div>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            initTimingChart();
+            loadSimilarIncidents('{{ incident.id }}');
+        });
+    </script>
+</body>
+</html>

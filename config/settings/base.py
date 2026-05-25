@@ -56,6 +56,7 @@ LOCAL_APPS = [
     "apps.resources",
     "apps.agents",
     "apps.audit",
+    "apps.notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -118,6 +119,17 @@ CHANNEL_LAYERS = {
 }
 
 # ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("REDIS_URL", default="redis://localhost:6379/0"),
+    }
+}
+
+
+# ---------------------------------------------------------------------------
 # Celery
 # ---------------------------------------------------------------------------
 CELERY_BROKER_URL = REDIS_URL
@@ -163,6 +175,7 @@ SIMPLE_JWT = {
 # Groq
 # ---------------------------------------------------------------------------
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
+GROQ_API_KEY_2 = env('GROQ_API_KEY_2', default='')  # Second key for rate-limit rotation
 
 # ---------------------------------------------------------------------------
 # Password validation

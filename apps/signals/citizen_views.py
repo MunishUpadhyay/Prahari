@@ -50,6 +50,7 @@ def citizen_submit(request):
             tenant=tenant,
             raw_text=raw_text,
             source_type="text",
+            contact_number=contact_number,
             metadata=metadata
         )
 
@@ -122,6 +123,7 @@ def citizen_signal_status_api(request, signal_id):
             coord_out = outputs.get("coordination", {})
             lang_out = outputs.get("language", {}).get("hindi", {})
             rights_out = outputs.get("rights", {})
+            triage_out = outputs.get("triage", {})
             
             result = {
                 "severity_label": incident.severity_label,
@@ -134,12 +136,21 @@ def citizen_signal_status_api(request, signal_id):
                 "what_is_happening_en": coord_out.get("what_is_happening", ""),
                 "what_is_happening_hi": lang_out.get("what_is_happening", ""),
                 "rights_violated": rights_out.get("rights_violated", []),
+                "legal_provisions": rights_out.get("legal_provisions", []),
+                "legal_timeline": rights_out.get("legal_timeline", []),
+                "nearest_authority_type": rights_out.get("nearest_authority_type", "DLSA"),
+                "golden_window": triage_out.get("golden_window", {}),
+                "emergency_contacts": triage_out.get("emergency_contacts", []),
+                "primary_concern": triage_out.get("primary_concern", ""),
+                "conflict_resolution": coord_out.get("conflict_resolution"),
+                "escalation_path": coord_out.get("escalation_path", []),
                 "immediate_actions": coord_out.get("immediate_actions", []),
                 "immediate_actions_hi": lang_out.get("immediate_actions", []),
                 "authorities_to_notify": coord_out.get("authorities_to_notify", []),
                 "resources_needed": coord_out.get("resources_needed", []),
                 "resources_needed_hi": lang_out.get("resources_needed", []),
-                "contact_number": signal.metadata.get("contact_number", "")
+                "contact_number": signal.metadata.get("contact_number", ""),
+                "timing": outputs.get("timing", {})
             }
 
     # Signal status mapper

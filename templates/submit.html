@@ -265,6 +265,131 @@
         html[lang="hi"] label.loc-hi {
             display: inline-block !important;
         }
+
+        /* Microphone Button Styles */
+        .mic-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: #94a3b8;
+            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .mic-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mic-icon-wrapper {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-svg {
+            transition: opacity 0.2s;
+            display: block;
+        }
+
+        .mic-pulse {
+            display: none;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        @keyframes pulse-anim {
+            0% {
+                transform: scale(0.85);
+                opacity: 0.5;
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                transform: scale(1.2);
+                opacity: 1;
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(0.85);
+                opacity: 0.5;
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .mic-spinner {
+            display: none;
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--color-indigo);
+            border-radius: 50%;
+            animation: spin-anim 0.8s linear infinite;
+        }
+
+        @keyframes spin-anim {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .mic-check {
+            display: none;
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .mic-btn.recording {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .mic-btn.recording .mic-svg {
+            display: none;
+        }
+        .mic-btn.recording .mic-pulse {
+            display: block;
+            animation: pulse-anim 1.5s infinite;
+        }
+
+        .mic-btn.processing {
+            border-color: var(--color-indigo);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .mic-btn.processing .mic-svg {
+            display: none;
+        }
+        .mic-btn.processing .mic-spinner {
+            display: block;
+        }
+
+        .mic-btn.done {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .mic-btn.done .mic-svg {
+            display: none;
+        }
+        .mic-btn.done .mic-check {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -301,19 +426,41 @@
                     <div class="form-error" style="margin-bottom: 1.5rem; font-weight: 600;">
                         {{ error }}
                     </div>
-                {% endif; %}
+                {% endif %}
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label class="form-label loc-en" for="raw_text">Describe what is happening *</label>
                     <label class="form-label loc-hi" lang="hi" for="raw_text">वर्णन करें कि क्या हो रहा है *</label>
                     
-                    <textarea 
-                        name="raw_text" 
-                        id="raw_text" 
-                        class="form-control" 
-                        required
-                        placeholder="Explain the situation in details (e.g. medical denial, custody violations, emergency accident, building collapse)..."
-                    ></textarea>
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                        <textarea 
+                            name="raw_text" 
+                            id="raw_text" 
+                            class="form-control" 
+                            required
+                            placeholder="Explain the situation in details (e.g. medical denial, custody violations, emergency accident, building collapse)..."
+                        ></textarea>
+                        
+                        <button type="button" id="voice-input-btn" class="mic-btn" title="Voice Input" style="display: none;">
+                            <div class="mic-icon-wrapper">
+                                <svg class="mic-svg" viewBox="0 0 24 24" width="24" height="24">
+                                    <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                                </svg>
+                                <div class="mic-spinner"></div>
+                                <div class="mic-pulse"></div>
+                                <div class="mic-check">✓</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Live Interim Transcription Preview -->
+                    <div id="voice-preview" style="display: none; font-size: 0.85rem; color: #94a3b8; font-style: italic; margin-top: 0.25rem; min-height: 1.2rem; word-break: break-word;"></div>
+
+                    <!-- Bilingual Voice Note -->
+                    <div id="voice-note" style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        <span class="loc-en">Voice input works best on Chrome and Edge. Hindi voice input supported.</span>
+                        <span class="loc-hi" lang="hi">वॉइस इनपुट Chrome और Edge पर सबसे अच्छा काम करता है। हिंदी वॉइस इनपुट समर्थित है।</span>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -407,7 +554,120 @@
             return true;
         }
 
-        window.addEventListener('DOMContentLoaded', initLanguage);
+        function initVoiceInput() {
+            const recognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!recognitionClass) return;
+
+            const voiceBtn = document.getElementById("voice-input-btn");
+            const voiceNote = document.getElementById("voice-note");
+            const voicePreview = document.getElementById("voice-preview");
+            const textarea = document.getElementById("raw_text");
+
+            if (!voiceBtn || !voiceNote || !textarea) return;
+
+            // Show voice components
+            voiceBtn.style.display = "flex";
+            voiceNote.style.display = "block";
+
+            const recognition = new recognitionClass();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            let isRecording = false;
+
+            // Helper to get active language
+            function getLangCode() {
+                const currentLang = document.documentElement.getAttribute('lang') || 'en';
+                return currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+            }
+
+            voiceBtn.addEventListener("click", () => {
+                if (isRecording) {
+                    recognition.stop();
+                    setVisualState("processing");
+                } else {
+                    try {
+                        recognition.lang = getLangCode();
+                        recognition.start();
+                        setVisualState("recording");
+                        isRecording = true;
+                    } catch (err) {
+                        console.error("Speech start error:", err);
+                    }
+                }
+            });
+
+            recognition.onresult = (event) => {
+                let interimTranscript = "";
+                let finalTranscript = "";
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                if (interimTranscript) {
+                    voicePreview.style.display = "block";
+                    voicePreview.textContent = interimTranscript;
+                }
+
+                if (finalTranscript) {
+                    const currentVal = textarea.value.trim();
+                    textarea.value = currentVal ? currentVal + " " + finalTranscript : finalTranscript;
+                    
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    voicePreview.textContent = "";
+                    voicePreview.style.display = "none";
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                setVisualState("default");
+                isRecording = false;
+                voicePreview.textContent = "";
+                voicePreview.style.display = "none";
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    setVisualState("processing");
+                    setTimeout(() => {
+                        setVisualState("done");
+                        setTimeout(() => {
+                            setVisualState("default");
+                        }, 2000);
+                    }, 500);
+                }
+                isRecording = false;
+            };
+
+            function setVisualState(state) {
+                voiceBtn.classList.remove("recording", "processing", "done");
+                
+                if (state === "recording") {
+                    voiceBtn.classList.add("recording");
+                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'रिकॉर्डिंग बंद करें' : 'Stop Recording';
+                } else if (state === "processing") {
+                    voiceBtn.classList.add("processing");
+                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'संसाधित किया जा रहा है...' : 'Processing...';
+                } else if (state === "done") {
+                    voiceBtn.classList.add("done");
+                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'पूरा हुआ' : 'Done';
+                } else {
+                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'वॉइस इनपुट' : 'Voice Input';
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            initVoiceInput();
+        });
     </script>
 </body>
 </html>

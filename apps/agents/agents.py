@@ -136,6 +136,42 @@ class RightsAgent(BaseAgent):
         except (ValueError, TypeError):
             result["case_strength"] = 0.5
 
+        # Validate nearest_authority_type
+        valid_authorities = {"DLSA", "High Court", "Consumer Forum", "Labour Court", "Police Complaint Authority", "Magistrate Court"}
+        nat = result.get("nearest_authority_type")
+        if nat not in valid_authorities:
+            result["nearest_authority_type"] = "DLSA"
+
+        # Validate legal_timeline
+        timeline = result.get("legal_timeline")
+        if not isinstance(timeline, list):
+            # Try to build a basic one from immediate_actions if empty
+            actions = result.get("immediate_actions") or ["Contact local legal aid panel advocate."]
+            timeline = []
+            for i, act in enumerate(actions[:4], 1):
+                timeline.append({
+                    "step": i,
+                    "action": act,
+                    "timeframe": "Within 24-48 hours",
+                    "why_urgent": "To prevent delay in seeking remedy."
+                })
+        else:
+            validated_timeline = []
+            for item in timeline:
+                if isinstance(item, dict):
+                    try:
+                        step_num = int(item.get("step", len(validated_timeline) + 1))
+                    except (ValueError, TypeError):
+                        step_num = len(validated_timeline) + 1
+                    validated_timeline.append({
+                        "step": step_num,
+                        "action": str(item.get("action", "Consult DLSA panel advocate.")),
+                        "timeframe": str(item.get("timeframe", "Immediate")),
+                        "why_urgent": str(item.get("why_urgent", "Action is time critical."))
+                    })
+            timeline = validated_timeline[:4]
+        result["legal_timeline"] = timeline
+
         return result
 
 
@@ -213,6 +249,37 @@ class TriageAgent(BaseAgent):
             result["escalate_to_rights_agent"] = bool(result.get("hospital_denial_detected", False))
         else:
             result["escalate_to_rights_agent"] = bool(result["escalate_to_rights_agent"])
+
+        # Validate golden_window
+        gw = result.get("golden_window")
+        if not isinstance(gw, dict):
+            result["golden_window"] = {
+                "time_remaining": "Unknown",
+                "consequence_of_delay": "Delayed treatment may cause the patient's condition to deteriorate."
+            }
+        else:
+            result["golden_window"] = {
+                "time_remaining": str(gw.get("time_remaining", "Unknown")),
+                "consequence_of_delay": str(gw.get("consequence_of_delay", "Delayed treatment may cause the patient's condition to deteriorate."))
+            }
+
+        # Validate emergency_contacts
+        contacts = result.get("emergency_contacts")
+        if not isinstance(contacts, list):
+            result["emergency_contacts"] = [
+                {"name": "National Ambulance", "number": "108", "when_to_call": "Immediately for life threatening medical emergencies"},
+                {"name": "Police", "number": "100", "when_to_call": "If access is being blocked or safety is threatened"}
+            ]
+        else:
+            validated_contacts = []
+            for item in contacts:
+                if isinstance(item, dict):
+                    validated_contacts.append({
+                        "name": str(item.get("name", "Emergency Service")),
+                        "number": str(item.get("number", "108")),
+                        "when_to_call": str(item.get("when_to_call", "Immediately"))
+                    })
+            result["emergency_contacts"] = validated_contacts
 
         return result
 
@@ -329,6 +396,52 @@ class CoordinationAgent(BaseAgent):
             result["escalation_required"] = bool(result["escalation_required"])
         if "estimated_resolution_time" not in result:
             result["estimated_resolution_time"] = "hours"
+
+        # Validate conflict_resolution for cross_domain/cross signals
+        is_cross = sentinel_result.get("domain") in ["cross", "cross_domain"]
+        cr = result.get("conflict_resolution")
+        if is_cross:
+            if not isinstance(cr, dict):
+                result["conflict_resolution"] = {
+                    "primary_priority": "medical",
+                    "reasoning": "A life-threatening medical emergency takes absolute precedence over legal proceedings.",
+                    "sequence": "First, stabilize patient and secure admission. Second, initiate legal/police complaint against the hospital's denial."
+                }
+            else:
+                result["conflict_resolution"] = {
+                    "primary_priority": str(cr.get("primary_priority", "medical")),
+                    "reasoning": str(cr.get("reasoning", "Medical stabilization is prioritized over legal remedy.")),
+                    "sequence": str(cr.get("sequence", "Handle medical needs first, then proceed with legal remedies."))
+                }
+        else:
+            result["conflict_resolution"] = None
+
+        # Validate escalation_path
+        ep = result.get("escalation_path")
+        if not isinstance(ep, list):
+            result["escalation_path"] = [
+                {
+                    "level": 1,
+                    "authority": "Chief Medical Officer / District Magistrate",
+                    "trigger": "If hospital refuses admission after 15 minutes",
+                    "contact": "CMO Office / District Legal Services Authority (DLSA) helpline 15100"
+                }
+            ]
+        else:
+            validated_ep = []
+            for item in ep:
+                if isinstance(item, dict):
+                    try:
+                        level_num = int(item.get("level", len(validated_ep) + 1))
+                    except (ValueError, TypeError):
+                        level_num = len(validated_ep) + 1
+                    validated_ep.append({
+                        "level": level_num,
+                        "authority": str(item.get("authority", "District Authority")),
+                        "trigger": str(item.get("trigger", "Immediate if no response")),
+                        "contact": str(item.get("contact", "Call 15100 DLSA / National helpline"))
+                    })
+            result["escalation_path"] = validated_ep[:3]
 
         return result
 

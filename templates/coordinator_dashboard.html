@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prahari — Coordinator Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(22, 28, 45, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-indigo: #6366f1;
+            --color-indigo-hover: #4f46e5;
+            
+            --color-critical: #ef4444;
+            --color-high: #f97316;
+            --color-medium: #eab308;
+            --color-low: #22c55e;
+            
+            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.05) 0px, transparent 50%);
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-indigo);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--color-indigo);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .logout-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .logout-link:hover {
+            color: #ef4444;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-critical);
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+
+        .status-dot.connected {
+            background-color: var(--color-low);
+            box-shadow: 0 0 8px var(--color-low);
+        }
+
+        /* Stats Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+        }
+
+        .stat-card.critical .stat-value { color: var(--color-critical); }
+        .stat-card.resolved .stat-value { color: var(--color-low); }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--color-indigo);
+            border-color: var(--color-indigo);
+            color: white;
+        }
+
+        /* Dashboard main grid */
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Cards Feed list */
+        #incident-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .incident-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .incident-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: var(--glow-indigo);
+        }
+
+        .incident-card.resolved {
+            opacity: 0.65;
+        }
+
+        .severity-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
+        }
+
+        .incident-card.critical .severity-indicator { background-color: var(--color-critical); }
+        .incident-card.high .severity-indicator { background-color: var(--color-high); }
+        .incident-card.medium .severity-indicator { background-color: var(--color-medium); }
+        .incident-card.low .severity-indicator { background-color: var(--color-low); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 0.75rem;
+            padding-left: 0.5rem;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            flex: 1;
+        }
+
+        .incident-title-en {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .incident-title-hi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.critical { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .badge.high { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.25); }
+        .badge.medium { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.25); }
+        .badge.low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+
+        .badge.domain { background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .badge.resolved-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        /* Collapsible Brief Panel */
+        .briefs-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-left: 0.5rem;
+        }
+
+        .brief-text-en {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .hindi-collapse-trigger {
+            background: none;
+            border: none;
+            color: var(--color-indigo);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .hindi-collapse-content {
+            display: none;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .hindi-collapse-content.show {
+            display: block;
+        }
+
+        /* Actions Section */
+        .actions-box {
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        .actions-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .action-mini-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .action-mini-item {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-mini-num {
+            color: var(--color-indigo);
+            font-weight: bold;
+        }
+
+        /* Footer card row */
+        .card-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 0.5rem;
+        }
+
+        .card-timestamp {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .card-actions-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+        }
+
+        .btn-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: var(--color-low);
+        }
+
+        .btn-success:hover {
+            background: var(--color-low);
+            color: white;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+
+        .empty-feed {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            border: 1px dashed rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(9, 13, 22, 0.5);
+            margin-top: auto;
+        }
+
+        .loc-hi {
+            display: none !important;
+        }
+        
+        html[lang="hi"] .loc-en {
+            display: none !important;
+        }
+
+        html[lang="hi"] .loc-hi {
+            display: block !important;
+        }
+
+        html[lang="hi"] span.loc-hi,
+        html[lang="hi"] button.loc-hi,
+        html[lang="hi"] a.loc-hi {
+            display: inline-block !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo-container">
+            <div class="logo-pulse"></div>
+            <h1>Prahari</h1>
+        </a>
+        <div class="nav-right">
+            <span class="loc-en" style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-dot connected" id="ws-indicator"></span> WebSocket Live Feed
+            </span>
+            <span class="loc-hi" lang="hi" style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-dot connected" id="ws-indicator-hi"></span> लाइव वेबसॉकेट फीड
+            </span>
+            <button class="lang-btn" onclick="toggleLanguage()">
+                <span class="loc-en">हिन्दी</span>
+                <span class="loc-hi">English</span>
+            </button>
+            <a href="/logout/" class="logout-link loc-en">Log Out</a>
+            <a href="/logout/" class="logout-link loc-hi">लॉग आउट</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Stats Row -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label loc-en">Total Ingested Today</div>
+                <div class="stat-label loc-hi" lang="hi">आज प्राप्त कुल रिपोर्ट</div>
+                <div class="stat-value" id="stat-total">{{ stats.total }}</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="stat-label loc-en">Critical Incidents</div>
+                <div class="stat-label loc-hi" lang="hi">गंभीर घटनाएं</div>
+                <div class="stat-value" id="stat-critical">{{ stats.critical }}</div>
+            </div>
+            <div class="stat-card resolved">
+                <div class="stat-label loc-en">Resolved Today</div>
+                <div class="stat-label loc-hi" lang="hi">आज सुलझाई गई</div>
+                <div class="stat-value" id="stat-resolved">{{ stats.resolved }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label loc-en">Pending Verification</div>
+                <div class="stat-label loc-hi" lang="hi">सत्यापन लंबित</div>
+                <div class="stat-value" id="stat-pending">{{ stats.pending }}</div>
+            </div>
+        </section>
+
+        <!-- Filter Bar -->
+        <section class="filter-bar">
+            <button class="filter-btn active" onclick="applyFilter('all')">
+                <span class="loc-en">All Incidents</span>
+                <span class="loc-hi">सभी घटनाएं</span>
+            </button>
+            <button class="filter-btn" onclick="applyFilter('legal')">
+                <span class="loc-en">Legal</span>
+                <span class="loc-hi">कानूनी</span>
+            </button>
+            <button class="filter-btn" onclick="applyFilter('health')">
+                <span class="loc-en">Health</span>
+                <span class="loc-hi">स्वास्थ्य</span>
+            </button>
+            <button class="filter-btn" onclick="applyFilter('emergency')">
+                <span class="loc-en">Emergency</span>
+                <span class="loc-hi">आपातकालीन</span>
+            </button>
+            <button class="filter-btn" onclick="applyFilter('critical')">
+                <span class="loc-en">Critical Only</span>
+                <span class="loc-hi">केवल गंभीर</span>
+            </button>
+        </section>
+
+        <!-- Feed List -->
+        <section id="incident-feed">
+            <!-- Rendered dynamically -->
+        </section>
+    </main>
+
+    <footer>
+        <span class="loc-en">PRAHARI Coordinator Command Centre. For official monitoring use only.</span>
+        <span class="loc-hi" lang="hi">प्रहरी समन्वयक कमांड सेंटर। केवल आधिकारिक निगरानी उपयोग के लिए।</span>
+    </footer>
+
+    <script>
+        // CSRF helper
+        const csrfToken = "{{ csrf_token }}";
+        const tenantId = "{{ tenant_id }}";
+        
+        // Initial data injected from Django
+        let incidents = {{ incidents_json|safe }};
+        let activeFilter = 'all';
+
+        function initLanguage() {
+            let selectedLang = localStorage.getItem('prahari_lang');
+            if (!selectedLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                localStorage.setItem('prahari_lang', selectedLang);
+            }
+            setLanguageTheme(selectedLang);
+        }
+
+        function setLanguageTheme(lang) {
+            document.documentElement.setAttribute('lang', lang);
+            localStorage.setItem('prahari_lang', lang);
+        }
+
+        function toggleLanguage() {
+            const currentLang = document.documentElement.getAttribute('lang') || 'en';
+            const nextLang = currentLang === 'en' ? 'hi' : 'en';
+            setLanguageTheme(nextLang);
+        }
+
+        function toggleHindiCollapse(e, id) {
+            e.stopPropagation(); // prevent card detail click navigation
+            const panel = document.getElementById(`hi-brief-${id}`);
+            const btn = document.getElementById(`hi-btn-${id}`);
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                btn.textContent = "+ हिन्दी विवरण / View Hindi";
+            } else {
+                panel.classList.add('show');
+                btn.textContent = "- छिपाएं / Hide Hindi";
+            }
+        }
+
+        function navigateToDetail(id) {
+            window.location.href = `/coordinator/incident/${id}/`;
+        }
+
+        // Action: Mark as Resolved (AJAX POST)
+        async function resolveIncident(e, id) {
+            e.stopPropagation(); // prevent card detail click navigation
+            try {
+                const response = await fetch(`/coordinator/incident/${id}/resolve/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update local state
+                    const inc = incidents.find(item => item.incident_id === id);
+                    if (inc) {
+                        inc.is_resolved = true;
+                    }
+
+                    // Update stats counters
+                    updateStatsCounters();
+
+                    // Re-render feed
+                    renderFeed();
+                } else {
+                    console.error("Failed to resolve incident");
+                }
+            } catch (err) {
+                console.error("Resolve error:", err);
+            }
+        }
+
+        function updateStatsCounters() {
+            const resolvedCount = incidents.filter(i => i.is_resolved).length;
+            const pendingCount = incidents.filter(i => !i.is_resolved).length;
+
+            const totalEl = document.getElementById("stat-total");
+            const criticalEl = document.getElementById("stat-critical");
+            const resolvedEl = document.getElementById("stat-resolved");
+            const pendingEl = document.getElementById("stat-pending");
+
+            if (totalEl) totalEl.textContent = incidents.length;
+            if (criticalEl) criticalEl.textContent = incidents.filter(i => i.severity_label.toLowerCase() === 'critical').length;
+            if (resolvedEl) resolvedEl.textContent = resolvedCount;
+            if (pendingEl) pendingEl.textContent = pendingCount;
+        }
+
+        function applyFilter(filter) {
+            activeFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            renderFeed();
+        }
+
+        // Render incident feed
+        function renderFeed() {
+            const feed = document.getElementById("incident-feed");
+            if (!feed) return;
+
+            // Filter incidents
+            let filtered = incidents;
+            if (activeFilter === 'legal') {
+                filtered = incidents.filter(i => i.domain === 'legal' || i.domain === 'cross');
+            } else if (activeFilter === 'health') {
+                filtered = incidents.filter(i => i.domain === 'health' || i.domain === 'cross');
+            } else if (activeFilter === 'emergency') {
+                filtered = incidents.filter(i => i.domain === 'emergency');
+            } else if (activeFilter === 'critical') {
+                filtered = incidents.filter(i => i.severity_label.toLowerCase() === 'critical');
+            }
+
+            if (filtered.length === 0) {
+                feed.innerHTML = `
+                    <div class="empty-feed">
+                        <span class="loc-en">No incidents found in this category.</span>
+                        <span class="loc-hi" lang="hi">इस श्रेणी में कोई घटना नहीं मिली।</span>
+                    </div>
+                `;
+                return;
+            }
+
+            feed.innerHTML = '';
+            filtered.forEach(inc => {
+                const id = inc.incident_id;
+                const severityLabel = inc.severity_label.toLowerCase();
+                const severityScore = inc.severity;
+                
+                const card = document.createElement('div');
+                card.className = `incident-card ${severityLabel} ${inc.is_resolved ? 'resolved' : ''}`;
+                card.onclick = () => navigateToDetail(id);
+
+                // Build Action directive list
+                let actionsHTML = '';
+                const coord = inc.agent_outputs.coordination || {};
+                const actions = coord.immediate_actions || [];
+                if (actions.length > 0) {
+                    let items = '';
+                    actions.slice(0, 3).forEach((act, idx) => {
+                        items += `
+                            <li class="action-mini-item">
+                                <span class="action-mini-num">${idx+1}.</span>
+                                <span>${act.action} (${act.responsible_party || 'Unassigned'})</span>
+                            </li>
+                        `;
+                    });
+                    actionsHTML = `
+                        <div class="actions-box">
+                            <div class="actions-label">Directives</div>
+                            <ul class="action-mini-list">${items}</ul>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="severity-indicator"></div>
+                    <div class="card-header">
+                        <div class="title-block">
+                            <div class="incident-title-en">${inc.title_en}</div>
+                            ${inc.title_hi ? `<div class="incident-title-hi">${inc.title_hi}</div>` : ''}
+                        </div>
+                        <div class="badge-row">
+                            ${inc.is_resolved ? `<span class="badge resolved-badge">RESOLVED</span>` : ''}
+                            <span class="badge ${severityLabel}">${severityLabel} (${severityScore.toFixed(2)})</span>
+                            <span class="badge domain">${inc.domain}</span>
+                        </div>
+                    </div>
+
+                    <div class="briefs-panel">
+                        <div class="brief-text-en">${inc.situation_brief}</div>
+                        ${inc.situation_brief_hindi ? `
+                            <button id="hi-btn-${id}" class="hindi-collapse-trigger" onclick="toggleHindiCollapse(event, '${id}')">
+                                + हिन्दी विवरण / View Hindi
+                            </button>
+                            <div id="hi-brief-${id}" class="hindi-collapse-content">
+                                ${inc.situation_brief_hindi}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${actionsHTML}
+
+                    <div class="card-footer">
+                        <span class="card-timestamp">Updated: ${new Date(inc.timestamp).toLocaleTimeString() + ' ' + new Date(inc.timestamp).toLocaleDateString()}</span>
+                        <div class="card-actions-btn">
+                            <a href="/coordinator/incident/${id}/" class="btn btn-secondary" onclick="event.stopPropagation()">View Details</a>
+                            ${!inc.is_resolved ? `
+                                <button class="btn btn-success" onclick="resolveIncident(event, '${id}')">Resolve</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                feed.appendChild(card);
+            });
+        }
+
+        // WebSocket Integration
+        function setupWebSocket() {
+            const wsUrl = `ws://${window.location.host}/ws/dashboard/`;
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log("WebSocket connected to live dashboard stream.");
+                const ind1 = document.getElementById("ws-indicator");
+                const ind2 = document.getElementById("ws-indicator-hi");
+                if (ind1) ind1.className = "status-dot connected";
+                if (ind2) ind2.className = "status-dot connected";
+            };
+
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    console.log("WebSocket incident broadcast payload:", data);
+                    
+                    // Add new incident to local list (prepend)
+                    // Check if already exists first to avoid duplicates
+                    const exists = incidents.some(i => i.incident_id === data.incident_id);
+                    if (!exists) {
+                        const outputs = data.agent_outputs || {};
+                        const coord = outputs.coordination || {};
+                        const lang = outputs.language || {};
+                        const hindi = lang.hindi || {};
+
+                        const newInc = {
+                            "incident_id": data.incident_id,
+                            "severity": parseFloat(data.severity) || 0.5,
+                            "severity_label": coord.overall_severity || "medium",
+                            "domain": data.domain,
+                            "situation_brief": data.situation_brief || "No summary.",
+                            "situation_brief_hindi": data.situation_brief_hindi || hindi.situation_brief || "",
+                            "title_en": coord.situation_title || data.situation_brief || "Incident Ingested",
+                            "title_hi": hindi.situation_title || "",
+                            "is_resolved": false,
+                            "timestamp": data.timestamp,
+                            "agent_outputs": data.agent_outputs
+                        };
+                        
+                        incidents.unshift(newInc);
+                        
+                        // Play alert sound or trigger dynamic notifications (optional)
+                        // Update UI
+                        updateStatsCounters();
+                        renderFeed();
+                    }
+                } catch (err) {
+                    console.error("Error processing websocket payload:", err);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("WebSocket disconnected. Reconnecting in 3s...");
+                const ind1 = document.getElementById("ws-indicator");
+                const ind2 = document.getElementById("ws-indicator-hi");
+                if (ind1) ind1.className = "status-dot";
+                if (ind2) ind2.className = "status-dot";
+                setTimeout(setupWebSocket, 3000);
+            };
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            renderFeed();
+            updateStatsCounters();
+            setupWebSocket();
+        });
+    </script>
+</body>
+</html>

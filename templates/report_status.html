@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prahari — Report Status</title>
+    <meta name="description" content="Prahari real-time status of your submitted civic signal — know your rights, actions, and who to contact.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,25 +12,25 @@
         :root {
             --bg-primary: #090d16;
             --bg-secondary: #0f172a;
-            --bg-card: rgba(22, 28, 45, 0.7);
+            --bg-card: rgba(22, 28, 45, 0.75);
+            --bg-card-solid: #161c2d;
             --border-color: rgba(255, 255, 255, 0.08);
+            --border-subtle: rgba(255, 255, 255, 0.04);
             --text-main: #f8fafc;
+            --text-sub: #e2e8f0;
             --text-muted: #94a3b8;
             --color-indigo: #6366f1;
-            --color-indigo-hover: #4f46e5;
-            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
-            
+            --color-indigo-dim: rgba(99,102,241,0.15);
+            --color-teal: #14b8a6;
             --color-critical: #ef4444;
             --color-high: #f97316;
             --color-medium: #eab308;
             --color-low: #22c55e;
+            --section-gap: 1.75rem;
+            --radius-card: 18px;
+            --radius-inner: 12px;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -38,748 +39,892 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99,102,241,0.09) 0px, transparent 55%),
+                radial-gradient(at 100% 100%, rgba(20,184,166,0.07) 0px, transparent 55%);
         }
 
-        /* Header */
+        /* ─── HEADER ─── */
         header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(9,13,22,0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1.1rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-
+        .logo-container { display:flex; align-items:center; gap:.75rem; text-decoration:none; }
         .logo-pulse {
-            width: 12px;
-            height: 12px;
-            background-color: var(--color-indigo);
-            border-radius: 50%;
+            width:12px; height:12px;
+            background:var(--color-indigo); border-radius:50%;
             box-shadow: 0 0 10px var(--color-indigo);
+            animation: pulseDot 2s infinite;
         }
-
+        @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.5} }
         h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
+            font-family:'Outfit',sans-serif; font-size:1.5rem; font-weight:800;
+            letter-spacing:.05em;
+            background:linear-gradient(135deg,#ffffff 40%,#a5b4fc 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            text-transform:uppercase;
         }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .login-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .login-link:hover {
-            color: var(--text-main);
-        }
-
+        .nav-right { display:flex; align-items:center; gap:1.25rem; }
+        .login-link { color:var(--text-muted); text-decoration:none; font-size:.875rem; font-weight:500; transition:color .2s; }
+        .login-link:hover { color:var(--text-main); }
         .lang-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            background:rgba(255,255,255,.04); border:1px solid var(--border-color);
+            color:var(--text-main); padding:.45rem .95rem; border-radius:9999px;
+            font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s;
         }
+        .lang-btn:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
 
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+        /* ─── MAIN ─── */
+        main { flex:1; max-width:880px; width:100%; margin:0 auto; padding:2.5rem 1.25rem; display:flex; flex-direction:column; gap:var(--section-gap); }
+
+        /* ─── LOADING CARD ─── */
+        .loading-card {
+            background:var(--bg-card); border:1px solid var(--border-color);
+            border-radius:var(--radius-card); padding:2.5rem 2rem;
+            box-shadow:0 15px 40px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:1.5rem;
         }
-
-        /* Main Container */
-        main {
-            flex: 1;
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 3rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Loading / Checking Checklist Card */
-        .status-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .status-card-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .status-card-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-        }
-
-        .status-card-title[lang="hi"] {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
-
-        .uuid-label {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Progress List styling */
-        .progress-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            margin: 1rem 0;
-        }
-
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            font-size: 1.05rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            transition: color 0.3s;
-        }
-
-        .progress-step.active {
-            color: var(--text-main);
-        }
-
-        .progress-step.done {
-            color: var(--color-low);
-        }
-
+        .loading-card-header { border-bottom:1px solid var(--border-subtle); padding-bottom:1rem; display:flex; flex-direction:column; gap:.25rem; }
+        .loading-title { font-family:'Outfit',sans-serif; font-size:1.5rem; font-weight:700; }
+        .uuid-label { font-family:monospace; font-size:.82rem; color:var(--text-muted); margin-top:.25rem; }
+        .progress-bar-track { background:rgba(255,255,255,.05); border-radius:9999px; height:8px; overflow:hidden; }
+        .progress-bar-fill { background:var(--color-indigo); height:100%; width:20%; transition:width .4s ease; border-radius:9999px; }
+        .progress-list { list-style:none; display:flex; flex-direction:column; gap:1.1rem; margin:.5rem 0; }
+        .progress-step { display:flex; align-items:center; gap:1.1rem; font-size:1rem; font-weight:500; color:var(--text-muted); transition:color .3s; }
+        .progress-step.active { color:var(--text-main); }
+        .progress-step.done { color:var(--color-low); }
         .step-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            flex-shrink: 0;
+            width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,.15);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.75rem; font-weight:bold; flex-shrink:0;
         }
+        .progress-step.active .step-icon { border-color:var(--color-indigo); color:var(--color-indigo); box-shadow:0 0 8px rgba(99,102,241,.3); animation:pulseBorder 1.5s infinite; }
+        .progress-step.done .step-icon { border-color:var(--color-low); background:rgba(34,197,94,.12); color:var(--color-low); }
+        @keyframes pulseBorder { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
 
-        .progress-step.active .step-icon {
-            border-color: var(--color-indigo);
-            color: var(--color-indigo);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-            animation: pulse-border 1.5s infinite;
+        /* ─── RESULT SECTION ─── */
+        #result-section { display:none; flex-direction:column; gap:var(--section-gap); animation:fadeInUp .5s ease-out forwards; }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ─── TOOLBAR ─── */
+        .toolbar { display:flex; gap:.65rem; flex-wrap:wrap; }
+        .toolbar-btn {
+            background:rgba(255,255,255,.04); border:1px solid var(--border-color);
+            color:var(--text-main); padding:.55rem 1.1rem; border-radius:9px;
+            font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s;
         }
+        .toolbar-btn:hover { background:rgba(255,255,255,.08); }
+        .result-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; margin-bottom:.25rem; }
 
-        .progress-step.done .step-icon {
-            border-color: var(--color-low);
-            background-color: rgba(34, 197, 94, 0.15);
-            color: var(--color-low);
+        /* ─── BANNER ─── */
+        .banner {
+            background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.18);
+            color:#4ade80; padding:.9rem 1.2rem; border-radius:10px;
+            font-weight:500; font-size:.92rem; line-height:1.5; flex:1;
         }
+        .banner[lang="hi"] { font-family:'Noto Sans Devanagari',sans-serif; }
 
-        @keyframes pulse-border {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+        /* ─── SECTION WRAPPERS ─── */
+        .rs-section {
+            background:var(--bg-card); border:1px solid var(--border-color);
+            border-radius:var(--radius-card); padding:2rem 1.75rem;
+            box-shadow:0 8px 30px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:1.25rem;
         }
-
-        /* Final Result Section (hidden initially) */
-        #result-section {
-            display: none;
-            flex-direction: column;
-            gap: 2rem;
-            animation: fade-in-card 0.5s ease-out forwards;
+        .rs-section.muted {
+            background:rgba(15,23,42,.5); border-color:rgba(255,255,255,.05);
+            box-shadow:none;
         }
-
-        @keyframes fade-in-card {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        .section-label {
+            font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;
+            color:var(--text-muted); font-weight:700;
         }
-
-        /* Incident Card styling */
-        .incident-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            position: relative;
+        .section-heading {
+            font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:700;
+            color:var(--text-main); line-height:1.3;
         }
+        .section-subheading { font-size:.9rem; color:var(--text-muted); line-height:1.5; }
+        .section-header { display:flex; flex-direction:column; gap:.35rem; }
 
-        .card-banner {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            color: #4ade80;
-            padding: 1rem 1.25rem;
-            border-radius: 10px;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .card-banner[lang="hi"] {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 1.25rem;
-        }
-
-        .title-block {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .incident-title-en {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1.3;
-        }
-
-        .incident-title-hi {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-            font-size: 1.45rem;
-            font-weight: 600;
-            color: #cbd5e1;
-            line-height: 1.4;
-        }
-
-        .badge-row {
-            display: flex;
-            gap: 0.5rem;
-        }
-
+        /* ─── BADGE ROW ─── */
+        .badge-row { display:flex; gap:.5rem; flex-wrap:wrap; }
         .badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
-            letter-spacing: 0.05em;
+            font-size:.72rem; font-weight:700; text-transform:uppercase;
+            padding:.3rem .7rem; border-radius:6px; letter-spacing:.05em; display:inline-block;
+        }
+        .badge.critical { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+        .badge.high { background:rgba(249,115,22,.15); color:#fb923c; border:1px solid rgba(249,115,22,.3); }
+        .badge.medium { background:rgba(234,179,8,.15); color:#facc15; border:1px solid rgba(234,179,8,.3); }
+        .badge.low { background:rgba(34,197,94,.15); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+        .badge.domain { background:rgba(99,102,241,.15); color:#a5b4fc; border:1px solid rgba(99,102,241,.3); }
+
+        /* ─── SECTION 1: SITUATION BRIEF ─── */
+        .brief-text {
+            font-size:1.05rem; line-height:1.7; color:var(--text-sub);
+        }
+        .brief-text-hi { font-family:'Noto Sans Devanagari',sans-serif; font-size:1.1rem; line-height:1.8; color:var(--text-sub); }
+
+        /* ─── GOLDEN WINDOW ALERT ─── */
+        .golden-window-alert {
+            background:rgba(239,68,68,.06); border:2px solid rgba(239,68,68,.4);
+            border-radius:var(--radius-card); padding:1.75rem 1.75rem;
+            display:flex; flex-direction:column; align-items:center; gap:1rem; text-align:center;
+            box-shadow:0 0 30px rgba(239,68,68,.1);
+        }
+        .gw-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:#f87171; font-weight:700; }
+        .gw-time { font-family:'Outfit',sans-serif; font-size:2.4rem; font-weight:800; color:var(--color-critical); display:flex; align-items:center; gap:.5rem; }
+        .gw-consequence { font-size:.92rem; color:#fca5a5; line-height:1.5; max-width:540px; }
+        .call-btn-large {
+            display:inline-flex; align-items:center; gap:.6rem;
+            background:linear-gradient(135deg,#ef4444,#b91c1c);
+            color:#fff; text-decoration:none; padding:1rem 2rem;
+            border-radius:12px; font-size:1.1rem; font-weight:700;
+            box-shadow:0 0 20px rgba(239,68,68,.4); transition:transform .2s;
+            border:none; cursor:pointer;
+        }
+        .call-btn-large:hover { transform:scale(1.03); }
+
+        /* ─── PRIORITY NOTICE ─── */
+        .priority-notice {
+            background:rgba(249,115,22,.05); border:1px solid rgba(249,115,22,.2);
+            border-radius:var(--radius-inner); padding:1.25rem 1.5rem;
+            display:flex; flex-direction:column; gap:.6rem;
+        }
+        .priority-notice-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:#fb923c; font-weight:700; }
+        .priority-notice-text { font-size:.95rem; line-height:1.55; color:#fed7aa; }
+
+        /* ─── SECTION 2: RIGHTS CARDS ─── */
+        .rights-grid { display:flex; flex-direction:column; gap:1.1rem; }
+        .right-card {
+            background:rgba(99,102,241,.05); border:1px solid rgba(99,102,241,.15);
+            border-radius:var(--radius-inner); padding:1.4rem 1.5rem;
+            display:flex; flex-direction:column; gap:.85rem;
+        }
+        .right-card-title { font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:700; color:#a5b4fc; }
+        .right-card-desc { font-size:.88rem; color:var(--text-muted); font-style:italic; line-height:1.5; }
+        .right-card-body { display:flex; flex-direction:column; gap:.65rem; }
+        .right-para { font-size:.93rem; line-height:1.55; color:var(--text-sub); }
+        .right-para-label { font-weight:700; margin-right:.4rem; }
+        .right-para-label.means { color:#c4b5fd; }
+        .right-para-label.applies { color:#7dd3fc; }
+        .right-para-label.remedy { color:#6ee7b7; }
+
+        /* ─── SECTION 3: ACTION PLAN ─── */
+        .action-plan-list { display:flex; flex-direction:column; gap:1rem; }
+        .action-step-card {
+            background:rgba(255,255,255,.02); border:1px solid var(--border-color);
+            border-radius:var(--radius-inner); padding:1.25rem 1.4rem;
+            display:grid; grid-template-columns:auto 1fr; gap:.75rem 1.25rem; align-items:start;
+        }
+        .step-num-circle {
+            width:40px; height:40px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:800;
+            flex-shrink:0; margin-top:.1rem;
+        }
+        .step-num-circle.urgent { background:rgba(239,68,68,.2); color:#f87171; border:2px solid rgba(239,68,68,.4); }
+        .step-num-circle.amber  { background:rgba(234,179,8,.15); color:#facc15; border:2px solid rgba(234,179,8,.3); }
+        .step-num-circle.blue   { background:rgba(99,102,241,.15); color:#a5b4fc; border:2px solid rgba(99,102,241,.3); }
+        .step-num-circle.grey   { background:rgba(255,255,255,.06); color:var(--text-muted); border:2px solid rgba(255,255,255,.1); }
+        .step-body { display:flex; flex-direction:column; gap:.5rem; }
+        .step-tf-badge {
+            font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+            padding:.25rem .65rem; border-radius:5px; display:inline-block; width:fit-content;
+        }
+        .step-tf-badge.urgent { background:rgba(239,68,68,.18); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+        .step-tf-badge.amber  { background:rgba(234,179,8,.15);  color:#facc15; border:1px solid rgba(234,179,8,.25); }
+        .step-tf-badge.blue   { background:rgba(99,102,241,.15); color:#a5b4fc; border:1px solid rgba(99,102,241,.25); }
+        .step-tf-badge.grey   { background:rgba(255,255,255,.06);color:var(--text-muted); border:1px solid rgba(255,255,255,.1); }
+        .step-action-text { font-size:.97rem; font-weight:600; color:var(--text-main); line-height:1.45; }
+        .step-why { font-size:.82rem; color:var(--text-muted); line-height:1.45; margin-top:.1rem; }
+        .step-why-label { color:#f97316; font-weight:600; margin-right:.35rem; }
+        .step-forum { font-size:.78rem; color:#7dd3fc; font-weight:600; margin-top:.15rem; }
+        .step-forum-label { color:var(--text-muted); font-weight:400; margin-right:.3rem; }
+
+        /* ─── SECTION 4: CONTACTS ─── */
+        .contact-grid { display:grid; grid-template-columns:1fr; gap:1rem; }
+        @media(min-width:600px) { .contact-grid { grid-template-columns:1fr; } }
+        .primary-contact-card {
+            background:rgba(99,102,241,.06); border:1px solid rgba(99,102,241,.18);
+            border-radius:var(--radius-inner); padding:1.75rem;
+            display:flex; flex-direction:column; gap:1.1rem;
+        }
+        .contact-authority-name { font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:700; color:#a5b4fc; }
+        .contact-authority-desc { font-size:.88rem; color:var(--text-muted); line-height:1.5; }
+        .nalsa-btn {
+            display:inline-flex; align-items:center; gap:.6rem;
+            background:linear-gradient(135deg,var(--color-indigo),#4f46e5);
+            color:#fff; text-decoration:none; padding:.9rem 1.75rem;
+            border-radius:10px; font-size:1.25rem; font-weight:800;
+            box-shadow:0 0 18px rgba(99,102,241,.35); transition:transform .2s; width:fit-content;
+        }
+        .nalsa-btn:hover { transform:scale(1.03); }
+        .nalsa-btn-sublabel { font-size:.72rem; font-weight:400; opacity:.85; display:block; margin-top:.15rem; letter-spacing:.01em; }
+        .contact-what-to-tell { font-size:.88rem; color:var(--text-sub); line-height:1.55; }
+        .contact-what-label { font-weight:700; color:#c4b5fd; }
+        .bring-checklist { list-style:none; display:flex; flex-direction:column; gap:.4rem; margin-top:.25rem; }
+        .bring-checklist li { font-size:.85rem; color:var(--text-muted); display:flex; align-items:baseline; gap:.5rem; }
+        .bring-checklist li::before { content:"✓"; color:var(--color-low); font-weight:700; flex-shrink:0; }
+        .emergency-contacts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.85rem; }
+        .emergency-card {
+            text-decoration:none; color:#fff; border-radius:10px; padding:1.1rem 1rem;
+            display:flex; flex-direction:column; align-items:center; gap:.3rem; text-align:center;
+            transition:transform .2s;
+        }
+        .emergency-card:hover { transform:translateY(-2px); }
+        .emergency-card.e-108 { background:linear-gradient(135deg,#ef4444,#b91c1c); box-shadow:0 0 18px rgba(239,68,68,.35); }
+        .emergency-card.e-100 { background:rgba(249,115,22,.15); border:1px solid rgba(249,115,22,.3); }
+        .emergency-card.e-1091 { background:rgba(236,72,153,.12); border:1px solid rgba(236,72,153,.3); }
+        .emergency-card.e-other { background:rgba(255,255,255,.04); border:1px solid var(--border-color); }
+        .ec-name { font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; opacity:.85; }
+        .ec-number { font-size:1.4rem; font-weight:800; }
+        .ec-when { font-size:.7rem; font-weight:400; opacity:.8; line-height:1.3; max-width:140px; }
+
+        /* ─── SECTION 5: LEGAL ACCORDION ─── */
+        .accordion-list { display:flex; flex-direction:column; gap:.6rem; }
+        .accordion-item { border:1px solid rgba(255,255,255,.07); border-radius:10px; overflow:hidden; background:rgba(15,23,42,.4); }
+        .accordion-trigger {
+            width:100%; text-align:left; padding:1rem 1.25rem;
+            background:transparent; border:none; cursor:pointer;
+            display:flex; justify-content:space-between; align-items:center;
+            gap:1rem; color:var(--text-main); transition:background .2s;
+        }
+        .accordion-trigger:hover { background:rgba(255,255,255,.03); }
+        .accordion-trigger-left { display:flex; flex-direction:column; gap:.25rem; }
+        .acc-provision { font-size:.95rem; font-weight:600; color:#94a3b8; }
+        .acc-desc { font-size:.8rem; color:var(--text-muted); font-style:italic; line-height:1.4; }
+        .acc-chevron { font-size:.8rem; color:var(--text-muted); transition:transform .2s; flex-shrink:0; }
+        .accordion-trigger[aria-expanded="true"] .acc-chevron { transform:rotate(180deg); }
+        .accordion-content {
+            display:none; padding:1rem 1.25rem 1.25rem;
+            border-top:1px solid rgba(255,255,255,.05);
+            font-size:.9rem; line-height:1.55; color:#94a3b8;
         }
 
-        .badge.critical { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge.high { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
-        .badge.medium { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
-        .badge.low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-
-        .badge.domain { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
-
-        /* Bilingual columns */
-        .briefs-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
+        /* ─── SECTION 6: ESCALATION ─── */
+        .escalation-list { display:flex; flex-direction:column; align-items:stretch; gap:.35rem; }
+        .esc-card {
+            background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+            border-radius:var(--radius-inner); padding:1.25rem 1.4rem;
+            display:flex; flex-direction:column; gap:.5rem;
         }
+        .esc-level-badge { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:#fb923c; font-weight:700; }
+        .esc-authority { font-size:1rem; font-weight:700; color:var(--text-main); }
+        .esc-trigger { font-size:.85rem; color:var(--text-muted); line-height:1.45; }
+        .esc-trigger-label { color:#fbbf24; font-weight:600; }
+        .esc-contact { font-size:.82rem; color:#7dd3fc; }
+        .esc-arrow { text-align:center; color:var(--text-muted); font-size:.9rem; padding:.1rem 0; }
 
-        @media (min-width: 768px) {
-            .briefs-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        /* ─── TIMING BLOCK ─── */
+        .timing-block {
+            border-top:1px solid var(--border-subtle); padding-top:1.25rem;
+            margin-top:.5rem; font-size:.78rem; color:var(--text-muted);
         }
+        .timing-label { text-transform:uppercase; font-weight:700; letter-spacing:.06em; margin-bottom:.6rem; }
+        .timing-chips { display:flex; flex-wrap:wrap; gap:.65rem; }
+        .timing-chip {
+            background:rgba(255,255,255,.04); border:1px solid var(--border-subtle);
+            border-radius:6px; padding:.3rem .65rem; font-size:.75rem; color:var(--text-muted);
+        }
+        .timing-chip span { color:var(--text-sub); font-weight:600; }
 
-        .brief-box {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .brief-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-        }
-
-        .brief-text-en {
-            font-size: 1rem;
-            line-height: 1.55;
-            color: #e2e8f0;
-        }
-
-        .brief-text-hi {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-            font-size: 1.1rem;
-            line-height: 1.65;
-            color: #f1f5f9;
-        }
-
-        /* Rights violated */
-        .rights-box {
-            background: rgba(239, 68, 68, 0.04);
-            border: 1px solid rgba(239, 68, 68, 0.1);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .rights-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #f87171;
-            font-weight: 700;
-        }
-
-        .rights-list {
-            margin-left: 1.25rem;
-            font-weight: 500;
-            color: #fca5a5;
-        }
-
-        /* Actions list */
-        .actions-section {
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 1.5rem;
-        }
-
-        .actions-title {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 1.25rem;
-            font-weight: 700;
-        }
-
-        .action-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .action-item {
-            display: flex;
-            gap: 1.25rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-        }
-
-        .action-num {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .action-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .action-text-en {
-            font-size: 0.95rem;
-            line-height: 1.45;
-            color: #f1f5f9;
-        }
-
-        .action-text-hi {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-            font-size: 1.05rem;
-            line-height: 1.55;
-            color: #cbd5e1;
-        }
-
-        .action-meta {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.15rem;
-        }
-
-        .action-owner {
-            color: #f472b6;
-            font-weight: 600;
-        }
-
-        .action-window {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--border-color);
-            background: rgba(9, 13, 22, 0.5);
-            margin-top: auto;
-        }
-
-        .loc-hi {
-            display: none !important;
-        }
-        
-        html[lang="hi"] .loc-en {
-            display: none !important;
-        }
-
-        html[lang="hi"] .loc-hi {
-            display: block !important;
-        }
-
+        /* ─── LANGUAGE VISIBILITY ─── */
+        .loc-hi { display:none !important; }
+        html[lang="hi"] .loc-en { display:none !important; }
+        html[lang="hi"] .loc-hi { display:block !important; }
         html[lang="hi"] span.loc-hi,
         html[lang="hi"] a.loc-hi,
         html[lang="hi"] button.loc-hi,
-        html[lang="hi"] h3.loc-hi {
-            display: inline-block !important;
+        html[lang="hi"] h2.loc-hi,
+        html[lang="hi"] h3.loc-hi,
+        html[lang="hi"] h4.loc-hi,
+        html[lang="hi"] p.loc-hi,
+        html[lang="hi"] div.loc-hi { display:inline-block !important; }
+        html[lang="hi"] .brief-text-hi { display:block !important; }
+        html[lang="hi"] .brief-text-en { display:none !important; }
+        .brief-text-hi { display:none; }
+
+        /* ─── FOOTER ─── */
+        footer {
+            text-align:center; padding:1.5rem; font-size:.8rem; color:var(--text-muted);
+            border-top:1px solid var(--border-color);
+        }
+
+        /* ─── PRINT ─── */
+        @media print {
+            body { background:#fff !important; color:#000 !important; background-image:none !important; }
+            header, .toolbar, #loading-card, .timing-block, .lang-btn { display:none !important; }
+            main { padding:0 !important; margin:0 !important; max-width:100% !important; }
+            .rs-section { background:#f8fafc !important; border:1px solid #cbd5e1 !important; box-shadow:none !important; color:#000 !important; break-inside:avoid; }
+            .right-card, .action-step-card, .esc-card, .accordion-item, .primary-contact-card, .golden-window-alert, .priority-notice { background:#f1f5f9 !important; border:1px solid #cbd5e1 !important; box-shadow:none !important; }
+            * { color:#000 !important; }
+            a { text-decoration:underline !important; }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media(max-width:600px) {
+            main { padding:1.5rem .9rem; }
+            .rs-section { padding:1.5rem 1.1rem; }
+            .gw-time { font-size:1.8rem; }
+            header { padding:1rem 1.1rem; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <a href="/" class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </a>
-        <div class="nav-right">
-            <a href="/login/" class="login-link loc-en">Coordinator Login</a>
-            <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
-            <button class="lang-btn" onclick="toggleLanguage()">
-                <span class="loc-en">हिन्दी</span>
-                <span class="loc-hi">English</span>
+<header>
+    <a href="/" class="logo-container">
+        <div class="logo-pulse"></div>
+        <h1>Prahari</h1>
+    </a>
+    <div class="nav-right">
+        <a href="/login/" class="login-link loc-en">Coordinator Login</a>
+        <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+        <button class="lang-btn" onclick="toggleLanguage()">
+            <span class="loc-en">हिन्दी</span>
+            <span class="loc-hi">English</span>
+        </button>
+    </div>
+</header>
+
+<main>
+    <!-- Loading Card -->
+    <div id="loading-card" class="loading-card">
+        <div class="loading-card-header">
+            <h2 class="loading-title loc-en">Analyzing Incident Report</h2>
+            <h2 class="loading-title loc-hi" lang="hi">घटना रिपोर्ट का विश्लेषण</h2>
+            <div class="uuid-label">Signal ID: {{ signal_id }}</div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="progress-bar-track">
+            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <ul class="progress-list">
+            <li id="step-received" class="progress-step done">
+                <span class="step-icon">✓</span>
+                <span class="loc-en">Signal Received</span>
+                <span class="loc-hi" lang="hi">सिग्नल प्राप्त हुआ</span>
+            </li>
+            <li id="step-classified" class="progress-step">
+                <span class="step-icon">⟳</span>
+                <span class="loc-en">Classifying Domain</span>
+                <span class="loc-hi" lang="hi">डोमेन वर्गीकरण</span>
+            </li>
+            <li id="step-analyzed" class="progress-step">
+                <span class="step-icon">⟳</span>
+                <span class="loc-en">Analyzing Rights &amp; Triage</span>
+                <span class="loc-hi" lang="hi">अधिकार और वर्गीकरण विश्लेषण</span>
+            </li>
+            <li id="step-coordinated" class="progress-step">
+                <span class="step-icon">⟳</span>
+                <span class="loc-en">Generating Brief</span>
+                <span class="loc-hi" lang="hi">समन्वय संक्षिप्त विवरण</span>
+            </li>
+            <li id="step-translated" class="progress-step">
+                <span class="step-icon">⟳</span>
+                <span class="loc-en">Translating Details</span>
+                <span class="loc-hi" lang="hi">विवरण का अनुवाद</span>
+            </li>
+        </ul>
+        <div style="text-align:center;color:var(--text-muted);font-size:.88rem;">
+            <span class="loc-en">Please do not close this window. Analysis takes 10–15 seconds.</span>
+            <span class="loc-hi" lang="hi">कृपया इस विंडो को बंद न करें। विश्लेषण में 10-15 सेकंड लगते हैं।</span>
+        </div>
+    </div>
+
+    <!-- Result section (hidden until analysis complete) -->
+    <div id="result-section">
+
+        <!-- Toolbar Row -->
+        <div class="result-meta">
+            <div style="flex:1;display:flex;flex-direction:column;gap:.5rem;">
+                <div id="sms-banner" class="banner loc-en">Your report has been received by our coordinators.</div>
+                <div id="sms-banner-hi" class="banner loc-hi" lang="hi">आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है।</div>
+            </div>
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="shareReport()">
+                    <span class="loc-en">🔗 Share</span>
+                    <span class="loc-hi">🔗 साझा करें</span>
+                </button>
+                <button class="toolbar-btn" onclick="window.print()">
+                    <span class="loc-en">🖨️ PDF/Print</span>
+                    <span class="loc-hi">🖨️ प्रिंट</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dynamically injected sections go here -->
+        <div id="dynamic-sections"></div>
+
+    </div>
+</main>
+
+<footer>
+    <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
+    <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
+</footer>
+
+<script>
+const signalId = "{{ signal_id }}";
+const pollInterval = 3000;
+let pollTimer = null;
+
+// ── Language ──────────────────────────────────────────────
+function initLanguage() {
+    let lang = localStorage.getItem('prahari_lang');
+    if (!lang) {
+        lang = (navigator.language || navigator.userLanguage || 'en').startsWith('hi') ? 'hi' : 'en';
+        localStorage.setItem('prahari_lang', lang);
+    }
+    document.documentElement.setAttribute('lang', lang);
+}
+function toggleLanguage() {
+    const cur = document.documentElement.getAttribute('lang') || 'en';
+    const next = cur === 'en' ? 'hi' : 'en';
+    document.documentElement.setAttribute('lang', next);
+    localStorage.setItem('prahari_lang', next);
+}
+function shareReport() {
+    navigator.clipboard.writeText(window.location.href);
+    alert(localStorage.getItem('prahari_lang') === 'hi' ? 'रिपोर्ट लिंक क्लिपबोर्ड पर कॉपी हो गया!' : 'Report link copied to clipboard!');
+}
+
+// ── Accordion ─────────────────────────────────────────────
+function toggleAccordion(btn) {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    btn.nextElementSibling.style.display = expanded ? 'none' : 'block';
+}
+
+// ── Progress Bar ──────────────────────────────────────────
+function updateChecklistUI(steps) {
+    const set = (id, done, active) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = 'progress-step' + (done ? ' done' : active ? ' active' : '');
+        el.querySelector('.step-icon').textContent = done ? '✓' : '⟳';
+    };
+    set('step-received',    true,            false);
+    set('step-classified',  steps.classified, !steps.classified);
+    set('step-analyzed',    steps.analyzed,   steps.classified && !steps.analyzed);
+    set('step-coordinated', steps.coordinated,steps.analyzed && !steps.coordinated);
+    set('step-translated',  steps.translated, steps.coordinated && !steps.translated);
+
+    let pct = 20;
+    if (steps.classified)  pct += 20;
+    if (steps.analyzed)    pct += 20;
+    if (steps.coordinated) pct += 20;
+    if (steps.translated)  pct += 20;
+    const bar = document.getElementById('progress-bar-fill');
+    if (bar) bar.style.width = pct + '%';
+}
+
+// ── Polling ───────────────────────────────────────────────
+async function checkPipelineStatus() {
+    try {
+        const res = await fetch(`/report/${signalId}/status/`);
+        if (!res.ok) throw new Error('HTTP error polling status');
+        const data = await res.json();
+        updateChecklistUI(data.steps);
+        if (data.status === 'processed' && data.result) {
+            clearInterval(pollTimer);
+            renderResult(data.result);
+        } else if (data.status === 'failed') {
+            clearInterval(pollTimer);
+            showError();
+        }
+    } catch(e) {
+        console.error('Polling error:', e);
+    }
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function tfClass(tf) {
+    const t = (tf || '').toLowerCase();
+    if (t.includes('immediately') || t.includes('immediate') || t.includes('24') || t.includes('hour') || t.includes('1 day') || t.includes('2 day') || t.includes('3 day') || t === 'now') return 'urgent';
+    if (t.includes('7') || t.includes('week')) return 'amber';
+    if (t.includes('30') || t.includes('month') || t.includes('year')) return 'blue';
+    return 'grey';
+}
+function tfLabel(tf) {
+    const t = (tf || '').toLowerCase();
+    if (t.includes('immediately') || t.includes('immediate') || t === 'now') return 'IMMEDIATELY';
+    return tf;
+}
+function extractForum(actionText) {
+    const forums = [
+        ['Civil Court', 'Civil Court'],
+        ['Police Station', 'Police Station'],
+        ['NALSA', 'NALSA / DLSA'],
+        ['DLSA', 'NALSA / DLSA'],
+        ['Labour Court', 'Labour Court'],
+        ['Labour Inspector', 'Labour Inspector'],
+        ['Consumer Forum', 'Consumer Forum'],
+        ['Magistrate', 'Magistrate Court'],
+        ['High Court', 'High Court'],
+    ];
+    for (const [needle, label] of forums) {
+        if ((actionText || '').includes(needle)) return label;
+    }
+    return null;
+}
+function bringChecklist(domain) {
+    const lists = {
+        legal: ['Rent agreement or lease copy', 'FIR copy (if filed)', 'Written record of incidents / dates', 'Witness names and contact numbers'],
+        labour: ['Employment proof / offer letter', 'Wage slips or salary records', 'Written contract (if any)', 'Co-worker contacts as witnesses'],
+        consumer: ['Purchase receipt or invoice', 'Product / packaging (if applicable)', 'Written complaint sent to company', 'Bank statement showing payment'],
+    };
+    const d = (domain || '').toLowerCase();
+    const items = lists[d] || lists['legal'];
+    return items.map(i => `<li>${i}</li>`).join('');
+}
+function simplifyDescription(desc) {
+    // Return description as-is; LLM-generated text is already summarised
+    return desc || '';
+}
+function extractRemedy(relevance) {
+    // Extract the last sentence or a remedy phrase from relevance text
+    const sentences = (relevance || '').split(/\.\s+/);
+    // Look for remedy-hinting sentence
+    for (const s of sentences.slice().reverse()) {
+        const sl = s.toLowerCase();
+        if (sl.includes('can') || sl.includes('file') || sl.includes('seek') || sl.includes('apply') || sl.includes('claim') || sl.includes('remedy') || sl.includes('contact') || sl.includes('call') || sl.includes('register')) {
+            return s.trim().replace(/\.$/, '') + '.';
+        }
+    }
+    return sentences[sentences.length - 1]?.trim() || '';
+}
+
+// ── Main Render ───────────────────────────────────────────
+function renderResult(result) {
+    // Hide loading card
+    document.getElementById('loading-card').style.display = 'none';
+
+    // Banners
+    if (result.contact_number) {
+        document.getElementById('sms-banner').textContent = `Your report has been received by our coordinators. You will receive updates on ${result.contact_number}.`;
+        document.getElementById('sms-banner-hi').textContent = `आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है। आपको ${result.contact_number} पर अपडेट प्राप्त होंगे।`;
+    }
+
+    document.getElementById('result-section').style.display = 'flex';
+
+    const domain = (result.domain || '').toLowerCase();
+    const isHealth = ['health', 'emergency', 'cross', 'cross_domain'].includes(domain);
+    const isLegal  = ['legal', 'cross', 'cross_domain'].includes(domain);
+    const isCross  = ['cross', 'cross_domain'].includes(domain);
+    const lang = document.documentElement.getAttribute('lang') || 'en';
+
+    let html = '';
+
+    // ── Title + Badges ───────────────────────────────────
+    const sev = (result.severity_label || 'medium').toLowerCase();
+    const sevScore = result.severity_score || 0;
+    html += `
+    <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:.25rem;">
+        <div class="badge-row">
+            <span class="badge ${sev}">${sev.toUpperCase()} · ${sevScore.toFixed(2)}</span>
+            <span class="badge domain">${domain.toUpperCase()}</span>
+        </div>
+        <div style="font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:800;color:var(--text-main);line-height:1.25;">${result.title_en || ''}</div>
+        ${result.title_hi ? `<div style="font-family:'Noto Sans Devanagari',sans-serif;font-size:1.45rem;font-weight:600;color:#cbd5e1;line-height:1.35;">${result.title_hi}</div>` : ''}
+    </div>`;
+
+    // ── SECTION 1: WHAT IS HAPPENING ─────────────────────
+    const briefEn = result.brief_en || result.what_is_happening_en || '';
+    const briefHi = result.brief_hi || result.what_is_happening_hi || briefEn;
+    html += `
+    <section class="rs-section" aria-label="What is happening">
+        <div class="section-header">
+            <span class="section-label">Section 1</span>
+            <h2 class="section-heading">
+                <span class="loc-en">What is Happening</span>
+                <span class="loc-hi">क्या हो रहा है</span>
+            </h2>
+        </div>
+        <p class="brief-text loc-en">${briefEn}</p>
+        <p class="brief-text brief-text-hi loc-hi" lang="hi">${briefHi}</p>
+    </section>`;
+
+    // ── GOLDEN WINDOW (health, between S1 & S2) ───────────
+    if (isHealth && result.golden_window && result.golden_window.time_remaining) {
+        const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
+        const icon = isImm ? '🚨' : '⏱️';
+        html += `
+    <div class="golden-window-alert" role="alert">
+        <div class="gw-label">⚠️ Time Critical — Golden Treatment Window / चिकित्सा समय सीमा</div>
+        <div class="gw-time">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
+        <p class="gw-consequence"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
+        <a href="tel:108" class="call-btn-large">📞 Call 108 — National Ambulance</a>
+    </div>`;
+    }
+
+    // ── PRIORITY NOTICE (cross-domain) ───────────────────
+    if (isCross && result.conflict_resolution) {
+        const cr = result.conflict_resolution;
+        html += `
+    <div class="priority-notice" role="note">
+        <div class="priority-notice-label">⚡ Priority Notice — Cross-Domain Situation</div>
+        <p class="priority-notice-text">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
+        ${cr.sequence ? `<p style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
+    </div>`;
+    }
+
+    // ── SECTION 2: YOUR RIGHTS ───────────────────────────
+    const provisions = result.legal_provisions || [];
+    if (isLegal && provisions.length > 0) {
+        const provCards = provisions.map(p => {
+            const simpleDesc = simplifyDescription(p.description);
+            const remedy = extractRemedy(p.relevance);
+            return `
+            <div class="right-card">
+                <div class="right-card-title">${p.provision || ''}</div>
+                <div class="right-card-desc">${p.description || ''}</div>
+                <div class="right-card-body">
+                    <p class="right-para"><span class="right-para-label means">📋 What this means:</span>${simpleDesc}</p>
+                    <p class="right-para"><span class="right-para-label applies">🎯 How it applies to you:</span>${p.relevance || ''}</p>
+                    <p class="right-para"><span class="right-para-label remedy">✅ Your remedy:</span>${remedy}</p>
+                </div>
+            </div>`;
+        }).join('');
+        html += `
+    <section class="rs-section" aria-label="Your Rights">
+        <div class="section-header">
+            <span class="section-label">Section 2</span>
+            <h2 class="section-heading">
+                <span class="loc-en">Your Rights</span>
+                <span class="loc-hi">आपके अधिकार</span>
+            </h2>
+            <p class="section-subheading loc-en">Based on your report, the following rights apply to your situation:</p>
+            <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी स्थिति पर लागू होते हैं:</p>
+        </div>
+        <div class="rights-grid">${provCards}</div>
+    </section>`;
+    }
+
+    // ── SECTION 3: ACTION PLAN ───────────────────────────
+    // Use legal_timeline (from rights agent) for legal, fall back to immediate_actions
+    let actionSteps = [];
+    if (result.legal_timeline && result.legal_timeline.length > 0) {
+        actionSteps = result.legal_timeline.map((s, i) => ({
+            num: s.step || (i + 1),
+            timeframe: s.timeframe || '',
+            action: s.action || '',
+            why_urgent: s.why_urgent || '',
+        }));
+    } else if (result.immediate_actions && result.immediate_actions.length > 0) {
+        actionSteps = result.immediate_actions.map((a, i) => ({
+            num: a.priority || (i + 1),
+            timeframe: a.time_window || '',
+            action: a.action || '',
+            why_urgent: '',
+        }));
+    }
+
+    if (actionSteps.length > 0) {
+        const stepCards = actionSteps.map(s => {
+            const cls = tfClass(s.timeframe);
+            const forum = extractForum(s.action);
+            return `
+            <div class="action-step-card">
+                <div class="step-num-circle ${cls}">${s.num}</div>
+                <div class="step-body">
+                    <span class="step-tf-badge ${cls}">${tfLabel(s.timeframe)}</span>
+                    <p class="step-action-text">${s.action}</p>
+                    ${s.why_urgent ? `<p class="step-why"><span class="step-why-label">Why this cannot wait:</span>${s.why_urgent}</p>` : ''}
+                    ${forum ? `<p class="step-forum"><span class="step-forum-label">Forum / Contact:</span>${forum}</p>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+        html += `
+    <section class="rs-section" aria-label="Action Plan">
+        <div class="section-header">
+            <span class="section-label">Section 3</span>
+            <h2 class="section-heading">
+                <span class="loc-en">Action Plan</span>
+                <span class="loc-hi">क्या करें</span>
+            </h2>
+            <p class="section-subheading loc-en">Steps you must take, in order of urgency:</p>
+            <p class="section-subheading loc-hi" lang="hi">तत्काल करने योग्य कदम, प्राथमिकता के क्रम में:</p>
+        </div>
+        <div class="action-plan-list">${stepCards}</div>
+    </section>`;
+    }
+
+    // ── SECTION 4: WHO TO CONTACT ────────────────────────
+    const authorityType  = result.nearest_authority_type || 'DLSA';
+    const authorityDesc  = result.authority_to_contact   || 'National Legal Services Authority (NALSA)';
+    const isNALSA = /dlsa|nalsa/i.test(authorityType + ' ' + authorityDesc);
+    const titleText = result.title_en || '';
+    const domainForList = isLegal ? 'legal' : isHealth ? 'health' : 'legal';
+
+    let primaryContactHTML = `
+    <div class="primary-contact-card">
+        <div>
+            <div class="contact-authority-name">${authorityType}</div>
+            <div class="contact-authority-desc">${authorityDesc}</div>
+        </div>
+        ${isNALSA ? `
+        <div>
+            <a href="tel:15100" class="nalsa-btn">
+                📞 15100
+                <span class="nalsa-btn-sublabel">NALSA Free Legal Aid Helpline · Free · 24/7 · They connect you to your local DLSA</span>
+            </a>
+        </div>
+        <p class="contact-what-to-tell"><span class="contact-what-label">What to tell them: </span>"${titleText || 'My situation'}" — and ask for emergency legal assistance.</p>
+        ` : `
+        <p class="contact-what-to-tell"><span class="contact-what-label">Who to contact: </span>${authorityDesc}</p>
+        `}
+        <div>
+            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.6rem;">What to bring:</div>
+            <ul class="bring-checklist">${bringChecklist(domainForList)}</ul>
+        </div>
+    </div>`;
+
+    let emergencyContactsHTML = '';
+    if (isHealth && result.emergency_contacts && result.emergency_contacts.length > 0) {
+        const btns = result.emergency_contacts.map(c => {
+            let cls = 'e-other';
+            if (c.number === '108') cls = 'e-108';
+            else if (c.number === '100') cls = 'e-100';
+            else if (c.number === '1091') cls = 'e-1091';
+            return `
+            <a href="tel:${c.number}" class="emergency-card ${cls}">
+                <span class="ec-name">${c.name}</span>
+                <span class="ec-number">📞 ${c.number}</span>
+                <span class="ec-when">${c.when_to_call || ''}</span>
+            </a>`;
+        }).join('');
+        emergencyContactsHTML = `
+        <div>
+            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.75rem;">
+                <span class="loc-en">Emergency Hotlines — Tap to Call</span>
+                <span class="loc-hi" lang="hi">आपातकालीन हेल्पलाइन — कॉल करने के लिए टैप करें</span>
+            </div>
+            <div class="emergency-contacts-grid">${btns}</div>
+        </div>`;
+    }
+
+    html += `
+    <section class="rs-section" aria-label="Who to Contact">
+        <div class="section-header">
+            <span class="section-label">Section 4</span>
+            <h2 class="section-heading">
+                <span class="loc-en">Who to Contact</span>
+                <span class="loc-hi">संपर्क करें</span>
+            </h2>
+            <p class="section-subheading loc-en">Contact directory — different from your action steps above.</p>
+            <p class="section-subheading loc-hi" lang="hi">संपर्क निर्देशिका — ऊपर दिए गए कदमों से अलग।</p>
+        </div>
+        <div class="contact-grid">
+            ${primaryContactHTML}
+            ${emergencyContactsHTML}
+        </div>
+    </section>`;
+
+    // ── SECTION 5: LEGAL REFERENCE (collapsible) ─────────
+    if (isLegal && provisions.length > 0) {
+        const accItems = provisions.map((p, i) => `
+        <div class="accordion-item">
+            <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${i}">
+                <div class="accordion-trigger-left">
+                    <span class="acc-provision">${p.provision || ''}</span>
+                    <span class="acc-desc">${p.description || ''}</span>
+                </div>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
             </button>
+            <div class="accordion-content" role="region" aria-labelledby="acc-btn-${i}">
+                ${p.relevance || ''}
+            </div>
+        </div>`).join('');
+        html += `
+    <section class="rs-section muted" aria-label="Legal Reference">
+        <div class="section-header">
+            <span class="section-label">Section 5 — Reference</span>
+            <h2 class="section-heading" style="color:var(--text-muted);font-size:1.1rem;">
+                <span class="loc-en">Legal Reference</span>
+                <span class="loc-hi">कानूनी संदर्भ</span>
+            </h2>
+            <p class="section-subheading loc-en">Tap to expand each provision for detailed legal information.</p>
+            <p class="section-subheading loc-hi" lang="hi">विस्तृत कानूनी जानकारी के लिए प्रत्येक प्रावधान पर टैप करें।</p>
         </div>
-    </header>
+        <div class="accordion-list">${accItems}</div>
+    </section>`;
+    }
 
-    <main>
-        <!-- Loading Checklist card -->
-        <div id="loading-card" class="status-card">
-            <div class="status-card-header">
-                <h2 class="status-card-title loc-en">Analyzing Incident Report</h2>
-                <h2 class="status-card-title loc-hi" lang="hi">घटना रिपोर्ट का विश्लेषण</h2>
-                <div class="uuid-label">Signal ID: {{ signal_id }}</div>
+    // ── SECTION 6: ESCALATION ────────────────────────────
+    const escPath = result.escalation_path || [];
+    const escRequired = result.escalation_required;
+    if (escRequired && escPath.length > 0) {
+        const escCards = escPath.map((e, i) => {
+            const arrow = i < escPath.length - 1 ? `<div class="esc-arrow">↓ escalate if ignored</div>` : '';
+            return `
+            <div class="esc-card">
+                <div class="esc-level-badge">Level ${e.level}</div>
+                <div class="esc-authority">${e.authority || ''}</div>
+                <p class="esc-trigger"><span class="esc-trigger-label">Use this if: </span>${e.trigger || ''}</p>
+                <p class="esc-contact">${e.contact || ''}</p>
             </div>
-
-            <ul class="progress-list">
-                <li id="step-received" class="progress-step done">
-                    <span class="step-icon">✓</span>
-                    <span class="loc-en">Signal Received</span>
-                    <span class="loc-hi" lang="hi">सिग्नल प्राप्त हुआ</span>
-                </li>
-                <li id="step-classified" class="progress-step">
-                    <span class="step-icon">⟳</span>
-                    <span class="loc-en">Classifying Domain</span>
-                    <span class="loc-hi" lang="hi">डोमेन वर्गीकरण</span>
-                </li>
-                <li id="step-analyzed" class="progress-step">
-                    <span class="step-icon">⟳</span>
-                    <span class="loc-en">Analyzing Rights & Triage</span>
-                    <span class="loc-hi" lang="hi">अधिकार और वर्गीकरण विश्लेषण</span>
-                </li>
-                <li id="step-coordinated" class="progress-step">
-                    <span class="step-icon">⟳</span>
-                    <span class="loc-en">Generating Brief</span>
-                    <span class="loc-hi" lang="hi">समन्वय संक्षिप्त विवरण</span>
-                </li>
-                <li id="step-translated" class="progress-step">
-                    <span class="step-icon">⟳</span>
-                    <span class="loc-en">Translating Details</span>
-                    <span class="loc-hi" lang="hi">विवरण का अनुवाद</span>
-                </li>
-            </ul>
-
-            <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">
-                <span class="loc-en">Please do not close this window. Analysis takes 10-15 seconds.</span>
-                <span class="loc-hi" lang="hi">कृपया इस विंडो को बंद न करें। विश्लेषण में 10-15 सेकंड लगते हैं।</span>
-            </div>
+            ${arrow}`;
+        }).join('');
+        html += `
+    <section class="rs-section" aria-label="Escalation Path" style="border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.04);">
+        <div class="section-header">
+            <span class="section-label" style="color:#fb923c;">Section 6</span>
+            <h2 class="section-heading" style="color:#fdba74;">
+                <span class="loc-en">If Nobody Helps</span>
+                <span class="loc-hi">अगर कोई मदद नहीं करे</span>
+            </h2>
+            <p class="section-subheading loc-en">Escalate in this order if your initial attempts are ignored:</p>
+            <p class="section-subheading loc-hi" lang="hi">यदि आपके प्रारंभिक प्रयासों को अनदेखा किया जाए तो इस क्रम में आगे बढ़ें:</p>
         </div>
+        <div class="escalation-list">${escCards}</div>
+    </section>`;
+    }
 
-        <!-- Result section -->
-        <div id="result-section">
-            <div id="sms-banner" class="card-banner loc-en">
-                Your report has been received by our coordinators.
-            </div>
-            <div id="sms-banner-hi" class="card-banner loc-hi" lang="hi">
-                आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है।
-            </div>
-
-            <div class="incident-card" id="incident-view">
-                <!-- Injected Dynamically by JS -->
-            </div>
+    // ── TIMING BLOCK ─────────────────────────────────────
+    if (result.timing) {
+        const order = ['sentinel', 'triage', 'rights', 'coordination', 'language'];
+        const chips = order.map(agent => {
+            const t = result.timing[agent];
+            if (!t || !t.start || !t.end) return '';
+            const dur = ((new Date(t.end) - new Date(t.start)) / 1000).toFixed(1);
+            return `<span class="timing-chip">${agent.charAt(0).toUpperCase() + agent.slice(1)}: <span>${dur}s</span></span>`;
+        }).filter(Boolean).join('');
+        if (chips) {
+            html += `
+    <div class="timing-block">
+        <div class="timing-label">
+            <span class="loc-en">Agent Performance Timings</span>
+            <span class="loc-hi" lang="hi">एजेंट निष्पादन समय</span>
         </div>
-    </main>
-
-    <footer>
-        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
-        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
-    </footer>
-
-    <script>
-        const signalId = "{{ signal_id }}";
-        const pollInterval = 3000;
-        let pollTimer = null;
-
-        function initLanguage() {
-            let selectedLang = localStorage.getItem('prahari_lang');
-            if (!selectedLang) {
-                const userLang = navigator.language || navigator.userLanguage;
-                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
-                localStorage.setItem('prahari_lang', selectedLang);
-            }
-            setLanguageTheme(selectedLang);
+        <div class="timing-chips">${chips}</div>
+    </div>`;
         }
+    }
 
-        function setLanguageTheme(lang) {
-            document.documentElement.setAttribute('lang', lang);
-            localStorage.setItem('prahari_lang', lang);
-        }
+    document.getElementById('dynamic-sections').innerHTML = html;
+}
 
-        function toggleLanguage() {
-            const currentLang = document.documentElement.getAttribute('lang') || 'en';
-            const nextLang = currentLang === 'en' ? 'hi' : 'en';
-            setLanguageTheme(nextLang);
-        }
+// ── Error State ───────────────────────────────────────────
+function showError() {
+    document.getElementById('loading-card').innerHTML = `
+    <div class="loading-card-header">
+        <h2 class="loading-title loc-en" style="color:var(--color-critical)">Analysis Failed</h2>
+        <h2 class="loading-title loc-hi" lang="hi" style="color:var(--color-critical)">विश्लेषण विफल रहा</h2>
+    </div>
+    <p class="loc-en" style="color:var(--text-muted)">An error occurred during multi-agent pipeline routing. Coordinators have been notified.</p>
+    <p class="loc-hi" lang="hi" style="color:var(--text-muted)">मल्टी-एजेंट पाइपलाइन रूटिंग के दौरान एक त्रुटि उत्पन्न हुई। समन्वयकों को सूचित कर दिया गया है।</p>`;
+}
 
-        // Poll Pipeline Status via AJAX
-        async function checkPipelineStatus() {
-            try {
-                const response = await fetch(`/report/${signalId}/status/`);
-                if (!response.ok) throw new Error("HTTP error polling status");
-                
-                const data = await response.json();
-                console.log("Pipeline status update:", data);
-
-                updateChecklistUI(data.steps);
-
-                if (data.status === "processed" && data.result) {
-                    clearInterval(pollTimer);
-                    renderResult(data.result);
-                } else if (data.status === "failed") {
-                    clearInterval(pollTimer);
-                    showError();
-                }
-            } catch (e) {
-                console.error("Polling error:", e);
-            }
-        }
-
-        function updateChecklistUI(steps) {
-            // Helper to set class on list elements
-            const updateStepState = (id, isDone, isActive) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                
-                if (isDone) {
-                    el.className = "progress-step done";
-                    el.querySelector('.step-icon').textContent = "✓";
-                } else if (isActive) {
-                    el.className = "progress-step active";
-                    el.querySelector('.step-icon').textContent = "⟳";
-                } else {
-                    el.className = "progress-step";
-                    el.querySelector('.step-icon').textContent = " ";
-                }
-            };
-
-            updateStepState("step-received", true, false);
-            updateStepState("step-classified", steps.classified, !steps.classified);
-            updateStepState("step-analyzed", steps.analyzed, steps.classified && !steps.analyzed);
-            updateStepState("step-coordinated", steps.coordinated, steps.analyzed && !steps.coordinated);
-            updateStepState("step-translated", steps.translated, steps.coordinated && !steps.translated);
-        }
-
-        function renderResult(result) {
-            // Hide loading card
-            document.getElementById("loading-card").style.display = "none";
-            
-            // Set dynamic banners based on contact_number
-            if (result.contact_number) {
-                const bannerEn = document.getElementById("sms-banner");
-                const bannerHi = document.getElementById("sms-banner-hi");
-                if (bannerEn) bannerEn.textContent = `Your report has been received by our coordinators. You will receive updates on ${result.contact_number}.`;
-                if (bannerHi) bannerHi.textContent = `आपकी रिपोर्ट हमारे समन्वयकों द्वारा प्राप्त कर ली गई है। आपको ${result.contact_number} पर अपडेट प्राप्त होंगे।`;
-            }
-
-            // Show result section
-            document.getElementById("result-section").style.display = "flex";
-
-            const incidentView = document.getElementById("incident-view");
-            if (!incidentView) return;
-
-            // Render Badges
-            const severityLabel = result.severity_label.toLowerCase();
-            const severityScore = result.severity_score;
-            
-            let badgesHTML = `
-                <div class="badge-row">
-                    <span class="badge ${severityLabel}">${severityLabel} (${severityScore.toFixed(2)})</span>
-                    <span class="badge domain">${result.domain}</span>
-                </div>
-            `;
-
-            // Title Block
-            let headerHTML = `
-                <div class="card-header">
-                    <div class="title-block">
-                        <div class="incident-title-en">${result.title_en}</div>
-                        ${result.title_hi ? `<div class="incident-title-hi">${result.title_hi}</div>` : ''}
-                    </div>
-                    ${badgesHTML}
-                </div>
-            `;
-
-            // Briefs Block
-            let briefsHTML = `
-                <div class="briefs-grid">
-                    <div class="brief-box">
-                        <div class="brief-label">Situation Brief (EN)</div>
-                        <div class="brief-text-en">${result.brief_en}</div>
-                    </div>
-                    ${result.brief_hi ? `
-                    <div class="brief-box">
-                        <div class="brief-label">स्थिति विवरण (HI)</div>
-                        <div class="brief-text-hi">${result.brief_hi}</div>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // Rights violated (if any)
-            let rightsHTML = '';
-            if (result.rights_violated && result.rights_violated.length > 0) {
-                let items = result.rights_violated.map(r => `<li>${r}</li>`).join('');
-                rightsHTML = `
-                    <div class="rights-box">
-                        <div class="rights-label">Rights Violated / अधिकार उल्लंघन</div>
-                        <ul class="rights-list">${items}</ul>
-                    </div>
-                `;
-            }
-
-            // Actions Block
-            let actionsHTML = '';
-            const actionsEn = result.immediate_actions || [];
-            const actionsHi = result.immediate_actions_hi || [];
-            
-            if (actionsEn.length > 0) {
-                let actionItems = '';
-                actionsEn.forEach((act, idx) => {
-                    const actHi = actionsHi[idx] || {};
-                    actionItems += `
-                        <li class="action-item">
-                            <div class="action-num">${idx + 1}</div>
-                            <div class="action-details">
-                                <div class="action-text-en">${act.action}</div>
-                                ${actHi.action ? `<div class="action-text-hi">${actHi.action}</div>` : ''}
-                                <div class="action-meta">
-                                    Owner: <span class="action-owner">${act.responsible_party || 'Unassigned'}</span>
-                                    ${act.time_window ? `&bull; Window: <span class="action-window">${act.time_window}</span>` : ''}
-                                </div>
-                            </div>
-                        </li>
-                    `;
-                });
-
-                actionsHTML = `
-                    <div class="actions-section">
-                        <h4 class="actions-title">Immediate Response Directives / तत्काल निर्देश</h4>
-                        <ul class="action-list">
-                            ${actionItems}
-                        </ul>
-                    </div>
-                `;
-            }
-
-            incidentView.innerHTML = `
-                ${headerHTML}
-                ${briefsHTML}
-                ${rightsHTML}
-                ${actionsHTML}
-            `;
-        }
-
-        function showError() {
-            document.getElementById("loading-card").innerHTML = `
-                <div class="status-card-header">
-                    <h2 class="status-card-title loc-en" style="color: var(--color-critical)">Analysis Failed</h2>
-                    <h2 class="status-card-title loc-hi" lang="hi" style="color: var(--color-critical)">विश्लेषण विफल रहा</h2>
-                </div>
-                <p class="loc-en">An error occurred during multi-agent pipeline routing. Coordinators have been notified.</p>
-                <p class="loc-hi" lang="hi">मल्टी-एजेंट पाइपलाइन रूटिंग के दौरान एक त्रुटि उत्पन्न हुई। समन्वयकों को सूचित कर दिया गया है।</p>
-            `;
-        }
-
-        // Start Polling loop
-        window.addEventListener('DOMContentLoaded', () => {
-            initLanguage();
-            checkPipelineStatus();
-            pollTimer = setInterval(checkPipelineStatus, pollInterval);
-        });
-    </script>
+// ── Boot ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguage();
+    checkPipelineStatus();
+    pollTimer = setInterval(checkPipelineStatus, pollInterval);
+});
+</script>
 </body>
 </html>
