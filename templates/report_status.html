@@ -571,14 +571,19 @@ function extractForum(actionText) {
     }
     return null;
 }
-function bringChecklist(domain) {
-    const lists = {
+function bringChecklist(domain, lang = 'en') {
+    const listsEn = {
         legal: ['Rent agreement or lease copy', 'FIR copy (if filed)', 'Written record of incidents / dates', 'Witness names and contact numbers'],
         labour: ['Employment proof / offer letter', 'Wage slips or salary records', 'Written contract (if any)', 'Co-worker contacts as witnesses'],
         consumer: ['Purchase receipt or invoice', 'Product / packaging (if applicable)', 'Written complaint sent to company', 'Bank statement showing payment'],
     };
+    const listsHi = {
+        legal: ['किराया समझौता या लीज की प्रति', 'एफआईआर की प्रति (यदि दर्ज हो)', 'घटनाओं/तिथियों का लिखित विवरण', 'गवाहों के नाम और संपर्क नंबर'],
+        labour: ['रोजगार प्रमाण / प्रस्ताव पत्र', 'वेतन पर्ची या वेतन रिकॉर्ड', 'लिखित अनुबंध (यदि कोई हो)', 'गवाह के रूप में सहकर्मियों के संपर्क विवरण'],
+        consumer: ['खरीद रसीद या चालान', 'उत्पाद / पैकेजिंग (यदि लागू हो)', 'कंपनी को भेजी गई लिखित शिकायत', 'भुगतान दर्शाने वाला बैंक विवरण'],
+    };
     const d = (domain || '').toLowerCase();
-    const items = lists[d] || lists['legal'];
+    const items = (lang === 'hi' ? listsHi : listsEn)[d] || (lang === 'hi' ? listsHi['legal'] : listsEn['legal']);
     return items.map(i => `<li>${i}</li>`).join('');
 }
 function simplifyDescription(desc) {
@@ -652,11 +657,13 @@ function renderResult(result) {
     if (isHealth && result.golden_window && result.golden_window.time_remaining) {
         const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
         const icon = isImm ? '🚨' : '⏱️';
+        const gwHi = result.golden_window_hi || {};
         html += `
     <div class="golden-window-alert" role="alert">
         <div class="gw-label">⚠️ Time Critical — Golden Treatment Window / चिकित्सा समय सीमा</div>
         <div class="gw-time">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
-        <p class="gw-consequence"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
+        <p class="gw-consequence loc-en"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
+        <p class="gw-consequence loc-hi" lang="hi"><strong>यदि देरी हुई:</strong> ${gwHi.consequence_of_delay || result.golden_window.consequence_of_delay || ''}</p>
         <a href="tel:108" class="call-btn-large">📞 Call 108 — National Ambulance</a>
     </div>`;
     }
@@ -664,28 +671,43 @@ function renderResult(result) {
     // ── PRIORITY NOTICE (cross-domain) ───────────────────
     if (isCross && result.conflict_resolution) {
         const cr = result.conflict_resolution;
+        const crHi = result.conflict_resolution_hi || cr;
         html += `
     <div class="priority-notice" role="note">
-        <div class="priority-notice-label">⚡ Priority Notice — Cross-Domain Situation</div>
-        <p class="priority-notice-text">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
-        ${cr.sequence ? `<p style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
+        <div class="priority-notice-label loc-en">⚡ Priority Notice — Cross-Domain Situation</div>
+        <div class="priority-notice-label loc-hi">⚡ प्राथमिकता सूचना — क्रॉस-डोमेन स्थिति</div>
+        <p class="priority-notice-text loc-en">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
+        <p class="priority-notice-text loc-hi" lang="hi">इस स्थिति में चिकित्सा और कानूनी दोनों पहलू हैं। <strong>${(cr.primary_priority === 'medical' ? 'चिकित्सा' : 'कानूनी').toUpperCase()}</strong> को सबसे पहले प्राथमिकता दी जा रही है क्योंकि: ${crHi.reasoning || ''}</p>
+        ${cr.sequence ? `<p class="loc-en" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
+        ${crHi.sequence ? `<p class="loc-hi" lang="hi" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${crHi.sequence}</p>` : ''}
     </div>`;
     }
 
     // ── SECTION 2: YOUR RIGHTS ───────────────────────────
     const provisions = result.legal_provisions || [];
     if (isLegal && provisions.length > 0) {
-        const provCards = provisions.map(p => {
+        const provCards = provisions.map((p, idx) => {
             const simpleDesc = simplifyDescription(p.description);
             const remedy = extractRemedy(p.relevance);
+            
+            const pHi = (result.legal_provisions_hi || [])[idx] || {};
+            const simpleDescHi = simplifyDescription(pHi.description || p.description);
+            const relevanceHi = pHi.relevance || p.relevance;
+            const remedyHi = extractRemedy(relevanceHi);
+            
             return `
             <div class="right-card">
-                <div class="right-card-title">${p.provision || ''}</div>
-                <div class="right-card-desc">${p.description || ''}</div>
+                <div class="right-card-title loc-en">${p.provision || ''}</div>
+                <div class="right-card-title loc-hi" lang="hi">${pHi.provision || p.provision || ''}</div>
+                <div class="right-card-desc loc-en">${p.description || ''}</div>
+                <div class="right-card-desc loc-hi" lang="hi">${pHi.description || p.description || ''}</div>
                 <div class="right-card-body">
-                    <p class="right-para"><span class="right-para-label means">📋 What this means:</span>${simpleDesc}</p>
-                    <p class="right-para"><span class="right-para-label applies">🎯 How it applies to you:</span>${p.relevance || ''}</p>
-                    <p class="right-para"><span class="right-para-label remedy">✅ Your remedy:</span>${remedy}</p>
+                    <p class="right-para loc-en"><span class="right-para-label means">📋 What this means:</span>${simpleDesc}</p>
+                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label means">📋 इसका क्या अर्थ है:</span>${simpleDescHi}</p>
+                    <p class="right-para loc-en"><span class="right-para-label applies">🎯 How it applies to you:</span>${p.relevance || ''}</p>
+                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label applies">🎯 यह आप पर कैसे लागू होता है:</span>${relevanceHi}</p>
+                    <p class="right-para loc-en"><span class="right-para-label remedy">✅ Your remedy:</span>${remedy}</p>
+                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label remedy">✅ आपका उपाय:</span>${remedyHi}</p>
                 </div>
             </div>`;
         }).join('');
@@ -708,33 +730,49 @@ function renderResult(result) {
     // Use legal_timeline (from rights agent) for legal, fall back to immediate_actions
     let actionSteps = [];
     if (result.legal_timeline && result.legal_timeline.length > 0) {
-        actionSteps = result.legal_timeline.map((s, i) => ({
-            num: s.step || (i + 1),
-            timeframe: s.timeframe || '',
-            action: s.action || '',
-            why_urgent: s.why_urgent || '',
-        }));
+        actionSteps = result.legal_timeline.map((s, i) => {
+            const sHi = (result.legal_timeline_hi || [])[i] || {};
+            return {
+                num: s.step || (i + 1),
+                timeframe: s.timeframe || '',
+                action: s.action || '',
+                actionHi: sHi.action || s.action || '',
+                why_urgent: s.why_urgent || '',
+                why_urgentHi: sHi.why_urgent || s.why_urgent || '',
+            };
+        });
     } else if (result.immediate_actions && result.immediate_actions.length > 0) {
-        actionSteps = result.immediate_actions.map((a, i) => ({
-            num: a.priority || (i + 1),
-            timeframe: a.time_window || '',
-            action: a.action || '',
-            why_urgent: '',
-        }));
+        actionSteps = result.immediate_actions.map((a, i) => {
+            const aHi = (result.immediate_actions_hi || [])[i] || {};
+            return {
+                num: a.priority || (i + 1),
+                timeframe: a.time_window || '',
+                action: a.action || '',
+                actionHi: aHi.action || a.action || '',
+                why_urgent: '',
+                why_urgentHi: '',
+            };
+        });
     }
 
     if (actionSteps.length > 0) {
         const stepCards = actionSteps.map(s => {
             const cls = tfClass(s.timeframe);
             const forum = extractForum(s.action);
+            const forumHi = extractForum(s.actionHi) || forum;
             return `
             <div class="action-step-card">
                 <div class="step-num-circle ${cls}">${s.num}</div>
                 <div class="step-body">
                     <span class="step-tf-badge ${cls}">${tfLabel(s.timeframe)}</span>
-                    <p class="step-action-text">${s.action}</p>
-                    ${s.why_urgent ? `<p class="step-why"><span class="step-why-label">Why this cannot wait:</span>${s.why_urgent}</p>` : ''}
-                    ${forum ? `<p class="step-forum"><span class="step-forum-label">Forum / Contact:</span>${forum}</p>` : ''}
+                    <p class="step-action-text loc-en">${s.action}</p>
+                    <p class="step-action-text loc-hi" lang="hi">${s.actionHi}</p>
+                    ${s.why_urgent ? `
+                    <p class="step-why loc-en"><span class="step-why-label">Why this cannot wait:</span>${s.why_urgent}</p>
+                    <p class="step-why loc-hi" lang="hi"><span class="step-why-label">यह क्यों आवश्यक है:</span>${s.why_urgentHi}</p>` : ''}
+                    ${forum ? `
+                    <p class="step-forum loc-en"><span class="step-forum-label">Forum / Contact:</span>${forum}</p>
+                    <p class="step-forum loc-hi" lang="hi"><span class="step-forum-label">मंच / संपर्क:</span>${forumHi}</p>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -758,6 +796,7 @@ function renderResult(result) {
     const authorityDesc  = result.authority_to_contact   || 'National Legal Services Authority (NALSA)';
     const isNALSA = /dlsa|nalsa/i.test(authorityType + ' ' + authorityDesc);
     const titleText = result.title_en || '';
+    const titleTextHi = result.title_hi || titleText || '';
     const domainForList = isLegal ? 'legal' : isHealth ? 'health' : 'legal';
 
     let primaryContactHTML = `
@@ -770,31 +809,40 @@ function renderResult(result) {
         <div>
             <a href="tel:15100" class="nalsa-btn">
                 📞 15100
-                <span class="nalsa-btn-sublabel">NALSA Free Legal Aid Helpline · Free · 24/7 · They connect you to your local DLSA</span>
+                <span class="nalsa-btn-sublabel loc-en">NALSA Free Legal Aid Helpline · Free · 24/7 · They connect you to your local DLSA</span>
+                <span class="nalsa-btn-sublabel loc-hi" lang="hi">NALSA मुफ्त कानूनी सहायता हेल्पलाइन · निःशुल्क · 24/7 · वे आपको आपके स्थानीय DLSA से जोड़ते हैं</span>
             </a>
         </div>
-        <p class="contact-what-to-tell"><span class="contact-what-label">What to tell them: </span>"${titleText || 'My situation'}" — and ask for emergency legal assistance.</p>
+        <p class="contact-what-to-tell loc-en"><span class="contact-what-label">What to tell them: </span>"${titleText || 'My situation'}" — and ask for emergency legal assistance.</p>
+        <p class="contact-what-to-tell loc-hi" lang="hi"><span class="contact-what-label">उन्हें क्या बताएं: </span>"${titleTextHi || 'मेरी स्थिति'}" — और आपातकालीन कानूनी सहायता मांगें।</p>
         ` : `
         <p class="contact-what-to-tell"><span class="contact-what-label">Who to contact: </span>${authorityDesc}</p>
         `}
         <div>
-            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.6rem;">What to bring:</div>
-            <ul class="bring-checklist">${bringChecklist(domainForList)}</ul>
+            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.6rem;">
+                <span class="loc-en">What to bring:</span>
+                <span class="loc-hi">क्या लाएँ:</span>
+            </div>
+            <ul class="bring-checklist loc-en">${bringChecklist(domainForList, 'en')}</ul>
+            <ul class="bring-checklist loc-hi" lang="hi">${bringChecklist(domainForList, 'hi')}</ul>
         </div>
     </div>`;
 
     let emergencyContactsHTML = '';
     if (isHealth && result.emergency_contacts && result.emergency_contacts.length > 0) {
-        const btns = result.emergency_contacts.map(c => {
+        const btns = result.emergency_contacts.map((c, i) => {
             let cls = 'e-other';
             if (c.number === '108') cls = 'e-108';
             else if (c.number === '100') cls = 'e-100';
             else if (c.number === '1091') cls = 'e-1091';
+            const cHi = (result.emergency_contacts_hi || [])[i] || {};
             return `
             <a href="tel:${c.number}" class="emergency-card ${cls}">
-                <span class="ec-name">${c.name}</span>
+                <span class="ec-name loc-en">${c.name}</span>
+                <span class="ec-name loc-hi" lang="hi">${cHi.name || c.name}</span>
                 <span class="ec-number">📞 ${c.number}</span>
-                <span class="ec-when">${c.when_to_call || ''}</span>
+                <span class="ec-when loc-en">${c.when_to_call || ''}</span>
+                <span class="ec-when loc-hi" lang="hi">${cHi.when_to_call || c.when_to_call || ''}</span>
             </a>`;
         }).join('');
         emergencyContactsHTML = `
@@ -826,19 +874,25 @@ function renderResult(result) {
 
     // ── SECTION 5: LEGAL REFERENCE (collapsible) ─────────
     if (isLegal && provisions.length > 0) {
-        const accItems = provisions.map((p, i) => `
-        <div class="accordion-item">
-            <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${i}">
-                <div class="accordion-trigger-left">
-                    <span class="acc-provision">${p.provision || ''}</span>
-                    <span class="acc-desc">${p.description || ''}</span>
+        const accItems = provisions.map((p, i) => {
+            const pHi = (result.legal_provisions_hi || [])[i] || {};
+            return `
+            <div class="accordion-item">
+                <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${i}">
+                    <div class="accordion-trigger-left">
+                        <span class="acc-provision loc-en">${p.provision || ''}</span>
+                        <span class="acc-provision loc-hi" lang="hi">${pHi.provision || p.provision || ''}</span>
+                        <span class="acc-desc loc-en">${p.description || ''}</span>
+                        <span class="acc-desc loc-hi" lang="hi">${pHi.description || p.description || ''}</span>
+                    </div>
+                    <span class="acc-chevron" aria-hidden="true">▼</span>
+                </button>
+                <div class="accordion-content" role="region" aria-labelledby="acc-btn-${i}">
+                    <span class="loc-en">${p.relevance || ''}</span>
+                    <span class="loc-hi" lang="hi">${pHi.relevance || p.relevance || ''}</span>
                 </div>
-                <span class="acc-chevron" aria-hidden="true">▼</span>
-            </button>
-            <div class="accordion-content" role="region" aria-labelledby="acc-btn-${i}">
-                ${p.relevance || ''}
-            </div>
-        </div>`).join('');
+            </div>`;
+        }).join('');
         html += `
     <section class="rs-section muted" aria-label="Legal Reference">
         <div class="section-header">
@@ -859,13 +913,20 @@ function renderResult(result) {
     const escRequired = result.escalation_required;
     if (escRequired && escPath.length > 0) {
         const escCards = escPath.map((e, i) => {
-            const arrow = i < escPath.length - 1 ? `<div class="esc-arrow">↓ escalate if ignored</div>` : '';
+            const eHi = (result.escalation_path_hi || [])[i] || {};
+            const arrow = i < escPath.length - 1 ? `
+            <div class="esc-arrow loc-en">↓ escalate if ignored</div>
+            <div class="esc-arrow loc-hi" lang="hi">↓ यदि अनदेखा किया जाए तो आगे बढ़ें</div>` : '';
             return `
             <div class="esc-card">
-                <div class="esc-level-badge">Level ${e.level}</div>
-                <div class="esc-authority">${e.authority || ''}</div>
-                <p class="esc-trigger"><span class="esc-trigger-label">Use this if: </span>${e.trigger || ''}</p>
-                <p class="esc-contact">${e.contact || ''}</p>
+                <div class="esc-level-badge loc-en">Level ${e.level}</div>
+                <div class="esc-level-badge loc-hi" lang="hi">स्तर ${e.level}</div>
+                <div class="esc-authority loc-en">${e.authority || ''}</div>
+                <div class="esc-authority loc-hi" lang="hi">${eHi.authority || e.authority || ''}</div>
+                <p class="esc-trigger loc-en"><span class="esc-trigger-label">Use this if: </span>${e.trigger || ''}</p>
+                <p class="esc-trigger loc-hi" lang="hi"><span class="esc-trigger-label">इसका उपयोग तब करें जब: </span>${eHi.trigger || e.trigger || ''}</p>
+                <p class="esc-contact loc-en">${e.contact || ''}</p>
+                <p class="esc-contact loc-hi" lang="hi">${eHi.contact || e.contact || ''}</p>
             </div>
             ${arrow}`;
         }).join('');

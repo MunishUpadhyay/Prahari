@@ -460,7 +460,7 @@ class LanguageAgent(BaseAgent):
     """
 
     prompt_name = "language"
-    max_tokens = 1500
+    max_tokens = 4000
 
     def run(self, coord_result: dict, target_language: str = "hindi") -> dict:
         import json
@@ -479,12 +479,10 @@ Return the complete translated JSON."""
         raw = self.call_groq(user_message)
         result = self.parse_json_response(raw)
 
-        # Fallbacks/Validations to ensure schema structure matches the input coordination brief
-        for key in ["situation_title", "overall_severity", "overall_severity_score", 
-                    "what_is_happening", "resources_needed", "authorities_to_notify", 
-                    "situation_brief", "escalation_required", "estimated_resolution_time"]:
+        # General fallbacks: ensure all keys present in the input payload are also in the result
+        for key, val in coord_result.items():
             if key not in result:
-                result[key] = coord_result.get(key)
+                result[key] = val
 
         try:
             result["overall_severity_score"] = float(result.get("overall_severity_score", coord_result.get("overall_severity_score", 0.5)))
@@ -494,20 +492,91 @@ Return the complete translated JSON."""
         result["escalation_required"] = bool(result.get("escalation_required", coord_result.get("escalation_required", False)))
 
         # Validate immediate_actions structure
-        if not isinstance(result.get("immediate_actions"), list):
-            result["immediate_actions"] = coord_result.get("immediate_actions", [])
-        else:
-            validated_actions = []
-            orig_actions = coord_result.get("immediate_actions", [])
-            for i, action in enumerate(result["immediate_actions"]):
-                if isinstance(action, dict):
-                    orig_action = orig_actions[i] if i < len(orig_actions) else {}
-                    validated_actions.append({
-                        "priority": orig_action.get("priority", action.get("priority", i+1)),
-                        "action": str(action.get("action", orig_action.get("action", ""))),
-                        "responsible_party": str(action.get("responsible_party", orig_action.get("responsible_party", ""))),
-                        "time_window": orig_action.get("time_window", action.get("time_window", ""))
-                    })
-            result["immediate_actions"] = validated_actions
+        if "immediate_actions" in coord_result:
+            if not isinstance(result.get("immediate_actions"), list):
+                result["immediate_actions"] = coord_result["immediate_actions"]
+            else:
+                validated_actions = []
+                orig_actions = coord_result["immediate_actions"]
+                for i, action in enumerate(result["immediate_actions"]):
+                    if isinstance(action, dict):
+                        orig_action = orig_actions[i] if i < len(orig_actions) else {}
+                        validated_actions.append({
+                            "priority": orig_action.get("priority", action.get("priority", i+1)),
+                            "action": str(action.get("action", orig_action.get("action", ""))),
+                            "responsible_party": str(action.get("responsible_party", orig_action.get("responsible_party", ""))),
+                            "time_window": orig_action.get("time_window", action.get("time_window", ""))
+                        })
+                result["immediate_actions"] = validated_actions
+
+        # Validate legal_provisions structure
+        if "legal_provisions" in coord_result:
+            if not isinstance(result.get("legal_provisions"), list):
+                result["legal_provisions"] = coord_result["legal_provisions"]
+            else:
+                validated_provisions = []
+                orig_provisions = coord_result["legal_provisions"]
+                for i, prov in enumerate(result["legal_provisions"]):
+                    if isinstance(prov, dict):
+                        orig_prov = orig_provisions[i] if i < len(orig_provisions) else {}
+                        validated_provisions.append({
+                            "provision": str(prov.get("provision", orig_prov.get("provision", ""))),
+                            "description": str(prov.get("description", orig_prov.get("description", ""))),
+                            "relevance": str(prov.get("relevance", orig_prov.get("relevance", "")))
+                        })
+                result["legal_provisions"] = validated_provisions
+
+        # Validate legal_timeline structure
+        if "legal_timeline" in coord_result:
+            if not isinstance(result.get("legal_timeline"), list):
+                result["legal_timeline"] = coord_result["legal_timeline"]
+            else:
+                validated_timeline = []
+                orig_timeline = coord_result["legal_timeline"]
+                for i, item in enumerate(result["legal_timeline"]):
+                    if isinstance(item, dict):
+                        orig_item = orig_timeline[i] if i < len(orig_timeline) else {}
+                        validated_timeline.append({
+                            "step": orig_item.get("step", item.get("step", i+1)),
+                            "action": str(item.get("action", orig_item.get("action", ""))),
+                            "timeframe": orig_item.get("timeframe", item.get("timeframe", "")),
+                            "why_urgent": str(item.get("why_urgent", orig_item.get("why_urgent", "")))
+                        })
+                result["legal_timeline"] = validated_timeline
+
+        # Validate escalation_path structure
+        if "escalation_path" in coord_result:
+            if not isinstance(result.get("escalation_path"), list):
+                result["escalation_path"] = coord_result["escalation_path"]
+            else:
+                validated_path = []
+                orig_path = coord_result["escalation_path"]
+                for i, item in enumerate(result["escalation_path"]):
+                    if isinstance(item, dict):
+                        orig_item = orig_path[i] if i < len(orig_path) else {}
+                        validated_path.append({
+                            "level": orig_item.get("level", item.get("level", i+1)),
+                            "authority": str(item.get("authority", orig_item.get("authority", ""))),
+                            "trigger": str(item.get("trigger", orig_item.get("trigger", ""))),
+                            "contact": str(item.get("contact", orig_item.get("contact", "")))
+                        })
+                result["escalation_path"] = validated_path
+
+        # Validate emergency_contacts structure
+        if "emergency_contacts" in coord_result:
+            if not isinstance(result.get("emergency_contacts"), list):
+                result["emergency_contacts"] = coord_result["emergency_contacts"]
+            else:
+                validated_contacts = []
+                orig_contacts = coord_result["emergency_contacts"]
+                for i, item in enumerate(result["emergency_contacts"]):
+                    if isinstance(item, dict):
+                        orig_item = orig_contacts[i] if i < len(orig_contacts) else {}
+                        validated_contacts.append({
+                            "name": str(item.get("name", orig_item.get("name", ""))),
+                            "number": orig_item.get("number", item.get("number", "")),
+                            "when_to_call": str(item.get("when_to_call", orig_item.get("when_to_call", "")))
+                        })
+                result["emergency_contacts"] = validated_contacts
 
         return result

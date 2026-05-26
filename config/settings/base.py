@@ -172,10 +172,11 @@ SIMPLE_JWT = {
 }
 
 # ---------------------------------------------------------------------------
-# Groq
+# Groq & Gemini
 # ---------------------------------------------------------------------------
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
 GROQ_API_KEY_2 = env('GROQ_API_KEY_2', default='')  # Second key for rate-limit rotation
+GEMINI_API_KEY = env('GEMINI_API_KEY', default='')  # Gemini API Key
 
 # ---------------------------------------------------------------------------
 # Password validation

@@ -52,19 +52,87 @@ class BaseAgent(abc.ABC):
 
         return prompt_path.read_text(encoding="utf-8").strip()
 
+    def call_gemini(self, user_message: str, api_key: str) -> str:
+        """
+        Call the Gemini API via HTTP POST request.
+        """
+        import requests
+        system_prompt = self.load_prompt()
+        
+        # Determine the Gemini model to use based on the Groq model name
+        if "70b" in self.model.lower():
+            gemini_model = "gemini-1.5-pro"
+        else:
+            gemini_model = "gemini-1.5-flash"
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={api_key}"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": user_message}
+                    ]
+                }
+            ],
+            "systemInstruction": {
+                "parts": [
+                    {"text": system_prompt}
+                ]
+            },
+            "generationConfig": {
+                "temperature": 0.1,
+            }
+        }
+        
+        # Force JSON formatting if requested
+        if "json" in system_prompt.lower() or "json" in user_message.lower():
+            payload["generationConfig"]["responseMimeType"] = "application/json"
+            
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        data = response.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            raise ValueError(f"Gemini API returned no candidates. Response: {data}")
+            
+        candidate = candidates[0]
+        if candidate.get("finishReason") == "SAFETY":
+            raise ValueError("Gemini API call was blocked by safety settings.")
+            
+        content = candidate.get("content", {})
+        parts = content.get("parts", [])
+        if not parts:
+            raise ValueError(f"Gemini API returned empty content parts. Response: {data}")
+            
+        return parts[0].get("text", "")
+
     def call_groq(self, user_message: str) -> str:
         """
-        Send system + user messages to Groq, rotating across available API keys
-        on rate-limit (429) errors.
+        Send system + user messages to LLM.
+        If settings.GEMINI_API_KEY is configured, routes to Gemini API.
+        Otherwise, rotates across available Groq API keys on rate-limit (429) errors.
 
         Keys tried in order:
-            1. settings.GROQ_API_KEY
-            2. settings.GROQ_API_KEY_2  (if configured)
+            1. settings.GEMINI_API_KEY (if configured)
+            2. settings.GROQ_API_KEY
+            3. settings.GROQ_API_KEY_2 (if configured)
 
         Raises:
             ValueError: if no API keys are configured.
             groq.RateLimitError / httpx.HTTPStatusError: if all keys are exhausted.
         """
+        gemini_key = getattr(settings, "GEMINI_API_KEY", "")
+        if gemini_key:
+            try:
+                logger.info("[BaseAgent] Routing to Gemini API.")
+                return self.call_gemini(user_message, gemini_key)
+            except Exception as exc:
+                logger.warning("[BaseAgent] Gemini call failed: %s. Falling back to Groq rotation.", exc)
+
         # Build ordered list of non-empty keys
         api_keys = [
             k for k in [
@@ -74,7 +142,7 @@ class BaseAgent(abc.ABC):
             if k
         ]
         if not api_keys:
-            raise ValueError("No GROQ_API_KEY is configured in Django settings.")
+            raise ValueError("No GROQ_API_KEY or GEMINI_API_KEY is configured in Django settings.")
 
         system_prompt = self.load_prompt()
         last_exc = None

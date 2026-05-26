@@ -345,7 +345,31 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
         start_time = datetime.now(timezone.utc)
         try:
             lang_agent = LanguageAgent()
-            hindi_brief = lang_agent.run(coord_result, "hindi")
+            
+            # Construct unified translation payload containing all user-facing text fields
+            translation_payload = {
+                "situation_title": coord_result.get("situation_title", ""),
+                "what_is_happening": coord_result.get("what_is_happening", ""),
+                "situation_brief": coord_result.get("situation_brief", ""),
+                "resources_needed": coord_result.get("resources_needed", []),
+                "authorities_to_notify": coord_result.get("authorities_to_notify", []),
+                "conflict_resolution": coord_result.get("conflict_resolution"),
+                "escalation_path": coord_result.get("escalation_path", []),
+                "immediate_actions": coord_result.get("immediate_actions", []),
+            }
+            
+            triage_out = agent_outputs.get("triage", {})
+            if triage_out:
+                translation_payload["golden_window"] = triage_out.get("golden_window", {})
+                translation_payload["emergency_contacts"] = triage_out.get("emergency_contacts", [])
+                translation_payload["primary_concern"] = triage_out.get("primary_concern", "")
+                
+            rights_out = agent_outputs.get("rights", {})
+            if rights_out:
+                translation_payload["legal_provisions"] = rights_out.get("legal_provisions", [])
+                translation_payload["legal_timeline"] = rights_out.get("legal_timeline", [])
+
+            hindi_brief = lang_agent.run(translation_payload, "hindi")
             
             # Store Hindi brief in agent_outputs
             agent_outputs['language'] = {
