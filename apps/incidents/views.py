@@ -14,7 +14,8 @@ import logging
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rag.retriever import retrieve_similar_incidents
@@ -44,11 +45,12 @@ class IncidentListView(ListAPIView):
         return Incident.objects.select_related("signal").all()
 
 
-class IncidentDetailView(RetrieveAPIView):
+class IncidentDetailView(RetrieveUpdateAPIView):
     """
     GET /api/incidents/<id>/
+    PATCH /api/incidents/<id>/
 
-    Returns the full incident record including all agent outputs.
+    Returns the full incident record and allows updates.
     """
 
     permission_classes = [IsAuthenticated]
@@ -56,14 +58,23 @@ class IncidentDetailView(RetrieveAPIView):
     lookup_field = "id"
 
     def get_queryset(self):
-        # TODO: scope to tenant
         return Incident.objects.select_related("signal").all()
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        status_changed = ('coordinator_status' in self.request.data and self.request.data['coordinator_status'] != instance.coordinator_status)
+        notes_changed = ('coordinator_notes' in self.request.data and self.request.data['coordinator_notes'] != instance.coordinator_notes)
+        
+        if status_changed or notes_changed:
+            serializer.save(status_updated_at=timezone.now())
+        else:
+            serializer.save()
 
 
 class SimilarIncidentsView(APIView):
     """
     GET /api/incidents/<uuid:id>/similar/
-    Returns the top 3 similar past incidents using RAG situation_brief embeddings.
+    Returns the top similar past incidents and their outcome statistics.
     """
     permission_classes = [IsAuthenticated]
 
@@ -75,7 +86,99 @@ class SimilarIncidentsView(APIView):
 
         results = retrieve_similar_incidents(
             query=query_text,
-            n_results=3,
+            n_results=5,
             exclude_id=str(id)
         )
-        return Response(results, status=status.HTTP_200_OK)
+        
+        total_similar = len(results)
+        if total_similar < 2:
+            outcome_stats = None
+        else:
+            resolved_count = 0
+            for item in results:
+                meta = item.get('metadata', item)
+                if not isinstance(meta, dict):
+                    meta = item
+                resolved_val = meta.get('resolved')
+                if resolved_val is True or resolved_val == 'true' or resolved_val == 'True':
+                    resolved_count += 1
+            
+            resolution_rate = f"{round(resolved_count / total_similar * 100)}%"
+            
+            severities = []
+            for item in results:
+                meta = item.get('metadata', item)
+                if not isinstance(meta, dict):
+                    meta = item
+                severities.append(meta.get('severity') or 'medium')
+            avg_severity = max(set(severities), key=severities.count) if severities else 'medium'
+            
+            authorities = []
+            domains = []
+            for item in results:
+                meta = item.get('metadata', item)
+                if not isinstance(meta, dict):
+                    meta = item
+                
+                auth = meta.get('authority_to_contact')
+                if auth:
+                    authorities.append(auth)
+                
+                dom = meta.get('domain')
+                if dom:
+                    domains.append(dom)
+            
+            if authorities:
+                typical_resolution = max(set(authorities), key=authorities.count)
+            elif domains:
+                typical_resolution = max(set(domains), key=domains.count)
+            else:
+                typical_resolution = 'unknown'
+                
+            outcome_stats = {
+                "total_similar": total_similar,
+                "resolved_count": resolved_count,
+                "resolution_rate": resolution_rate,
+                "avg_severity": avg_severity,
+                "typical_resolution": typical_resolution
+            }
+
+        return Response({
+            "similar_incidents": results,
+            "outcome_stats": outcome_stats
+        }, status=status.HTTP_200_OK)
+
+
+
+from apps.agents.agents import LegalNoticeAgent
+
+class LegalNoticeView(APIView):
+    """
+    GET /api/incidents/<uuid:id>/legal-notice/
+    Generates a formal legal notice draft for the incident.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
+        signal = incident.signal
+        
+        # Check domain
+        domain = (incident.domain or "").lower()
+        if domain not in ["legal", "cross", "cross_domain"]:
+            return Response(
+                {"detail": "Legal notice only available for legal domain incidents", "message": "Legal notice only available for legal domain incidents"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        agent_outputs = incident.agent_outputs or {}
+        rights_result = agent_outputs.get("rights")
+        if not rights_result:
+            return Response(
+                {"detail": "Rights assessment not yet complete", "message": "Rights assessment not yet complete"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        notice_text = LegalNoticeAgent().run(signal, rights_result)
+        return Response({"notice": notice_text}, status=status.HTTP_200_OK)
+

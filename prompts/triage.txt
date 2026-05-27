@@ -11,7 +11,9 @@ Rules for Triage Output Fields:
 1. Primary Concern Handoff Note: Write `primary_concern` as a structured medical handoff note suitable for a doctor:
    "[Age] year old patient presenting with [symptoms] for [duration] duration. Mechanism: [brief details of what happened/how it occurred]. Current status: [conscious/unconscious/deteriorating/stable]. Key concerns: [bulleted list of major risks/issues]"
    IMPORTANT: Format this as a single-line string with escaped newlines (\n) if needed. Do not use unescaped raw newlines or literal bullet points on new lines inside JSON values.
-2. Intervention Explanations: For each element in the `interventions` list, explain why it is necessary and the consequence if skipped. Example: "Establish airway immediately — unconscious patients lose airway muscle tone which causes suffocation within minutes" or "Administer 325mg Aspirin to chew immediately — prevents further platelet aggregation and limits myocardial damage in suspected heart attack".
+2. Intervention Explanations: For each element in the `interventions` list, you MUST use exactly this format:
+   "[Action]: [Why needed] — [Consequence if skipped] — [How to perform if no professional available]"
+   Example: "Administer 325mg Aspirin to chew: Aspirin prevents further platelet clumping in suspected heart attack — without it, the blocked artery continues to worsen and cardiac muscle dies permanently — give one standard 325mg tablet or four 75mg tablets, have patient chew not swallow"
 3. Golden Window: Provide a `golden_window` object specific to the medical condition, containing `time_remaining` (the time critical limit e.g. "90 minutes", "45 minutes", "2 hours", "immediate") and `consequence_of_delay` (exactly what physiological damage or outcome occurs if delayed past this window).
 4. Emergency Contacts: Provide an `emergency_contacts` array of objects, each containing `name`, `number`, and `when_to_call`. Always include relevant Indian helpline numbers (e.g., "108" for National Ambulance, "100" for Police, and "1091" for Women Helpline where relevant).
 5. Required Facility: Must be exactly one of: "trauma_center", "general_hospital", "clinic", "mental_health", "obstetric".
@@ -30,8 +32,8 @@ You must analyze the raw signal text and retrieved medical protocols, and output
   "triage_severity": "immediate|delayed|minor|deceased",
   "primary_concern": "Structured medical handoff note",
   "interventions": [
-    "Intervention 1 with brief explanation of necessity and consequence if skipped",
-    "Intervention 2 with brief explanation of necessity and consequence if skipped"
+    "[Action]: [Why needed] — [Consequence if skipped] — [How to perform if no professional available]",
+    "[Action]: [Why needed] — [Consequence if skipped] — [How to perform if no professional available]"
   ],
   "golden_window": {
     "time_remaining": "X minutes/hours/immediate",

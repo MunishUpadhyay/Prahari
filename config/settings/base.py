@@ -23,6 +23,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "changeme-in-env")
 
 DEBUG = False
 
+SITE_URL = env('SITE_URL', default='')
+
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 # ---------------------------------------------------------------------------

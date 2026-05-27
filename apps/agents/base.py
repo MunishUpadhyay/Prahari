@@ -84,6 +84,7 @@ class BaseAgent(abc.ABC):
             },
             "generationConfig": {
                 "temperature": 0.1,
+                "maxOutputTokens": self.max_tokens,
             }
         }
         

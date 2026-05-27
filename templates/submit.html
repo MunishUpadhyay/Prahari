@@ -98,22 +98,43 @@
             color: var(--text-main);
         }
 
-        /* Language Toggle Button */
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.04);
+        /* Language Selector Bar */
+        .lang-selector-bar {
+            display: flex;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.5rem 1rem;
+            padding: 0.25rem;
             border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            max-width: 100%;
         }
-
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+        .lang-selector-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .lang-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lang-pill:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .lang-pill.active {
+            background: var(--color-indigo);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
         }
 
         /* Main Form Container */
@@ -402,10 +423,15 @@
         <div class="nav-right">
             <a href="/login/" class="login-link loc-en">Coordinator Login</a>
             <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
-            <button class="lang-btn" onclick="toggleLanguage()">
-                <span class="loc-en">हिन्दी</span>
-                <span class="loc-hi">English</span>
-            </button>
+            <div class="lang-selector-bar">
+                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
+                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
+                <button type="button" class="lang-pill" data-lang="bengali" onclick="changeLanguage('bengali')">বাংলা</button>
+                <button type="button" class="lang-pill" data-lang="marathi" onclick="changeLanguage('marathi')">मराठी</button>
+                <button type="button" class="lang-pill" data-lang="tamil" onclick="changeLanguage('tamil')">தமிழ்</button>
+                <button type="button" class="lang-pill" data-lang="telugu" onclick="changeLanguage('telugu')">తెలుగు</button>
+                <button type="button" class="lang-pill" data-lang="kannada" onclick="changeLanguage('kannada')">ಕನ್ನಡ</button>
+            </div>
         </div>
     </header>
 
@@ -421,6 +447,7 @@
 
             <form method="POST" action="/submit/" onsubmit="return validateForm()">
                 {% csrf_token %}
+                <input type="hidden" name="preferred_language" id="preferred_language_field" value="hindi">
                 
                 {% if error %}
                     <div class="form-error" style="margin-bottom: 1.5rem; font-weight: 600;">
@@ -518,37 +545,68 @@
         function initLanguage() {
             let selectedLang = localStorage.getItem('prahari_lang');
             if (!selectedLang) {
-                const userLang = navigator.language || navigator.userLanguage;
-                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+                if (userLang.startsWith('hi')) {
+                    selectedLang = 'hindi';
+                } else if (userLang.startsWith('bn')) {
+                    selectedLang = 'bengali';
+                } else if (userLang.startsWith('mr')) {
+                    selectedLang = 'marathi';
+                } else if (userLang.startsWith('ta')) {
+                    selectedLang = 'tamil';
+                } else if (userLang.startsWith('te')) {
+                    selectedLang = 'telugu';
+                } else if (userLang.startsWith('kn')) {
+                    selectedLang = 'kannada';
+                } else {
+                    selectedLang = 'english';
+                }
                 localStorage.setItem('prahari_lang', selectedLang);
+            }
+            const field = document.getElementById('preferred_language_field');
+            if (field) {
+                field.value = selectedLang;
             }
             setLanguageTheme(selectedLang);
         }
 
         function setLanguageTheme(lang) {
-            document.documentElement.setAttribute('lang', lang);
+            document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
             localStorage.setItem('prahari_lang', lang);
             
-            // Set input placeholders dynamically
+            // Highlight active lang pill
+            const pills = document.querySelectorAll('.lang-pill');
+            pills.forEach(pill => {
+                if (pill.getAttribute('data-lang') === lang) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+
+            // Set input placeholders dynamically (fallback to English if not Hindi)
+            const pKey = lang === 'hindi' ? 'hi' : 'en';
             const rawTextEl = document.getElementById('raw_text');
             const locEl = document.getElementById('location');
             const contactEl = document.getElementById('contact_number');
 
-            if (rawTextEl) rawTextEl.placeholder = placeholders[lang].raw_text;
-            if (locEl) locEl.placeholder = placeholders[lang].location;
-            if (contactEl) contactEl.placeholder = placeholders[lang].contact_number;
+            if (rawTextEl) rawTextEl.placeholder = placeholders[pKey].raw_text;
+            if (locEl) locEl.placeholder = placeholders[pKey].location;
+            if (contactEl) contactEl.placeholder = placeholders[pKey].contact_number;
         }
 
-        function toggleLanguage() {
-            const currentLang = document.documentElement.getAttribute('lang') || 'en';
-            const nextLang = currentLang === 'en' ? 'hi' : 'en';
-            setLanguageTheme(nextLang);
+        function changeLanguage(lang) {
+            const field = document.getElementById('preferred_language_field');
+            if (field) {
+                field.value = lang;
+            }
+            setLanguageTheme(lang);
         }
 
         function validateForm() {
             const rawText = document.getElementById('raw_text').value.trim();
             if (!rawText) {
-                alert(localStorage.getItem('prahari_lang') === 'hi' ? 'कृपया घटना का वर्णन करें।' : 'Please describe the incident.');
+                alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'कृपया घटना का वर्णन करें।' : 'Please describe the incident.');
                 return false;
             }
             return true;
@@ -577,8 +635,16 @@
 
             // Helper to get active language
             function getLangCode() {
-                const currentLang = document.documentElement.getAttribute('lang') || 'en';
-                return currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+                const currentLang = localStorage.getItem('prahari_lang') || 'english';
+                const mapping = {
+                    hindi: 'hi-IN',
+                    bengali: 'bn-IN',
+                    marathi: 'mr-IN',
+                    tamil: 'ta-IN',
+                    telugu: 'te-IN',
+                    kannada: 'kn-IN'
+                };
+                return mapping[currentLang] || 'en-IN';
             }
 
             voiceBtn.addEventListener("click", () => {

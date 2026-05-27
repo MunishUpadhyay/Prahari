@@ -26,6 +26,7 @@ def citizen_submit(request):
         raw_text = request.POST.get("raw_text", "").strip()
         location = request.POST.get("location", "").strip()
         contact_number = request.POST.get("contact_number", "").strip()
+        preferred_language = request.POST.get("preferred_language", "hindi").strip()
 
         if not raw_text:
             return render(request, "submit.html", {"error": "Please describe what is happening."})
@@ -51,6 +52,7 @@ def citizen_submit(request):
             raw_text=raw_text,
             source_type="text",
             contact_number=contact_number,
+            preferred_language=preferred_language,
             metadata=metadata
         )
 
@@ -64,14 +66,25 @@ def citizen_submit(request):
     return render(request, "submit.html")
 
 
+from django.conf import settings
+
+
 def citizen_report_status(request, signal_id):
     """
     GET /report/<signal_id>/
     Renders the polling progress page for a submitted signal.
     """
     # Ensure signal exists
-    get_object_or_404(Signal, id=signal_id)
-    return render(request, "report_status.html", {"signal_id": signal_id})
+    signal = get_object_or_404(Signal, id=signal_id)
+    date_str = signal.created_at.strftime("%Y%m%d")
+    uuid_first_4 = str(signal.id)[:4].upper()
+    tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
+    return render(request, "report_status.html", {
+        "signal_id": signal_id,
+        "tracking_id": tracking_id,
+        "site_url": settings.SITE_URL,
+        "preferred_language": signal.preferred_language or "hindi"
+    })
 
 
 def citizen_signal_status_api(request, signal_id):
@@ -121,11 +134,14 @@ def citizen_signal_status_api(request, signal_id):
         # If language and coordination are both done, we compile the final response
         if steps["translated"]:
             coord_out = outputs.get("coordination", {})
-            lang_out = outputs.get("language", {}).get("hindi", {})
+            lang_data = outputs.get("language", {})
+            pref_lang = lang_data.get("preferred", "hindi")
+            lang_out = lang_data.get(pref_lang, {}) or lang_data.get("hindi", {})
             rights_out = outputs.get("rights", {})
             triage_out = outputs.get("triage", {})
             
             result = {
+                "incident_id": str(incident.id),
                 "severity_label": incident.severity_label,
                 "severity_score": incident.severity_score,
                 "domain": incident.domain,
@@ -142,6 +158,8 @@ def citizen_signal_status_api(request, signal_id):
                 "legal_timeline": rights_out.get("legal_timeline", []),
                 "legal_timeline_hi": lang_out.get("legal_timeline", []),
                 "nearest_authority_type": rights_out.get("nearest_authority_type", "DLSA"),
+                "triage_severity": triage_out.get("triage_severity", ""),
+                "hospital_denial_detected": triage_out.get("hospital_denial_detected", False),
                 
                 "golden_window": triage_out.get("golden_window", {}),
                 "golden_window_hi": lang_out.get("golden_window", {}),
@@ -161,8 +179,13 @@ def citizen_signal_status_api(request, signal_id):
                 "authorities_to_notify_hi": lang_out.get("authorities_to_notify", []),
                 "resources_needed": coord_out.get("resources_needed", []),
                 "resources_needed_hi": lang_out.get("resources_needed", []),
+                "evidence_to_collect": coord_out.get("evidence_to_collect", []),
+                "evidence_to_collect_hi": lang_out.get("evidence_to_collect") or coord_out.get("evidence_to_collect", []),
                 "contact_number": signal.metadata.get("contact_number", ""),
-                "timing": outputs.get("timing", {})
+                "coordinator_status": incident.coordinator_status,
+                "coordinator_notes": incident.coordinator_notes,
+                "timing": outputs.get("timing", {}),
+                "language_outputs": outputs.get("language", {})
             }
 
     # Signal status mapper

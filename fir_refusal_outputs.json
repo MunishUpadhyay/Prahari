@@ -1,0 +1,219 @@
+{
+  "rights": {
+    "severity": "high",
+    "case_strength": 0.8,
+    "legal_timeline": [
+      {
+        "step": 1,
+        "action": "Submit a written complaint to the SP or SSP",
+        "timeframe": "within 24 hours",
+        "why_urgent": "To ensure that the complaint is heard and investigated promptly, and to prevent any further delay or destruction of evidence"
+      },
+      {
+        "step": 2,
+        "action": "File an online complaint or e-FIR through the State Police Portal",
+        "timeframe": "within 48 hours",
+        "why_urgent": "To create a digital record of the complaint and to ensure that the police take action to investigate the case"
+      },
+      {
+        "step": 3,
+        "action": "Approach the Judicial Magistrate under Section 156(3) CrPC (now Section 175(3) BNSS)",
+        "timeframe": "within 7 days",
+        "why_urgent": "To ensure that the Magistrate orders the police to register the FIR and investigate the case, and to prevent any further delay or injustice"
+      }
+    ],
+    "rights_violated": [
+      "Section 154 CrPC (now Section 173 BNSS)",
+      "Section 156(3) CrPC (now Section 175(3) BNSS)"
+    ],
+    "legal_provisions": [
+      {
+        "provision": "Section 154(3) CrPC (now Section 173(4) BNSS)",
+        "relevance": "This provision is relevant because the police refused to register an FIR for the break-in and theft at the shop. The shop owner can submit a written complaint to the SP or SSP under this provision, which can be sent via registered post. This provides a remedy for the affected person to ensure that their complaint is heard and investigated.",
+        "description": "The provision allows a citizen to submit a written complaint to the Superintendent of Police (SP) or Senior Superintendent of Police (SSP) if the local police refuse to register an FIR."
+      },
+      {
+        "provision": "Section 156(3) CrPC (now Section 175(3) BNSS)",
+        "relevance": "This provision applies to this situation because the police refused to register an FIR, and the shop owner has the right to approach the Judicial Magistrate under this provision. The Magistrate can order the police to register the FIR and investigate the case if satisfied that a cognizable offence is disclosed. This provides a remedy for the affected person to ensure that their case is investigated and justice is served.",
+        "description": "The provision gives the Magistrate the power to order an investigation and registration of an FIR if the police refuse or fail to do so."
+      }
+    ],
+    "immediate_actions": [
+      "Submit a written complaint to the Superintendent of Police (SP) or Senior Superintendent of Police (SSP) under Section 154(3) CrPC (now Section 173(4) BNSS) via registered post",
+      "File an online complaint or e-FIR through the State Police Portal",
+      "Approach the Judicial Magistrate under Section 156(3) CrPC (now Section 175(3) BNSS) to order the police to register the FIR and investigate the case"
+    ],
+    "authority_to_contact": "Superintendent of Police (SP) or Senior Superintendent of Police (SSP)",
+    "nearest_authority_type": "Police Complaint Authority"
+  },
+  "timing": {
+    "rights": {
+      "end": "2026-05-27T10:51:58.399259+00:00",
+      "start": "2026-05-27T10:51:35.760401+00:00",
+      "duration_ms": 22638
+    },
+    "language": {
+      "end": "2026-05-27T10:52:04.269166+00:00",
+      "start": "2026-05-27T10:52:00.186330+00:00",
+      "duration_ms": 4082
+    },
+    "sentinel": {
+      "end": "2026-05-27T10:51:35.754239+00:00",
+      "start": "2026-05-27T10:51:35.088085+00:00",
+      "duration_ms": 666
+    },
+    "coordination": {
+      "end": "2026-05-27T10:52:00.164298+00:00",
+      "start": "2026-05-27T10:51:58.457904+00:00",
+      "duration_ms": 1706
+    }
+  },
+  "language": {
+    "hindi": {
+      "legal_timeline": [
+        {
+          "step": 1,
+          "action": "पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी) को लिखित शिकायत दर्ज करें",
+          "timeframe": "within 24 hours",
+          "why_urgent": "ताकि शिकायत को तत्काल सुना जा सके और जांच की जा सके, और किसी भी आगे की देरी या साक्ष्य के विनाश को रोका जा सके"
+        },
+        {
+          "step": 2,
+          "action": "राज्य पुलिस पोर्टल के माध्यम से ऑनलाइन शिकायत या ई-एफआईआर दर्ज करें",
+          "timeframe": "within 48 hours",
+          "why_urgent": "ताकि शिकायत का डिजिटल रिकॉर्ड बनाया जा सके और पुलिस को मामले की जांच करने के लिए कार्रवाई करने के लिए प्रेरित किया जा सके"
+        },
+        {
+          "step": 3,
+          "action": "धारा 156(3) सीआरपीसी के तहत न्यायिक मजिस्ट्रेट के पास जाएं",
+          "timeframe": "within 7 days",
+          "why_urgent": "ताकि मजिस्ट्रेट पुलिस को एफआईआर दर्ज करने और मामले की जांच करने का आदेश दे सके, और किसी भी आगे की देरी या अन्याय को रोका जा सके"
+        }
+      ],
+      "escalation_path": [
+        {
+          "level": 1,
+          "contact": "पंजीकृत डाक या व्यक्तिगत यात्रा के माध्यम से",
+          "trigger": "अगर पुलिस 3 दिनों के बाद भी एफआईआर दर्ज करने से इनकार करती है",
+          "authority": "पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी)"
+        },
+        {
+          "level": 2,
+          "contact": "कोर्ट के माध्यम से याचिका के माध्यम से",
+          "trigger": "अगर एसपी या एसएसपी 7 दिनों के भीतर प्रतिक्रिया नहीं देते या कार्रवाई नहीं करते",
+          "authority": "न्यायिक मजिस्ट्रेट"
+        }
+      ],
+      "situation_brief": "भोपाल में एक दुकान में चोरी हुई, जिसमें 80,000 रुपये का सामान चोरी हो गया। पुलिस ने एफआईआर दर्ज करने से इनकार कर दिया, जिससे न्याय और दुकान मालिक के अधिकारों को तत्काल खतरा है। दुकान मालिक को शिकायत दर्ज करने और एफआईआर दर्ज करने में मदद की आवश्यकता है ताकि जांच शुरू की जा सके।",
+      "situation_title": "दुकान में चोरी और पुलिस की निष्क्रियता",
+      "legal_provisions": [
+        {
+          "provision": "धारा 154(3) सीआरपीसी (अब धारा 173(4) बीएनएसएस)",
+          "relevance": "यह प्रावधान प्रासंगिक है क्योंकि पुलिस ने दुकान में चोरी और लूट के लिए एफआईआर दर्ज करने से इनकार कर दिया। दुकान मालिक इस प्रावधान के तहत पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी) को लिखित शिकायत दर्ज कर सकता है, जो पंजीकृत डाक के माध्यम से भेजी जा सकती है। यह प्रभावित व्यक्ति के लिए एक उपाय प्रदान करता है ताकि उनकी शिकायत सुनी जा सके और जांच की जा सके।",
+          "description": "इस प्रावधान के तहत, एक नागरिक पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी) को लिखित शिकायत दर्ज कर सकता है अगर स्थानीय पुलिस एफआईआर दर्ज करने से इनकार करती है।"
+        },
+        {
+          "provision": "धारा 156(3) सीआरपीसी (अब धारा 175(3) बीएनएसएस)",
+          "relevance": "यह प्रावधान इस स्थिति में लागू होता है क्योंकि पुलिस ने एफआईआर दर्ज करने से इनकार कर दिया, और दुकान मालिक को इस प्रावधान के तहत न्यायिक मजिस्ट्रेट के पास जाने का अधिकार है। मजिस्ट्रेट पुलिस को एफआईआर दर्ज करने और मामले की जांच करने का आदेश दे सकता है अगर वह संतुष्ट है कि एक संज्ञेय अपराध खुलासा किया गया है। यह प्रभावित व्यक्ति के लिए एक उपाय प्रदान करता है ताकि उनका मामला जांचा जा सके और न्याय मिल सके।",
+          "description": "इस प्रावधान के तहत, मजिस्ट्रेट को जांच और एफआईआर दर्ज करने का आदेश देने की शक्ति प्रदान की जाती है अगर पुलिस इनकार करती है या विफल रहती है।"
+        }
+      ],
+      "resources_needed": [
+        "पुलिस सहायता",
+        "कानूनी मार्गदर्शन"
+      ],
+      "immediate_actions": [
+        {
+          "action": "धारा 154(3) सीआरपीसी के तहत पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी) को लिखित शिकायत दर्ज करें",
+          "priority": 1,
+          "time_window": "within 24 hours",
+          "responsible_party": "दुकान मालिक"
+        },
+        {
+          "action": "राज्य पुलिस पोर्टल के माध्यम से ऑनलाइन शिकायत या ई-एफआईआर दर्ज करें",
+          "priority": 2,
+          "time_window": "within 24 hours",
+          "responsible_party": "दुकान मालिक"
+        },
+        {
+          "action": "धारा 156(3) सीआरपीसी के तहत न्यायिक मजिस्ट्रेट के पास जाएं ताकि पुलिस को एफआईआर दर्ज करने और मामले की जांच करने का आदेश दिया जा सके",
+          "priority": 3,
+          "time_window": "within 3 days",
+          "responsible_party": "दुकान मालिक"
+        }
+      ],
+      "what_is_happening": "भोपाल में एक दुकान में चोरी हुई, जिसमें 80,000 रुपये का सामान चोरी हो गया। पुलिस ने दो बार एफआईआर दर्ज करने से इनकार कर दिया, और दुकान मालिक को मामला खुद निपटाने की सलाह दी।",
+      "conflict_resolution": null,
+      "escalation_required": false,
+      "authorities_to_notify": [
+        "पुलिस अधीक्षक (एसपी) या वरिष्ठ पुलिस अधीक्षक (एसएसपी)",
+        "न्यायिक मजिस्ट्रेट"
+      ],
+      "overall_severity_score": 0.5
+    },
+    "original_language": "english"
+  },
+  "sentinel": {
+    "domain": "legal",
+    "keywords": [
+      "break-in",
+      "stolen",
+      "FIR refused"
+    ],
+    "reasoning": "The signal is classified as legal because it involves a crime and the refusal of police to register a First Information Report (FIR), which is a legal matter.",
+    "confidence": 0.9,
+    "requires_immediate_action": false
+  },
+  "coordination": {
+    "escalation_path": [
+      {
+        "level": 1,
+        "contact": "via registered post or in-person visit",
+        "trigger": "if the police still refuse to register the FIR after 3 days",
+        "authority": "Superintendent of Police (SP) or Senior Superintendent of Police (SSP)"
+      },
+      {
+        "level": 2,
+        "contact": "through a court petition",
+        "trigger": "if the SP or SSP does not respond or act within 7 days",
+        "authority": "Judicial Magistrate"
+      }
+    ],
+    "situation_brief": "A shop in Bhopal was broken into, resulting in the theft of goods worth 80,000 rupees. The police have refused to register an FIR, posing an immediate threat to justice and the owner's rights. The owner has been advised to resolve the matter themselves, but no formal complaint has been filed yet. The owner needs assistance in filing a complaint and registering an FIR to initiate the investigation.",
+    "situation_title": "Shop Break-in and Police Inaction",
+    "overall_severity": "high",
+    "resources_needed": [
+      "Police assistance",
+      "Legal guidance"
+    ],
+    "immediate_actions": [
+      {
+        "action": "Submit a written complaint to the Superintendent of Police (SP) or Senior Superintendent of Police (SSP) under Section 154(3) CrPC",
+        "priority": 1,
+        "time_window": "within 24 hours",
+        "responsible_party": "Shop owner"
+      },
+      {
+        "action": "File an online complaint or e-FIR through the State Police Portal",
+        "priority": 2,
+        "time_window": "within 24 hours",
+        "responsible_party": "Shop owner"
+      },
+      {
+        "action": "Approach the Judicial Magistrate under Section 156(3) CrPC to order the police to register the FIR and investigate the case",
+        "priority": 3,
+        "time_window": "within 3 days",
+        "responsible_party": "Shop owner"
+      }
+    ],
+    "what_is_happening": "A shop in Bhopal was broken into, with goods worth 80,000 rupees stolen. The police have refused to register an FIR twice, advising the owner to resolve the matter themselves.",
+    "conflict_resolution": null,
+    "escalation_required": true,
+    "authorities_to_notify": [
+      "Superintendent of Police (SP) or Senior Superintendent of Police (SSP)",
+      "Judicial Magistrate"
+    ],
+    "overall_severity_score": 0.8,
+    "estimated_resolution_time": "days"
+  }
+}

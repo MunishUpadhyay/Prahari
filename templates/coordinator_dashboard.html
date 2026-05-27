@@ -102,20 +102,43 @@
             color: #ef4444;
         }
 
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.04);
+        /* Language Selector Bar */
+        .lang-selector-bar {
+            display: flex;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.4rem 0.85rem;
+            padding: 0.25rem;
             border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            max-width: 100%;
         }
-
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
+        .lang-selector-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .lang-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lang-pill:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .lang-pill.active {
+            background: var(--color-indigo);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
         }
 
         .status-dot {
@@ -316,6 +339,10 @@
 
         .badge.domain { background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.08); }
         .badge.resolved-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge.status-pending { background: rgba(234, 179, 8, 0.1); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.2); }
+        .badge.status-under_review { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.25); }
+        .badge.status-action_taken { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.25); }
+        .badge.status-resolved { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 
         /* Collapsible Brief Panel */
         .briefs-panel {
@@ -503,10 +530,15 @@
             <span class="loc-hi" lang="hi" style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-dot connected" id="ws-indicator-hi"></span> लाइव वेबसॉकेट फीड
             </span>
-            <button class="lang-btn" onclick="toggleLanguage()">
-                <span class="loc-en">हिन्दी</span>
-                <span class="loc-hi">English</span>
-            </button>
+            <div class="lang-selector-bar">
+                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
+                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
+                <button type="button" class="lang-pill" data-lang="bengali" onclick="changeLanguage('bengali')">বাংলা</button>
+                <button type="button" class="lang-pill" data-lang="marathi" onclick="changeLanguage('marathi')">मराठी</button>
+                <button type="button" class="lang-pill" data-lang="tamil" onclick="changeLanguage('tamil')">தமிழ்</button>
+                <button type="button" class="lang-pill" data-lang="telugu" onclick="changeLanguage('telugu')">తెలుగు</button>
+                <button type="button" class="lang-pill" data-lang="kannada" onclick="changeLanguage('kannada')">ಕನ್ನಡ</button>
+            </div>
             <a href="/logout/" class="logout-link loc-en">Log Out</a>
             <a href="/logout/" class="logout-link loc-hi">लॉग आउट</a>
         </div>
@@ -584,22 +616,44 @@
         function initLanguage() {
             let selectedLang = localStorage.getItem('prahari_lang');
             if (!selectedLang) {
-                const userLang = navigator.language || navigator.userLanguage;
-                selectedLang = userLang.startsWith('hi') ? 'hi' : 'en';
+                const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+                if (userLang.startsWith('hi')) {
+                    selectedLang = 'hindi';
+                } else if (userLang.startsWith('bn')) {
+                    selectedLang = 'bengali';
+                } else if (userLang.startsWith('mr')) {
+                    selectedLang = 'marathi';
+                } else if (userLang.startsWith('ta')) {
+                    selectedLang = 'tamil';
+                } else if (userLang.startsWith('te')) {
+                    selectedLang = 'telugu';
+                } else if (userLang.startsWith('kn')) {
+                    selectedLang = 'kannada';
+                } else {
+                    selectedLang = 'english';
+                }
                 localStorage.setItem('prahari_lang', selectedLang);
             }
             setLanguageTheme(selectedLang);
         }
 
         function setLanguageTheme(lang) {
-            document.documentElement.setAttribute('lang', lang);
+            document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
             localStorage.setItem('prahari_lang', lang);
+            
+            // Highlight active lang pill
+            const pills = document.querySelectorAll('.lang-pill');
+            pills.forEach(pill => {
+                if (pill.getAttribute('data-lang') === lang) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
         }
 
-        function toggleLanguage() {
-            const currentLang = document.documentElement.getAttribute('lang') || 'en';
-            const nextLang = currentLang === 'en' ? 'hi' : 'en';
-            setLanguageTheme(nextLang);
+        function changeLanguage(lang) {
+            setLanguageTheme(lang);
         }
 
         function toggleHindiCollapse(e, id) {
@@ -638,6 +692,7 @@
                     const inc = incidents.find(item => item.incident_id === id);
                     if (inc) {
                         inc.is_resolved = true;
+                        inc.coordinator_status = 'resolved';
                     }
 
                     // Update stats counters
@@ -650,6 +705,64 @@
                 }
             } catch (err) {
                 console.error("Resolve error:", err);
+            }
+        }
+
+        async function updateStatus(e, id) {
+            const statusVal = e.target.value;
+            try {
+                const response = await fetch(`/api/incidents/${id}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        coordinator_status: statusVal,
+                        is_resolved: statusVal === 'resolved'
+                    })
+                });
+
+                if (response.ok) {
+                    const inc = incidents.find(item => item.incident_id === id);
+                    if (inc) {
+                        inc.coordinator_status = statusVal;
+                        inc.is_resolved = (statusVal === 'resolved');
+                    }
+                    updateStatsCounters();
+                    renderFeed();
+                } else {
+                    console.error("Failed to update status");
+                }
+            } catch (err) {
+                console.error("Status update error:", err);
+            }
+        }
+
+        async function updateNotes(e, id) {
+            const notesVal = e.target.value;
+            try {
+                const response = await fetch(`/api/incidents/${id}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        coordinator_notes: notesVal
+                    })
+                });
+
+                if (response.ok) {
+                    const inc = incidents.find(item => item.incident_id === id);
+                    if (inc) {
+                        inc.coordinator_notes = notesVal;
+                    }
+                } else {
+                    console.error("Failed to update notes");
+                }
+            } catch (err) {
+                console.error("Notes update error:", err);
             }
         }
 
@@ -745,6 +858,7 @@
                         </div>
                         <div class="badge-row">
                             ${inc.is_resolved ? `<span class="badge resolved-badge">RESOLVED</span>` : ''}
+                            <span class="badge status-${inc.coordinator_status || 'pending'}">${(inc.coordinator_status || 'pending').replace('_', ' ').toUpperCase()}</span>
                             <span class="badge ${severityLabel}">${severityLabel} (${severityScore.toFixed(2)})</span>
                             <span class="badge domain">${inc.domain}</span>
                         </div>
@@ -763,6 +877,22 @@
                     </div>
 
                     ${actionsHTML}
+
+                    <div class="coordinator-status-control" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:0.75rem;border-top:1px solid rgba(255,255,255,0.03);padding-top:1rem;padding-left:0.5rem;margin-bottom:0.5rem;">
+                        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">STATUS / स्थिति:</label>
+                            <select onchange="updateStatus(event, '${id}')" style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.25rem .5rem;font-size:0.8rem;font-weight:600;">
+                                <option value="pending" ${inc.coordinator_status === 'pending' ? 'selected' : ''}>Pending / लंबित</option>
+                                <option value="under_review" ${inc.coordinator_status === 'under_review' ? 'selected' : ''}>Under Review / समीक्षा के तहत</option>
+                                <option value="action_taken" ${inc.coordinator_status === 'action_taken' ? 'selected' : ''}>Action Taken / कार्रवाई की गई</option>
+                                <option value="resolved" ${inc.coordinator_status === 'resolved' ? 'selected' : ''}>Resolved / हल हो गया</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:.35rem;">
+                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">COORDINATOR NOTES / समन्वयक की टिप्पणी:</label>
+                            <textarea onblur="updateNotes(event, '${id}')" placeholder="Add update notes for the citizen... / नागरिक के लिए अपडेट नोट्स जोड़ें..." style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.5rem;font-size:0.85rem;resize:vertical;min-height:60px;">${inc.coordinator_notes || ''}</textarea>
+                        </div>
+                    </div>
 
                     <div class="card-footer">
                         <span class="card-timestamp">Updated: ${new Date(inc.timestamp).toLocaleTimeString() + ' ' + new Date(inc.timestamp).toLocaleDateString()}</span>

@@ -67,7 +67,9 @@ def coordinator_dashboard(request):
     for inc in incidents:
         outputs = inc.agent_outputs or {}
         coord = outputs.get("coordination") or {}
-        lang = (outputs.get("language") or {}).get("hindi") or {}
+        lang_out = outputs.get("language") or {}
+        preferred = lang_out.get("preferred") or "hindi"
+        lang = lang_out.get(preferred) or {}
         
         situation_brief = inc.situation_brief
         if not situation_brief and isinstance(coord, dict):
@@ -97,6 +99,8 @@ def coordinator_dashboard(request):
             "title_en": title_en,
             "title_hi": title_hi,
             "is_resolved": inc.is_resolved,
+            "coordinator_status": inc.coordinator_status,
+            "coordinator_notes": inc.coordinator_notes,
             "timestamp": inc.updated_at.isoformat() if inc.updated_at else inc.created_at.isoformat(),
             "agent_outputs": inc.agent_outputs,
         })
@@ -157,7 +161,9 @@ def coordinator_resolve_incident(request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.is_resolved = True
         incident.resolved_at = timezone.now()
-        incident.save(update_fields=["is_resolved", "resolved_at"])
+        incident.coordinator_status = 'resolved'
+        incident.status_updated_at = timezone.now()
+        incident.save(update_fields=["is_resolved", "resolved_at", "coordinator_status", "status_updated_at"])
         
         logger.info("Incident %s resolved by coordinator.", incident_id)
         

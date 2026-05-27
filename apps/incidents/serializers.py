@@ -15,6 +15,9 @@ class IncidentListSerializer(serializers.ModelSerializer):
             "domain",
             "situation_brief",
             "is_resolved",
+            "coordinator_status",
+            "coordinator_notes",
+            "status_updated_at",
             "created_at",
             "updated_at",
         ]
@@ -36,6 +39,9 @@ class IncidentDetailSerializer(serializers.ModelSerializer):
             "recommended_resources",
             "is_resolved",
             "resolved_at",
+            "coordinator_status",
+            "coordinator_notes",
+            "status_updated_at",
             "created_at",
             "updated_at",
         ]

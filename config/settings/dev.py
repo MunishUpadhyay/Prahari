@@ -56,3 +56,7 @@ if not GDAL_AVAILABLE:
     DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
     if "django.contrib.gis" in INSTALLED_APPS:
         INSTALLED_APPS.remove("django.contrib.gis")
+
+# Run Celery tasks synchronously in development
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True

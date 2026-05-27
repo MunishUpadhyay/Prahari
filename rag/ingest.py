@@ -23,7 +23,11 @@ def ingest_legal_documents():
         model_name="all-MiniLM-L6-v2"
     )
     
-    # 3. Create or get collection
+    # 3. Delete old collection if exists to avoid stale records, then create/get
+    try:
+        client.delete_collection("legal_provisions")
+    except Exception:
+        pass
     collection = client.get_or_create_collection(
         name="legal_provisions",
         embedding_function=emb_fn
@@ -190,9 +194,9 @@ def ingest_legal_documents():
             }
         },
         {
-            "id": "bnss_sec60",
+            "id": "bnss_sec58_detention",
             "document": (
-                "Section 60 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested not to be detained more than twenty-four hours. "
+                "Section 58 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested not to be detained more than twenty-four hours. "
                 "This provision replaces Section 57 of the old Code of Criminal Procedure (CrPC). It mandates that no police officer shall "
                 "detain in custody a person arrested without warrant for a longer period than under all the circumstances of the case is reasonable, "
                 "and such period shall not, in the absence of a special order of a Magistrate under Section 187 BNSS (formerly Section 167 CrPC), "
@@ -202,7 +206,7 @@ def ingest_legal_documents():
             "metadata": {
                 "category": "arrest_procedure",
                 "act": "Bharatiya Nagarik Suraksha Sanhita",
-                "section": "Section 60"
+                "section": "Section 58"
             }
         },
         {
@@ -223,9 +227,9 @@ def ingest_legal_documents():
             }
         },
         {
-            "id": "bnss_sec58",
+            "id": "bnss_sec47",
             "document": (
-                "Section 58 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested to be informed of grounds of arrest and right to bail. "
+                "Section 47 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested to be informed of grounds of arrest and right to bail. "
                 "This provision replaces Section 50 of the old Code of Criminal Procedure (CrPC). It mandates that every police officer or other person "
                 "arresting any person without a warrant must immediately communicate to him full particulars of the offense for which he is arrested "
                 "or other grounds for such arrest. Additionally, if the offense is bailable, the officer must inform the arrested person of their right "
@@ -234,7 +238,22 @@ def ingest_legal_documents():
             "metadata": {
                 "category": "arrest_procedure",
                 "act": "Bharatiya Nagarik Suraksha Sanhita",
-                "section": "Section 58"
+                "section": "Section 47"
+            }
+        },
+        {
+            "id": "bnss_sec80",
+            "document": (
+                "Section 80 of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — Person arrested to be brought before Court without delay. "
+                "This provision replaces Section 76 of the old Code of Criminal Procedure (CrPC). It mandates that the police officer or other person "
+                "executing a warrant of arrest shall (subject to the provisions of Section 71 as to security) without unnecessary delay bring the "
+                "person arrested before the Court before which he is required by law to produce such person. Provided that such delay shall not, "
+                "in any case, exceed twenty-four hours exclusive of the time necessary for the journey from the place of arrest to the Magistrate's court."
+            ),
+            "metadata": {
+                "category": "arrest_procedure",
+                "act": "Bharatiya Nagarik Suraksha Sanhita",
+                "section": "Section 80"
             }
         },
         {
@@ -348,6 +367,116 @@ def ingest_legal_documents():
                 "act": "Code_on_Wages",
                 "section": "Wage Theft Remedies"
             }
+        },
+        {
+            "id": "crpc_sec156_3_bnss_sec175_3",
+            "document": (
+                "Section 156(3) of the Code of Criminal Procedure (CrPC) / Section 175(3) of the Bharatiya Nagarik Suraksha Sanhita (BNSS) — "
+                "Magistrate's power to order investigation and registration of FIR. "
+                "If the police refuse or fail to register an FIR under Section 154 CrPC / Section 173 BNSS, the citizen has the right to "
+                "approach the Judicial Magistrate under Section 156(3) CrPC / Section 175(3) BNSS. The Magistrate, if satisfied that a "
+                "cognizable offence is disclosed, can order the police to register the FIR and investigate the case."
+            ),
+            "metadata": {
+                "category": "fir_refusal_remedies",
+                "act": "CrPC_BNSS",
+                "section": "Section 156(3) CrPC / Section 175(3) BNSS"
+            }
+        },
+        {
+            "id": "online_fir_sp_complaint_guide",
+            "document": (
+                "Online FIR & SP Complaint Practical Guide — "
+                "Steps to take when local police refuse to register an FIR. "
+                "For FIR refusal, the nearest authority type is Police Complaint Authority, and the primary authority to contact is the Superintendent of Police (SP) or Senior Superintendent of Police (SSP). "
+                "1. Submit a written complaint to the Superintendent of Police (SP) or Senior Superintendent of Police (SSP) "
+                "under Section 154(3) CrPC / Section 173(4) BNSS. This can be sent via registered post. "
+                "2. File an online complaint or e-FIR through the State Police Portal. "
+                "3. If no action is taken by the police authorities, file a petition before the Magistrate under Section 156(3) CrPC / Section 175(3) BNSS."
+            ),
+            "metadata": {
+                "category": "fir_refusal_remedies",
+                "act": "Police_Guides",
+                "section": "Online FIR & SP Complaint Practical Guide"
+            }
+        },
+        {
+            "id": "crpc_to_bnss_complete_mapping",
+            "document": (
+                "Complete CrPC to BNSS Section Mapping (effective 1 July 2024). Use these mappings for all dual citations in legal assessments:\n\n"
+                "ARREST AND DETENTION:\n"
+                "Section 41 CrPC → Section 35 BNSS (arrest without warrant)\n"
+                "Section 46 CrPC → Section 43 BNSS (how arrest is made)\n"
+                "Section 50 CrPC → Section 47 BNSS (grounds of arrest)\n"
+                "Section 57 CrPC → Section 58 BNSS (24 hour detention limit)\n"
+                "Section 76 CrPC → Section 80 BNSS (produced before magistrate)\n"
+                "Section 167 CrPC → Section 187 BNSS (remand procedure)\n\n"
+                "FIR AND INVESTIGATION:\n"
+                "Section 154 CrPC → Section 173 BNSS (mandatory FIR)\n"
+                "Section 155 CrPC → Section 174 BNSS (non-cognizable FIR)\n"
+                "Section 156 CrPC → Section 175 BNSS (police investigation power)\n"
+                "Section 156(3) CrPC → Section 175(3) BNSS (magistrate order for FIR)\n"
+                "Section 157 CrPC → Section 176 BNSS (procedure for investigation)\n"
+                "Section 161 CrPC → Section 180 BNSS (examination of witnesses)\n"
+                "Section 164 CrPC → Section 183 BNSS (recording confessions)\n"
+                "Section 166 CrPC → Section 185 BNSS (letter of request)\n"
+                "Section 173 CrPC → Section 193 BNSS (police report after investigation)\n\n"
+                "BAIL:\n"
+                "Section 436 CrPC → Section 478 BNSS (bail in bailable offence)\n"
+                "Section 437 CrPC → Section 480 BNSS (bail in non-bailable offence)\n"
+                "Section 439 CrPC → Section 483 BNSS (special powers of High Court)\n\n"
+                "TRIAL:\n"
+                "Section 313 CrPC → Section 351 BNSS (accused examination)\n"
+                "Section 357 CrPC → Section 395 BNSS (compensation to victims)\n"
+                "Section 374 CrPC → Section 415 BNSS (appeal from conviction)\n\n"
+                "COMPLAINTS AND MAGISTRATE POWERS:\n"
+                "Section 190 CrPC → Section 210 BNSS (cognizance of offences)\n"
+                "Section 200 CrPC → Section 223 BNSS (examination of complainant)\n"
+                "Section 482 CrPC → Section 528 BNSS (inherent powers of High Court)\n\n"
+                "IPC TO BNS MAPPING (common sections):\n"
+                "Section 302 IPC → Section 101 BNS (murder)\n"
+                "Section 304 IPC → Section 105 BNS (culpable homicide)\n"
+                "Section 307 IPC → Section 109 BNS (attempt to murder)\n"
+                "Section 319 IPC → Section 114 BNS (hurt)\n"
+                "Section 320 IPC → Section 115 BNS (grievous hurt)\n"
+                "Section 323 IPC → Section 115(2) BNS (voluntarily causing hurt)\n"
+                "Section 324 IPC → Section 117 BNS (hurt by dangerous weapon)\n"
+                "Section 354 IPC → Section 74 BNS (assault on woman)\n"
+                "Section 376 IPC → Section 63 BNS (rape)\n"
+                "Section 379 IPC → Section 303 BNS (theft)\n"
+                "Section 380 IPC → Section 305 BNS (theft in dwelling)\n"
+                "Section 392 IPC → Section 309 BNS (robbery)\n"
+                "Section 420 IPC → Section 318 BNS (cheating)\n"
+                "Section 425 IPC → Section 324 BNS (mischief)\n"
+                "Section 441 IPC → Section 329 BNS (criminal trespass)\n"
+                "Section 447 IPC → Section 333 BNS (punishment for trespass)\n"
+                "Section 499 IPC → Section 356 BNS (defamation)\n"
+                "Section 503 IPC → Section 351 BNS (criminal intimidation)\n"
+                "Section 506 IPC → Section 351(2) BNS (punishment for intimidation)\n\n"
+                "Note: Civil laws (Transfer of Property Act, Specific Relief Act, Consumer Protection Act, Contract Act, "
+                "Code on Wages, Payment of Wages Act, Hindu Marriage Act etc.) have NO BNSS or BNS equivalent. Never "
+                "apply dual citations to civil statutes."
+            ),
+            "metadata": {
+                "category": "legal_mapping",
+                "act": "BNSS_BNS_conversion",
+                "section": "complete_table"
+            }
+        },
+        {
+            "id": "crpc_arrest_provisions_combined",
+            "document": (
+                "Constitutional and Statutory Arrest Safeguards (Article 22 of the Constitution, D.K. Basu Guidelines, and CrPC/BNSS procedural safeguards). "
+                "1. Grounds of Arrest & Right to Bail: Section 50 CrPC / Section 47 BNSS mandates that any person arrested without a warrant must be immediately informed of the grounds of arrest and their right to bail if the offence is bailable. Article 22(1) of the Constitution guarantees the right to be informed of grounds of arrest and consult a legal practitioner of choice. "
+                "2. 24-Hour Detention Limit: Section 57 CrPC / Section 58 BNSS mandates that a person arrested cannot be detained in police custody for more than 24 hours without a specific order/warrant from a Judicial Magistrate. Article 22(2) of the Constitution similarly guarantees that every arrested person must be produced before the nearest Magistrate within 24 hours of arrest. "
+                "3. Production Before Magistrate: Section 76 CrPC / Section 80 BNSS mandates that the person arrested must be brought before the Magistrate/Court without unnecessary delay (within 24 hours exclusive of journey time). "
+                "4. D.K. Basu Guidelines: Mandatory Supreme Court safeguards including preparing an arrest memo, informing a relative/friend within 8-12 hours, clear identification for arresting officers, medical examination, and legal aid access."
+            ),
+            "metadata": {
+                "category": "arrest_procedure",
+                "act": "CrPC_BNSS_Constitution_Basu",
+                "section": "Arrest Safeguards Combined"
+            }
         }
     ]
 
@@ -376,8 +505,12 @@ def ingest_medical_protocols():
         model_name="all-MiniLM-L6-v2"
     )
     
-    # 3. Create or get collection
-    collection = client.get_or_create_collection(
+    # 3. Delete old collection if exists to avoid stale records, then create/get
+    try:
+        client.delete_collection("medical_protocols")
+    except Exception:
+        pass
+    collection = collection = client.get_or_create_collection(
         name="medical_protocols",
         embedding_function=emb_fn
     )

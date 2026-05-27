@@ -369,12 +369,112 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                 translation_payload["legal_provisions"] = rights_out.get("legal_provisions", [])
                 translation_payload["legal_timeline"] = rights_out.get("legal_timeline", [])
 
-            hindi_brief = lang_agent.run(translation_payload, "hindi")
+            preferred_lang = incident.signal.preferred_language or 'hindi'
             
-            # Store Hindi brief in agent_outputs
+            def extract_json_from_text(text: str) -> dict:
+                import json
+                
+                # 1. Brace counter to extract exact JSON block
+                def find_json_substring(t: str) -> str:
+                    start = t.find("{")
+                    if start == -1:
+                        return ""
+                    brace_count = 0
+                    in_string = False
+                    escaped = False
+                    for idx in range(start, len(t)):
+                        char = t[idx]
+                        if char == '"' and not escaped:
+                            in_string = not in_string
+                        elif in_string:
+                            if char == '\\':
+                                escaped = not escaped
+                            else:
+                                escaped = False
+                        else:
+                            if char == '{':
+                                brace_count += 1
+                            elif char == '}':
+                                brace_count -= 1
+                                if brace_count == 0:
+                                    return t[start:idx+1]
+                            escaped = False
+                    return ""
+
+                # 2. Devanagari digits replacement
+                def clean_json_string(t: str) -> str:
+                    devanagari_escapes = {
+                        '\\u0966': '0', '\\u0967': '1', '\\u0968': '2', '\\u0969': '3', '\\u096a': '4',
+                        '\\u096b': '5', '\\u096c': '6', '\\u096d': '7', '\\u096e': '8', '\\u096f': '9'
+                    }
+                    for k, v in devanagari_escapes.items():
+                        t = t.replace(k, v)
+                        t = t.replace(k.upper(), v)
+                    devanagari_chars = {
+                        '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
+                        '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'
+                    }
+                    for k, v in devanagari_chars.items():
+                        t = t.replace(k, v)
+                    return t
+
+                json_block = find_json_substring(text)
+                if not json_block:
+                    raise ValueError("No curly braces found in raw LLM response.")
+                    
+                cleaned_block = clean_json_string(json_block)
+                try:
+                    return json.loads(cleaned_block)
+                except Exception as first_err:
+                    # Final attempt: manual escaping of control chars inside string literals
+                    try:
+                        cleaned_for_json = []
+                        in_string = False
+                        escaped = False
+                        for char in cleaned_block:
+                            if char == '"' and not escaped:
+                                in_string = not in_string
+                                cleaned_for_json.append(char)
+                            elif in_string:
+                                if char == '\\':
+                                    escaped = not escaped
+                                    cleaned_for_json.append(char)
+                                else:
+                                    if char == '\n':
+                                        cleaned_for_json.append('\\n')
+                                    elif char == '\r':
+                                        cleaned_for_json.append('\\r')
+                                    elif char == '\t':
+                                        cleaned_for_json.append('\\t')
+                                    else:
+                                        cleaned_for_json.append(char)
+                                    escaped = False
+                            else:
+                                cleaned_for_json.append(char)
+                                escaped = False
+                        return json.loads("".join(cleaned_for_json))
+                    except Exception:
+                        raise first_err
+
+            try:
+                hindi_brief = lang_agent.run(translation_payload, preferred_lang)
+            except ValueError as ve:
+                err_msg = str(ve)
+                if "Raw content:" in err_msg:
+                    raw_content = err_msg.split("Raw content:", 1)[1].strip()
+                    try:
+                        hindi_brief = extract_json_from_text(raw_content)
+                        logger.info("Successfully extracted JSON translation after parsing failure.")
+                    except Exception as extract_err:
+                        logger.error("Failed to extract JSON translation: %s", extract_err)
+                        raise ve
+                else:
+                    raise ve
+            
+            # Store translated brief in agent_outputs
             agent_outputs['language'] = {
-                'hindi': hindi_brief,
-                'original_language': 'english'
+                preferred_lang: hindi_brief,
+                'preferred': preferred_lang
             }
         except Exception as e:
             # Language translation is non-critical — log and continue

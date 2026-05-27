@@ -86,6 +86,12 @@ class Signal(models.Model):
         null=True,
         help_text="Optional contact number for updates.",
     )
+    preferred_language = models.CharField(
+        max_length=20,
+        default='hindi',
+        blank=True,
+        help_text="Citizen preferred language for report translation"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
 

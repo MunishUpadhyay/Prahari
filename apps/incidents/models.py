@@ -56,6 +56,18 @@ class Incident(models.Model):
     )
     is_resolved = models.BooleanField(default=False)
     resolved_at = models.DateTimeField(null=True, blank=True)
+    coordinator_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('under_review', 'Under Review'),
+            ('action_taken', 'Action Taken'),
+            ('resolved', 'Resolved')
+        ],
+        default='pending'
+    )
+    coordinator_notes = models.TextField(blank=True, default='')
+    status_updated_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

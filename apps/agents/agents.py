@@ -94,6 +94,7 @@ class RightsAgent(BaseAgent):
     """
 
     prompt_name = "rights"
+    max_tokens = 2000
 
     def run(self, signal, sentinel_result=None) -> dict:
         logger.info("[RightsAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
@@ -314,6 +315,7 @@ class CoordinationAgent(BaseAgent):
     """
 
     prompt_name = "coordination"
+    max_tokens = 2000
 
     def run(self, signal, sentinel_result: dict, agent_outputs: dict) -> dict:
         logger.info("[CoordinationAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
@@ -442,6 +444,22 @@ class CoordinationAgent(BaseAgent):
                         "contact": str(item.get("contact", "Call 15100 DLSA / National helpline"))
                     })
             result["escalation_path"] = validated_ep[:3]
+
+        # Validate evidence_to_collect (Upgrade 2)
+        etc = result.get("evidence_to_collect")
+        if not isinstance(etc, list):
+            result["evidence_to_collect"] = []
+        else:
+            validated_etc = []
+            for item in etc:
+                if isinstance(item, dict) and "item" in item:
+                    validated_etc.append({
+                        "item": str(item.get("item", "")),
+                        "why_important": str(item.get("why_important", "")),
+                        "how_to_collect": str(item.get("how_to_collect", "")),
+                        "time_sensitive": bool(item.get("time_sensitive", False))
+                    })
+            result["evidence_to_collect"] = validated_etc[:5]
 
         return result
 
@@ -580,3 +598,37 @@ Return the complete translated JSON."""
                 result["emergency_contacts"] = validated_contacts
 
         return result
+
+
+class LegalNoticeAgent(BaseAgent):
+    """
+    Agent for generating legal notice drafts based on incident data and rights assessments.
+    """
+    prompt_name = "legal_notice"
+    max_tokens = 3000
+
+    def run(self, signal, rights_result: dict) -> str:
+        logger.info("[LegalNoticeAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
+        
+        # Format rights result context
+        rights_context = ""
+        if rights_result:
+            rights_context += f"Rights Violated: {', '.join(rights_result.get('rights_violated', []))}\n"
+            rights_context += "Legal Provisions:\n"
+            for prov in rights_result.get("legal_provisions", []):
+                rights_context += f"- Provision: {prov.get('provision')}\n"
+                rights_context += f"  Description: {prov.get('description')}\n"
+                rights_context += f"  Relevance: {prov.get('relevance')}\n"
+            rights_context += f"Recommended Immediate Actions: {', '.join(rights_result.get('immediate_actions', []))}\n"
+            rights_context += f"Authority to Contact: {rights_result.get('authority_to_contact')}\n"
+
+        user_message = (
+            f"Signal text: {signal.raw_text}\n\n"
+            f"Rights Assessment context:\n{rights_context}\n\n"
+            f"Please generate the complete legal notice draft based on the above information."
+        )
+
+        raw_response = self.call_groq(user_message)
+        # We do NOT parse it as JSON, just return the raw string response
+        return raw_response.strip()
+

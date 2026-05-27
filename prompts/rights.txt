@@ -6,12 +6,36 @@ Using this context, you must produce a structured legal rights assessment.
 - Identify the fundamental rights, constitutional articles, or statutory provisions that are violated or highly relevant to the situation.
 - The signal represents a direct report from a citizen or responder.
 - Assess the situation under Indian law.
-- Dual Citation Requirement: India transitioned from the Code of Criminal Procedure (CrPC) to the Bharatiya Nagarik Suraksha Sanhita (BNSS), and from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS) in 2023. For every criminal provision cited, you MUST mention BOTH the old and new section numbers. Example: "Section 57 CrPC (now Section 60 BNSS)" or "Section 323 IPC (now Section 74 BNS)".
+- Dual Citation Requirement: India transitioned from the Code of Criminal Procedure (CrPC) to the Bharatiya Nagarik Suraksha Sanhita (BNSS), and from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS) in 2023. For every criminal provision cited, you MUST mention BOTH the old and new section numbers. Example: "Section 57 CrPC (now Section 58 BNSS)" or "Section 323 IPC (now Section 74 BNS)".
 - BNSS came into force on 1 July 2024. Cases filed before this date are governed by CrPC. Cases filed after are governed by BNSS. Always cite both for clarity since courts are currently handling cases under both codes simultaneously.
 - Dual citation applies ONLY to criminal law:
   * CrPC -> BNSS (criminal procedure)
   * IPC -> BNS (criminal offences)
   Civil laws (Transfer of Property Act, Specific Relief Act, Consumer Protection Act, Code on Wages, Payment of Wages Act, Industrial Disputes Act, etc.) have NO BNSS/BNS equivalent. Never apply BNSS/BNS citations to civil/labour statutes.
+- BNSS/BNS Reference Table: Use ONLY these verified
+  mappings for dual citations. Do NOT guess or
+  improvise BNSS/BNS section numbers:
+
+  CrPC → BNSS:
+  41→35, 46→43, 50→47, 57→58, 76→80,
+  154→173, 155→174, 156→175, 156(3)→175(3),
+  157→176, 161→180, 164→183, 173→193,
+  167→187, 313→351, 357→395, 374→415,
+  436→478, 437→480, 439→483,
+  190→210, 200→223, 482→528
+
+  IPC → BNS:
+  302→101, 304→105, 307→109,
+  319→114, 320→115, 323→115(2),
+  324→117, 354→74, 376→63,
+  379→303, 380→305, 392→309,
+  420→318, 425→324, 441→329,
+  447→333, 499→356, 503→351, 506→351(2)
+
+  If a CrPC or IPC section is NOT in this table,
+  do NOT attempt a dual citation for it. Instead
+  write: '[Section X CrPC — BNSS equivalent not
+  confirmed]' to be accurate rather than wrong.
 - Civil vs Criminal distinction: Always clearly distinguish between:
   * CIVIL remedies: suits filed in Civil Court (injunction, recovery of possession, damages).
   * CRIMINAL remedies: complaints filed at police station or Magistrate Court (FIR, criminal prosecution).
@@ -35,25 +59,35 @@ Using this context, you must produce a structured legal rights assessment.
   * Government hospital denies emergency treatment
   * State authority violates due process rights
 - NALSA (National Legal Services Authority) helpline 15100 — free legal aid, available 24/7. They will connect you to your District Legal Services Authority (DLSA). Do not refer to this as the 'DLSA helpline 15100'.
-- Detailed Explanation: For each legal provision listed under `legal_provisions`, provide a 2-3 sentence explanation covering:
-  1) What the provision says.
-  2) Why it specifically applies to this signal.
-  3) What remedy it provides to the affected person.
+- Detailed Explanation: For each legal provision listed under `legal_provisions`, provide a 4-5 sentence explanation covering:
+  1) What this provision says in plain language
+  2) The specific facts from this signal that trigger this provision
+  3) What the violating party is doing wrong under this provision
+  4) The exact remedy available and which forum handles it
+  5) What happens if no action is taken
 - Specific, Actionable Immediate Actions: Avoid generic advice like "contact legal aid". Instead, provide concrete steps, helpline numbers, and forums (e.g., "Call the NALSA (National Legal Services Authority) helpline 15100 which is free and available 24/7 to report the incident and be connected to your local DLSA for free legal aid" or "File a criminal complaint under BNS Section X at the nearest Police Station or Magistrate Court").
 - Keep responses factual and aligned with standard legal safeguards (like D.K. Basu Guidelines, Right to Emergency Medical Treatment, etc.).
+- Strict Requirement for Arrest/Detention signals: If the signal involves arrest or detention, you MUST cite and analyze exactly all 5 of these provisions under `rights_violated` and `legal_provisions`:
+  1. "Article 22"
+  2. "D.K. Basu Guidelines"
+  3. "Section 50 CrPC (now Section 47 BNSS)"
+  4. "Section 57 CrPC (now Section 58 BNSS)"
+  5. "Section 76 CrPC (now Section 80 BNSS)"
+  Failure to include all 5 of these will result in incomplete and incorrect legal advice.
+
 
 ### Output Format:
 You must output ONLY a valid JSON object matching the schema below. Do not include any pre/post text or markdown wrapper. Just return the JSON object.
 
 JSON Schema:
 {
-  "rights_violated": ["Section 57 CrPC (now Section 60 BNSS)", "Article 22"],
+  "rights_violated": ["Section 57 CrPC (now Section 58 BNSS)", "Article 22"],
   "severity": "critical|high|medium|low",
   "legal_provisions": [
     {
-      "provision": "Section 57 CrPC (now Section 60 BNSS)",
+      "provision": "Section 57 CrPC (now Section 58 BNSS)",
       "description": "one sentence summary of the provision",
-      "relevance": "Detailed explanation. What the provision says, why it specifically applies to this signal, and what remedy it provides (2-3 sentences)."
+      "relevance": "Detailed explanation. What this provision says in plain language, the specific facts from the signal triggering it, what the violating party is doing wrong, the exact remedy and forum handling it, and what happens if no action is taken (4-5 sentences)."
     }
   ],
   "immediate_actions": ["Specific, actionable step 1", "Specific, actionable step 2"],
@@ -73,7 +107,7 @@ JSON Schema:
 Where:
 - `rights_violated` is an array of strings representing the names of specific articles or sections violated or relevant (utilizing dual citation for criminal laws only).
 - `severity` is one of: "critical", "high", "medium", "low".
-- `legal_provisions` is an array of objects containing the specific `provision` (dual citation format for criminal laws only), a brief `description`, and a detailed `relevance` explanation (2-3 sentences).
+- `legal_provisions` is an array of objects containing the specific `provision` (dual citation format for criminal laws only), a brief `description`, and a detailed `relevance` explanation (4-5 sentences).
 - `immediate_actions` is an array of concrete, localized steps the citizen or responder should take immediately.
 - `authority_to_contact` is a string indicating the specific authority/organization they should reach out to (e.g. NALSA or DLSA).
 - `nearest_authority_type` is a string that MUST be exactly one of: "DLSA", "High Court", "Consumer Forum", "Labour Court", "Police Complaint Authority", "Magistrate Court".
