@@ -101,14 +101,12 @@
         /* Language Selector Bar */
         .lang-selector-bar {
             display: flex;
-            gap: 0.35rem;
+            gap: 4px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
-            padding: 0.25rem;
+            padding: 4px;
             border-radius: 9999px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            flex-wrap: nowrap;
             max-width: 100%;
         }
         .lang-selector-bar::-webkit-scrollbar {
@@ -118,9 +116,9 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 0.45rem 0.85rem;
+            padding: 6px 10px;
             border-radius: 9999px;
-            font-size: 0.82rem;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -134,7 +132,105 @@
             background: var(--color-indigo);
             color: #fff;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+        }
+
+        /* Hamburger Menu Styling */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 101;
+        }
+        .hamburger-menu span {
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+        .lang-selector-select {
+            display: none;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+                align-items: center;
+                text-align: center;
+                position: relative;
+            }
+            .logo-container {
+                margin-bottom: 0.25rem;
+            }
+            .nav-right {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+            }
+            .lang-selector-bar {
+                display: none !important;
+            }
+            .lang-selector-select {
+                display: block;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 11px;
+                outline: none;
+                cursor: pointer;
+                font-family: inherit;
+                max-width: 110px;
+            }
+            .lang-selector-select option {
+                background: #121216;
+                color: var(--text-main);
+            }
+            .hamburger-menu {
+                display: flex;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 1rem;
+                background: #1e1e24;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                z-index: 100;
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: right;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
         }
 
         /* Main Form Container */
@@ -411,6 +507,56 @@
         .mic-btn.done .mic-check {
             display: block;
         }
+
+        /* Anonymous Toggle Switch (Upgrade 6) */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--color-indigo);
+            border-color: var(--color-indigo);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
     </style>
 </head>
 <body>
@@ -421,17 +567,23 @@
             <h1>Prahari</h1>
         </a>
         <div class="nav-right">
-            <a href="/login/" class="login-link loc-en">Coordinator Login</a>
-            <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+            <nav class="nav-links">
+                <a href="/login/" class="login-link loc-en">Coordinator Login</a>
+                <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+            </nav>
             <div class="lang-selector-bar">
                 <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
                 <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-                <button type="button" class="lang-pill" data-lang="bengali" onclick="changeLanguage('bengali')">বাংলা</button>
-                <button type="button" class="lang-pill" data-lang="marathi" onclick="changeLanguage('marathi')">मराठी</button>
-                <button type="button" class="lang-pill" data-lang="tamil" onclick="changeLanguage('tamil')">தமிழ்</button>
-                <button type="button" class="lang-pill" data-lang="telugu" onclick="changeLanguage('telugu')">తెలుగు</button>
-                <button type="button" class="lang-pill" data-lang="kannada" onclick="changeLanguage('kannada')">ಕನ್ನಡ</button>
             </div>
+            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
+                <option value="english">English</option>
+                <option value="hindi">हिंदी</option>
+            </select>
+            <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </header>
 
@@ -503,7 +655,26 @@
                     >
                 </div>
 
-                <div class="form-group" style="margin-bottom: 2rem;">
+                <!-- Anonymous toggle switch container (Upgrade 6) -->
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <div class="switch-container" id="anon_switch_container">
+                        <label class="switch">
+                            <input type="checkbox" name="anonymous" id="anonymous_toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="form-label" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <span>🔒 Submit Anonymously / गुमनाम रूप से जमा करें</span>
+                        </span>
+                    </div>
+                    
+                    <!-- Anonymous message block -->
+                    <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: #a5b4fc; line-height: 1.4; margin-top: 0.5rem; animation: fadeInUp 0.3s ease-out;">
+                        <span class="loc-en">Your identity will not be recorded. You will receive a 6-character access code to check your report.</span>
+                        <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं होगी। आपको रिपोर्ट देखने के लिए 6-अक्षर का कोड मिलेगा।</span>
+                    </div>
+                </div>
+
+                <div id="contact_number_group" class="form-group" style="margin-bottom: 2rem; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.4s ease; overflow: hidden; max-height: 200px; opacity: 1;">
                     <label class="form-label loc-en" for="contact_number">Contact Number (optional, for SMS updates)</label>
                     <label class="form-label loc-hi" lang="hi" for="contact_number">संपर्क नंबर (वैकल्पिक, एसएमएस अपडेट के लिए)</label>
                     
@@ -548,16 +719,6 @@
                 const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
                 if (userLang.startsWith('hi')) {
                     selectedLang = 'hindi';
-                } else if (userLang.startsWith('bn')) {
-                    selectedLang = 'bengali';
-                } else if (userLang.startsWith('mr')) {
-                    selectedLang = 'marathi';
-                } else if (userLang.startsWith('ta')) {
-                    selectedLang = 'tamil';
-                } else if (userLang.startsWith('te')) {
-                    selectedLang = 'telugu';
-                } else if (userLang.startsWith('kn')) {
-                    selectedLang = 'kannada';
                 } else {
                     selectedLang = 'english';
                 }
@@ -584,6 +745,12 @@
                 }
             });
 
+            // Sync select dropdown
+            const select = document.querySelector('.lang-selector-select');
+            if (select) {
+                select.value = lang;
+            }
+
             // Set input placeholders dynamically (fallback to English if not Hindi)
             const pKey = lang === 'hindi' ? 'hi' : 'en';
             const rawTextEl = document.getElementById('raw_text');
@@ -601,6 +768,15 @@
                 field.value = lang;
             }
             setLanguageTheme(lang);
+        }
+
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-links');
+            const burger = document.querySelector('.hamburger-menu');
+            if (nav && burger) {
+                nav.classList.toggle('active');
+                burger.classList.toggle('active');
+            }
         }
 
         function validateForm() {
@@ -637,12 +813,7 @@
             function getLangCode() {
                 const currentLang = localStorage.getItem('prahari_lang') || 'english';
                 const mapping = {
-                    hindi: 'hi-IN',
-                    bengali: 'bn-IN',
-                    marathi: 'mr-IN',
-                    tamil: 'ta-IN',
-                    telugu: 'te-IN',
-                    kannada: 'kn-IN'
+                    hindi: 'hi-IN'
                 };
                 return mapping[currentLang] || 'en-IN';
             }
@@ -730,9 +901,36 @@
             }
         }
 
+        function initAnonymousToggle() {
+            const anonToggle = document.getElementById('anonymous_toggle');
+            const contactGroup = document.getElementById('contact_number_group');
+            const anonMessage = document.getElementById('anonymous_message');
+            const contactInput = document.getElementById('contact_number');
+
+            if (anonToggle && contactGroup && anonMessage) {
+                anonToggle.addEventListener('change', () => {
+                    if (anonToggle.checked) {
+                        contactGroup.style.maxHeight = '0px';
+                        contactGroup.style.opacity = '0';
+                        contactGroup.style.marginBottom = '0px';
+                        contactGroup.style.pointerEvents = 'none';
+                        if (contactInput) contactInput.value = '';
+                        anonMessage.style.display = 'block';
+                    } else {
+                        contactGroup.style.maxHeight = '200px';
+                        contactGroup.style.opacity = '1';
+                        contactGroup.style.marginBottom = '2rem';
+                        contactGroup.style.pointerEvents = 'auto';
+                        anonMessage.style.display = 'none';
+                    }
+                });
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             initLanguage();
             initVoiceInput();
+            initAnonymousToggle();
         });
     </script>
 </body>

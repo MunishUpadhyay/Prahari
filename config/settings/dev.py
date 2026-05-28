@@ -57,6 +57,6 @@ if not GDAL_AVAILABLE:
     if "django.contrib.gis" in INSTALLED_APPS:
         INSTALLED_APPS.remove("django.contrib.gis")
 
-# Run Celery tasks synchronously in development
-CELERY_TASK_ALWAYS_EAGER = True
+# Run Celery tasks asynchronously in development (via worker)
+CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = True

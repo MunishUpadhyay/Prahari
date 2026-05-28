@@ -105,14 +105,12 @@
         /* Language Selector Bar */
         .lang-selector-bar {
             display: flex;
-            gap: 0.35rem;
+            gap: 4px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
-            padding: 0.25rem;
+            padding: 4px;
             border-radius: 9999px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            flex-wrap: nowrap;
             max-width: 100%;
         }
         .lang-selector-bar::-webkit-scrollbar {
@@ -122,9 +120,9 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 0.45rem 0.85rem;
+            padding: 6px 10px;
             border-radius: 9999px;
-            font-size: 0.82rem;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -138,7 +136,105 @@
             background: var(--color-indigo);
             color: #fff;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+        }
+
+        /* Hamburger Menu Styling */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 101;
+        }
+        .hamburger-menu span {
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+        .lang-selector-select {
+            display: none;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+                align-items: center;
+                text-align: center;
+                position: relative;
+            }
+            .logo-container {
+                margin-bottom: 0.25rem;
+            }
+            .nav-right {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+            }
+            .lang-selector-bar {
+                display: none !important;
+            }
+            .lang-selector-select {
+                display: block;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 11px;
+                outline: none;
+                cursor: pointer;
+                font-family: inherit;
+                max-width: 110px;
+            }
+            .lang-selector-select option {
+                background: #121216;
+                color: var(--text-main);
+            }
+            .hamburger-menu {
+                display: flex;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 1rem;
+                background: #1e1e24;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                z-index: 100;
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: right;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
         }
 
         .status-dot {
@@ -516,31 +612,35 @@
         }
     </style>
 </head>
-<body>
-
-    <header>
+<body>    <header>
         <a href="/" class="logo-container">
             <div class="logo-pulse"></div>
             <h1>Prahari</h1>
         </a>
         <div class="nav-right">
-            <span class="loc-en" style="font-size: 0.85rem; font-weight: 500;">
-                <span class="status-dot connected" id="ws-indicator"></span> WebSocket Live Feed
-            </span>
-            <span class="loc-hi" lang="hi" style="font-size: 0.85rem; font-weight: 500;">
-                <span class="status-dot connected" id="ws-indicator-hi"></span> लाइव वेबसॉकेट फीड
-            </span>
+            <nav class="nav-links">
+                <span class="loc-en" style="font-size: 0.85rem; font-weight: 500;">
+                    <span class="status-dot connected" id="ws-indicator"></span> WebSocket Live Feed
+                </span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.85rem; font-weight: 500;">
+                    <span class="status-dot connected" id="ws-indicator-hi"></span> लाइव वेबसॉकेट फीड
+                </span>
+                <a href="/logout/" class="logout-link loc-en">Log Out</a>
+                <a href="/logout/" class="logout-link loc-hi">लॉग आउट</a>
+            </nav>
             <div class="lang-selector-bar">
                 <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
                 <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-                <button type="button" class="lang-pill" data-lang="bengali" onclick="changeLanguage('bengali')">বাংলা</button>
-                <button type="button" class="lang-pill" data-lang="marathi" onclick="changeLanguage('marathi')">मराठी</button>
-                <button type="button" class="lang-pill" data-lang="tamil" onclick="changeLanguage('tamil')">தமிழ்</button>
-                <button type="button" class="lang-pill" data-lang="telugu" onclick="changeLanguage('telugu')">తెలుగు</button>
-                <button type="button" class="lang-pill" data-lang="kannada" onclick="changeLanguage('kannada')">ಕನ್ನಡ</button>
             </div>
-            <a href="/logout/" class="logout-link loc-en">Log Out</a>
-            <a href="/logout/" class="logout-link loc-hi">लॉग आउट</a>
+            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
+                <option value="english">English</option>
+                <option value="hindi">हिंदी</option>
+            </select>
+            <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </header>
 
@@ -619,16 +719,6 @@
                 const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
                 if (userLang.startsWith('hi')) {
                     selectedLang = 'hindi';
-                } else if (userLang.startsWith('bn')) {
-                    selectedLang = 'bengali';
-                } else if (userLang.startsWith('mr')) {
-                    selectedLang = 'marathi';
-                } else if (userLang.startsWith('ta')) {
-                    selectedLang = 'tamil';
-                } else if (userLang.startsWith('te')) {
-                    selectedLang = 'telugu';
-                } else if (userLang.startsWith('kn')) {
-                    selectedLang = 'kannada';
                 } else {
                     selectedLang = 'english';
                 }
@@ -650,10 +740,25 @@
                     pill.classList.remove('active');
                 }
             });
+
+            // Sync select dropdown
+            const select = document.querySelector('.lang-selector-select');
+            if (select) {
+                select.value = lang;
+            }
         }
 
         function changeLanguage(lang) {
             setLanguageTheme(lang);
+        }
+
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-links');
+            const burger = document.querySelector('.hamburger-menu');
+            if (nav && burger) {
+                nav.classList.toggle('active');
+                burger.classList.toggle('active');
+            }
         }
 
         function toggleHindiCollapse(e, id) {

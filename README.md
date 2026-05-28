@@ -1,209 +1,103 @@
 # Prahari 🛡️
 
-**Real-time civic intelligence backend** — connecting legal, healthcare, and emergency domains through AI-driven signal processing.
-
----
-
-## Overview
-
-Prahari ingests raw civic signals (text, images, webhooks), classifies them by domain, runs them through specialised AI agents, and streams live incident updates to connected dashboards via WebSocket.
-
-```
-Signal Ingest → Celery Pipeline → 5 AI Agents → Incident → WebSocket Push
-```
+Prahari is a real-time civic intelligence system designed to empower citizens, support NGOs, and assist coordinators by connecting legal, healthcare, and emergency domains. It ingests raw civic signals (text, images, webhooks), dynamically routes them through a multi-agent AI pipeline using specialized legal RAG and medical protocols, and translates the analysis into English or Hindi in real time. Connected coordinators can monitor incoming alerts via a live WebSocket dashboard, escalate issues, generate legal notices, follow evidence checklists, and manage cases E2E, while citizens can submit reports and check statuses securely—even anonymously via unique 6-character access codes.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Web framework | Django 5 + Django REST Framework |
-| WebSocket | Django Channels 4 + Redis channel layer |
-| Task queue | Celery 5 + Redis |
-| Database | PostgreSQL 16 + PostGIS 3.4 |
-| AI agents | Groq API (LLaMA 3) |
-| Vector store | ChromaDB (RAG) |
-| Auth | JWT (djangorestframework-simplejwt) |
+- **Core Framework**: Django 5 + Django REST Framework (DRF)
+- **Real-Time Streaming**: Django Channels 4 (ASGI/Daphne)
+- **Message Broker & Channel Layer**: Redis 7
+- **Task Queue & Pipeline Routing**: Celery 5
+- **Database**: PostgreSQL 16 + PostGIS 3.4 (Geospatial data support)
+- **Vector Database**: ChromaDB (RAG embedding storage)
+- **Embedding Model**: `sentence-transformers/all-MiniLM-L6-v2`
+- **Primary LLM**: Groq LLaMA 3.3 70B (`llama-3.3-70b-versatile`)
+- **Fallback LLM**: Groq LLaMA 3.1 8B (`llama-3.1-8b-instant` fallback routing)
+- **Token Authentication**: JSON Web Tokens (JWT)
 
 ---
 
-## Project Structure
+## Features
 
-```
-prahari/
-├── config/                   # Django settings, ASGI, WSGI, Celery
-│   └── settings/
-│       ├── base.py           # Shared settings
-│       ├── dev.py            # Development overrides
-│       └── prod.py           # Production overrides
-├── apps/
-│   ├── signals/              # Signal ingestion — POST /api/signals/
-│   ├── agents/               # 5 AI agent classes
-│   ├── incidents/            # Incident tracking — GET /api/incidents/
-│   ├── resources/            # Geo resource lookup — GET /api/resources/nearby/
-│   ├── tenants/              # Multi-tenant mgmt — POST /api/webhooks/register/
-│   └── audit/                # Tamper-evident audit trail
-├── pipeline/
-│   ├── tasks.py              # Celery task chain (5 steps)
-│   ├── consumers.py          # WebSocket DashboardConsumer
-│   └── routing.py            # WebSocket URL routing
-├── rag/
-│   ├── ingest.py             # Document → ChromaDB ingestion
-│   └── retriever.py          # RAG query interface
-└── prompts/                  # System prompts for each agent
-    ├── sentinel.txt
-    ├── rights.txt
-    ├── triage.txt
-    ├── coordination.txt
-    └── language.txt
-```
+- **5-Agent Pipeline**: Specialized AI agents (*Sentinel*, *Rights*, *Triage*, *Coordination*, *Language*) run in a Celery-backed sequential processing chain.
+- **WebSocket Operations Dashboard**: Real-time incident streaming, visual notifications, and status monitoring for organization coordinators.
+- **Multi-lingual Support**: Citizen report status translates dynamically into English and Hindi.
+- **RAG Knowledge Base**: Semantic search over Indian legal provisions (CrPC, IPC, BNSS, BNS) and medical protocols (Trauma Golden Hour, Stroke FAST, STEMI, etc.).
+- **Legal Notice Generator**: One-click professional legal draft generator with words limits constraints and actionable, measurable demands.
+- **Evidence Collection Guide**: Tailored evidence lists showing what to collect, why it is important, and how to obtain it.
+- **Anonymous Submission Mode**: Submit signals securely without a contact number, protected behind a SHA256 hashed 6-character access code and client-side page lockout.
+- **Case Outcome Predictor**: Analyzes historical cases and calculates resolution rates, average severity levels, and typical resolutions from similar database records.
+- **Multi-Tenant API Security**: Dedicated API key validation, domain scoping, and JWT authorization for third-party client integrations.
 
 ---
 
-## Quick Start (Local Development)
+## Setup
 
-### 1. Clone and set up virtual environment
-
-```bash
-git clone <repo-url>
-cd prahari
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# macOS / Linux
-source .venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-### 2. Start infrastructure (Docker required)
-
-```bash
-docker compose up -d
-```
-
-This starts:
-- **PostgreSQL 16 + PostGIS 3.4** on `localhost:5432`
-- **Redis 7** on `localhost:6379`
-
-### 3. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env with your GROQ_API_KEY and other secrets
-```
-
-### 4. Run migrations
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### 5. Start the development server
-
-```bash
-# ASGI server (supports WebSockets)
-daphne -b 0.0.0.0 -p 8000 config.asgi:application
-
-# Or standard Django dev server (HTTP only)
-python manage.py runserver
-```
-
-### 6. Start Celery worker
-
-```bash
-celery -A config worker --loglevel=info
-```
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/token/` | Obtain JWT token pair |
-| `POST` | `/api/auth/token/refresh/` | Refresh JWT access token |
-| `POST` | `/api/signals/` | Ingest a new civic signal |
-| `GET` | `/api/incidents/` | List incidents (tenant-scoped) |
-| `GET` | `/api/incidents/<id>/` | Incident detail with agent outputs |
-| `GET` | `/api/resources/nearby/` | Geospatial resource lookup |
-| `POST` | `/api/webhooks/register/` | Register webhook for tenant |
-
-### WebSocket
-
-```
-ws://localhost:8000/ws/dashboard/
-```
-
-Receives live incident update messages:
-```json
-{
-  "type": "incident.update",
-  "incident_id": "<uuid>",
-  "severity_label": "high",
-  "domain": "emergency",
-  "situation_brief": "...",
-  "is_resolved": false
-}
-```
-
----
-
-## Celery Task Chain
-
-```
-ingest_signal(signal_id)
-  └─► classify_domain(signal_id)      [SentinelAgent]
-        └─► route_to_agents(signal_id) [domain-specific agents]
-              └─► coordination_agent(signal_id) [CoordinationAgent + LanguageAgent]
-                    └─► push_to_websocket(incident_id) [Channels group_send]
-```
-
----
-
-## AI Agents
-
-| Agent | Prompt | Output |
-|-------|--------|--------|
-| `SentinelAgent` | `prompts/sentinel.txt` | Severity score, domain, escalation flag |
-| `RightsAgent` | `prompts/rights.txt` | Applicable rights, legal provisions, actions |
-| `TriageAgent` | `prompts/triage.txt` | Triage level, hospital referral, indicators |
-| `CoordinationAgent` | `prompts/coordination.txt` | Dispatch order, resource recommendations |
-| `LanguageAgent` | `prompts/language.txt` | Plain-language situation brief |
-
----
-
-## Multi-Tenancy
-
-Each organisation (Tenant) has:
-- A unique API key (stored as SHA-256 hash — raw key shown only on creation)
-- An optional webhook URL for receiving incident push notifications
-- Scoped access to their own Signals, Incidents, and Resources
+1. **Clone the repository**:
+   ```bash
+   git clone <repository_url>
+   cd Prahari
+   ```
+2. **Copy `.env.example` to `.env` and fill values**:
+   ```bash
+   cp .env.example .env
+   ```
+3. **Start local infrastructure (Docker)**:
+   ```bash
+   docker compose up -d
+   ```
+4. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. **Run migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+6. **Ingest legal and medical knowledge base**:
+   ```bash
+   python manage.py ingest_knowledge_base
+   ```
+7. **Populate demo signals and process through agent pipeline**:
+   ```bash
+   python manage.py seed_demo
+   ```
+8. **Start the Celery worker** (Terminal 2):
+   ```bash
+   .venv\Scripts\celery -A config worker --loglevel=info --pool=solo
+   ```
+9. **Start Daphne ASGI Web Server** (Terminal 3):
+   ```bash
+   .venv\Scripts\daphne -b 0.0.0.0 -p 8000 config.asgi:application
+   ```
+10. **Open local application**:
+    - URL: http://localhost:8000/
 
 ---
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET_KEY` | Django secret key |
-| `DEBUG` | `True` for development |
-| `ALLOWED_HOSTS` | Comma-separated list of allowed hosts |
-| `DB_NAME` | PostgreSQL database name |
-| `DB_USER` | PostgreSQL user |
-| `DB_PASSWORD` | PostgreSQL password |
-| `DB_HOST` | PostgreSQL host |
-| `DB_PORT` | PostgreSQL port |
-| `REDIS_URL` | Redis connection URL |
-| `JWT_SECRET` | JWT signing key |
-| `GROQ_API_KEY` | Groq API key for LLM calls |
+The following environment variables configure the Prahari environment inside `.env`:
+
+- `SECRET_KEY`: Standard Django secret key used for session cryptographic signing.
+- `DEBUG`: Boolean flag (`True` or `False`) to enable/disable debug mode.
+- `ALLOWED_HOSTS`: Comma-separated list of allowed host/domain names that this Django site can serve.
+- `DB_NAME`: PostgreSQL database name.
+- `DB_USER`: PostgreSQL user.
+- `DB_PASSWORD`: PostgreSQL password.
+- `DB_HOST`: PostgreSQL database host address.
+- `DB_PORT`: PostgreSQL database port (default `5432` or `5433`).
+- `REDIS_URL`: Redis URL used for the Celery broker and Channels layer.
+- `JWT_SECRET`: Secret key used for signing JSON Web Tokens.
+- `GROQ_API_KEY`: Primary Groq API key for LLaMA model agents.
+- `GROQ_API_KEY_2`: Secondary fallback Groq API key used to bypass rate-limiting.
+- `SITE_URL`: Optional absolute base URL of the site used for constructing share links.
 
 ---
 
-## License
+## API Documentation
 
-MIT
+Interactive API docs are available at:
+`http://localhost:8000/api/docs/`

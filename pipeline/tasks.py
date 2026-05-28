@@ -369,7 +369,9 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                 translation_payload["legal_provisions"] = rights_out.get("legal_provisions", [])
                 translation_payload["legal_timeline"] = rights_out.get("legal_timeline", [])
 
-            preferred_lang = incident.signal.preferred_language or 'hindi'
+            signal = incident.signal
+            print(f"[Language Agent] Running for language: {signal.preferred_language}")
+            preferred_lang = signal.preferred_language or 'hindi'
             
             def extract_json_from_text(text: str) -> dict:
                 import json
@@ -473,8 +475,8 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
             
             # Store translated brief in agent_outputs
             agent_outputs['language'] = {
-                preferred_lang: hindi_brief,
-                'preferred': preferred_lang
+                signal.preferred_language: hindi_brief,
+                'preferred': signal.preferred_language
             }
         except Exception as e:
             # Language translation is non-critical — log and continue

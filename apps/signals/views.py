@@ -54,3 +54,36 @@ class SignalIngestView(CreateAPIView):
         logger.info("Signal ingested successfully, enqueuing pipeline task for ID: %s", signal.id)
         ingest_signal.delay(str(signal.id))
 
+
+import hashlib
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Signal
+
+class SignalVerifyCodeView(APIView):
+    """
+    POST /api/signals/<signal_id>/verify-code/
+    Body: {"code": "XK7P2M"}
+    Response: {"valid": true} or {"valid": false}
+    """
+    permission_classes = []  # Public endpoint
+
+    def post(self, request, signal_id):
+        signal = get_object_or_404(Signal, id=signal_id)
+        code = request.data.get("code", "").strip().upper()
+        
+        stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
+        if not stored_hash:
+            # Not an anonymous signal, or code not set
+            return Response({"valid": False}, status=status.HTTP_200_OK)
+            
+        # Hash the entered code
+        entered_hash = hashlib.sha256(code.encode()).hexdigest()
+        
+        if entered_hash == stored_hash:
+            return Response({"valid": True}, status=status.HTTP_200_OK)
+        else:
+            return Response({"valid": False}, status=status.HTTP_200_OK)
+

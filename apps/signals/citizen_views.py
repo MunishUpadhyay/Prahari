@@ -27,6 +27,7 @@ def citizen_submit(request):
         location = request.POST.get("location", "").strip()
         contact_number = request.POST.get("contact_number", "").strip()
         preferred_language = request.POST.get("preferred_language", "hindi").strip()
+        anonymous = request.POST.get("anonymous") == "on"
 
         if not raw_text:
             return render(request, "submit.html", {"error": "Please describe what is happening."})
@@ -43,8 +44,12 @@ def citizen_submit(request):
         metadata = {}
         if location:
             metadata["location"] = location
-        if contact_number:
-            metadata["contact_number"] = contact_number
+
+        if anonymous:
+            contact_number = ""
+        else:
+            if contact_number:
+                metadata["contact_number"] = contact_number
 
         # Create Signal directly in DB
         signal = Signal.objects.create(
@@ -55,6 +60,17 @@ def citizen_submit(request):
             preferred_language=preferred_language,
             metadata=metadata
         )
+
+        if anonymous:
+            import secrets
+            import hashlib
+            code = secrets.token_urlsafe(4)[:6].upper()
+            code_hash = hashlib.sha256(code.encode()).hexdigest()
+            signal.metadata['anonymous_code'] = code_hash
+            signal.save(update_fields=['metadata'])
+            
+            # Pass code to redirect page via session
+            request.session[f"anon_code_{signal.id}"] = code
 
         logger.info("[Citizen Portal] Created signal %s, enqueuing Celery task", signal.id)
         
@@ -79,11 +95,21 @@ def citizen_report_status(request, signal_id):
     date_str = signal.created_at.strftime("%Y%m%d")
     uuid_first_4 = str(signal.id)[:4].upper()
     tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
+    
+    # Check if this signal is anonymous
+    is_anonymous = signal.metadata and 'anonymous_code' in signal.metadata
+    
+    # Retrieve raw code from session if it was just set during redirect
+    session_key = f"anon_code_{signal.id}"
+    raw_code = request.session.pop(session_key, None)
+    
     return render(request, "report_status.html", {
         "signal_id": signal_id,
         "tracking_id": tracking_id,
         "site_url": settings.SITE_URL,
-        "preferred_language": signal.preferred_language or "hindi"
+        "preferred_language": signal.preferred_language or "hindi",
+        "is_anonymous": is_anonymous,
+        "anonymous_access_code": raw_code,
     })
 
 
@@ -93,6 +119,16 @@ def citizen_signal_status_api(request, signal_id):
     Unauthenticated API endpoint for AJAX polling of pipeline status.
     """
     signal = get_object_or_404(Signal, id=signal_id)
+    
+    # Stuck pipeline check: if signal.status == 'processing' and is more than 5 minutes old
+    from django.utils import timezone
+    from datetime import timedelta
+    if signal.status == 'processing' and (timezone.now() - signal.created_at) > timedelta(minutes=5):
+        return JsonResponse({
+            'status': 'pipeline_error',
+            'message': 'Pipeline timed out'
+        })
+
     incident = getattr(signal, "incident", None)
 
     # Base steps status mapping
@@ -185,7 +221,8 @@ def citizen_signal_status_api(request, signal_id):
                 "coordinator_status": incident.coordinator_status,
                 "coordinator_notes": incident.coordinator_notes,
                 "timing": outputs.get("timing", {}),
-                "language_outputs": outputs.get("language", {})
+                "language_outputs": outputs.get("language", {}),
+                "preferred_language": signal.preferred_language
             }
 
     # Signal status mapper

@@ -478,7 +478,7 @@ class LanguageAgent(BaseAgent):
     """
 
     prompt_name = "language"
-    max_tokens = 4000
+    max_tokens = 2500
 
     def run(self, coord_result: dict, target_language: str = "hindi") -> dict:
         import json

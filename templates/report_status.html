@@ -72,6 +72,170 @@
         .nav-right { display:flex; align-items:center; gap:1.25rem; }
         .login-link { color:var(--text-muted); text-decoration:none; font-size:.875rem; font-weight:500; transition:color .2s; }
         .login-link:hover { color:var(--text-main); }
+
+        /* Language Selector Bar */
+        .lang-selector-bar {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 9999px;
+            flex-wrap: nowrap;
+            max-width: 100%;
+        }
+        .lang-selector-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .lang-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lang-pill:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .lang-pill.active {
+            background: var(--color-indigo);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Hamburger Menu Styling */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 101;
+        }
+        .hamburger-menu span {
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+        .lang-selector-select {
+            display: none;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        /* Pulsing indicator and timeout styles */
+        @keyframes pulseOpacity {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .pulsing-indicator {
+            animation: pulseOpacity 1.5s infinite ease-in-out;
+            font-weight: 600;
+            color: var(--color-indigo);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .attempt-counter {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            display: block;
+        }
+        .timeout-message-box {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #f87171;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+                align-items: center;
+                text-align: center;
+                position: relative;
+            }
+            .logo-container {
+                margin-bottom: 0.25rem;
+            }
+            .nav-right {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+            }
+            .lang-selector-bar {
+                display: none !important;
+            }
+            .lang-selector-select {
+                display: block;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 11px;
+                outline: none;
+                cursor: pointer;
+                font-family: inherit;
+                max-width: 110px;
+            }
+            .lang-selector-select option {
+                background: #121216;
+                color: var(--text-main);
+            }
+            .hamburger-menu {
+                display: flex;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 1rem;
+                background: #1e1e24;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                z-index: 100;
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: right;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+        }
         .lang-btn {
             background:rgba(255,255,255,.04); border:1px solid var(--border-color);
             color:var(--text-main); padding:.45rem .95rem; border-radius:9999px;
@@ -510,22 +674,100 @@
         <h1>Prahari</h1>
     </a>
     <div class="nav-right">
-        <a href="/login/" class="login-link loc-en">Coordinator Login</a>
-        <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+        <nav class="nav-links">
+            <a href="/login/" class="login-link loc-en">Coordinator Login</a>
+            <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
+        </nav>
         <div class="lang-selector-bar">
             <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
             <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            <button type="button" class="lang-pill" data-lang="bengali" onclick="changeLanguage('bengali')">বাংলা</button>
-            <button type="button" class="lang-pill" data-lang="marathi" onclick="changeLanguage('marathi')">मराठी</button>
-            <button type="button" class="lang-pill" data-lang="tamil" onclick="changeLanguage('tamil')">தமிழ்</button>
-            <button type="button" class="lang-pill" data-lang="telugu" onclick="changeLanguage('telugu')">తెలుగు</button>
-            <button type="button" class="lang-pill" data-lang="kannada" onclick="changeLanguage('kannada')">ಕನ್ನಡ</button>
         </div>
+        <select class="lang-selector-select" onchange="changeLanguage(this.value)">
+            <option value="english">English</option>
+            <option value="hindi">हिंदी</option>
+        </select>
+        <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </div>
 </header>
 
 <main>
-    <!-- Incident tracking number (Improvement D) -->
+    {% if is_anonymous %}
+    <!-- Verification Card (shown when sessionStorage key is not set) -->
+    <div id="verification-wrapper" style="display: none; justify-content: center; align-items: center; min-height: 50vh; padding: 2rem 0; animation: fadeInUp 0.4s ease-out; width: 100%;">
+        <div class="rs-section" style="max-width: 450px; width: 100%; text-align: center; background: var(--bg-card); border-color: var(--color-indigo); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
+            <h3 class="loc-en" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Enter your 6-character access code</h3>
+            <h3 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">अपना 6-अक्षर का एक्सेस कोड दर्ज करें</h3>
+            
+            <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">This report is anonymous. Please enter the access code you received upon submission to view it.</p>
+            <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">यह रिपोर्ट गुमनाम है। इसे देखने के लिए कृपया सबमिशन के समय मिला एक्सेस कोड दर्ज करें।</p>
+            
+            <form id="verification-form" onsubmit="verifyAccessCode(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+                <input 
+                    type="text" 
+                    id="access-code-input" 
+                    maxlength="6" 
+                    placeholder="E.g., XK7P2M" 
+                    style="text-transform: uppercase; text-align: center; font-size: 1.5rem; letter-spacing: 0.2em; font-family: monospace; font-weight: bold; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; padding: 0.85rem 1rem; width: 100%; transition: all 0.2s;"
+                    oninput="this.value = this.value.toUpperCase()"
+                    required
+                >
+                <div id="verification-error" style="display: none; color: var(--color-critical); font-size: 0.88rem; font-weight: 600; text-align: center;">
+                    <span class="loc-en">Incorrect code. Please try again.</span>
+                    <span class="loc-hi" lang="hi">गलत कोड। कृपया पुनः प्रयास करें।</span>
+                </div>
+                
+                <button type="submit" class="submit-btn" style="padding: 0.85rem 1.5rem; font-size: 1rem; background: linear-gradient(135deg, var(--color-indigo), #8b5cf6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25); width: 100%;">
+                    <span class="loc-en">View Report</span>
+                    <span class="loc-hi">रिपोर्ट देखें</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="report-content-wrapper" style="display: {% if is_anonymous %}none{% else %}block{% endif %}; width: 100%;">
+        <!-- Access Code generated on confirmation page -->
+        {% if anonymous_access_code %}
+        <div id="anonymous-code-box" class="rs-section" style="border-color: var(--color-indigo); background: rgba(99, 102, 241, 0.08); margin-bottom: 0.5rem; animation: fadeInUp 0.4s ease-out;">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; padding: 1rem 0;">
+                <div style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 0.07em; background: linear-gradient(135deg, #ffffff 40%, var(--color-indigo) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.75rem;">
+                    <span>🔑</span>
+                    <span id="raw-access-code">{{ anonymous_access_code }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <div class="loc-en" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
+                        Your Access Code: <span style="color: var(--color-indigo);">{{ anonymous_access_code }}</span>
+                    </div>
+                    <div class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
+                        आपका एक्सेस कोड: <span style="color: var(--color-indigo);">{{ anonymous_access_code }}</span>
+                    </div>
+                    <div class="loc-en" style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 500px;">
+                        Save this code — you will need it to view your report. We cannot recover it if lost.
+                    </div>
+                    <div class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 500px;">
+                        यह कोड सेव करें — रिपोर्ट देखने के लिए इसकी जरूरत होगी। यह दोबारा नहीं मिलेगा।
+                    </div>
+                </div>
+                <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="toolbar-btn" style="background: var(--color-indigo); border-color: var(--color-indigo); color: white; padding: 0.75rem 1.75rem; font-size: 0.95rem; font-weight: 700; border-radius: 9px; box-shadow: var(--glow-indigo);">
+                    <span class="loc-en">📋 Copy Code</span>
+                    <span class="loc-hi">📋 कोड कॉपी करें</span>
+                </button>
+            </div>
+        </div>
+        <script>
+        function copyAccessCode(code) {
+            navigator.clipboard.writeText(code);
+            alert(localStorage.getItem('prahari_lang') === 'hi' ? 'एक्सेस कोड क्लिपबोर्ड पर कॉपी हो गया!' : 'Access code copied to clipboard!');
+        }
+        </script>
+        {% endif %}
+
+        <!-- Incident tracking number (Improvement D) -->
     <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.1rem 1.4rem; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.5rem;">
         <div style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
             <span class="loc-en">Your Report ID: {{ tracking_id }}</span>
@@ -578,9 +820,22 @@
                 <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
             </li>
         </ul>
-        <div style="text-align:center;color:var(--text-muted);font-size:.88rem;">
-            <span class="loc-en">Please do not close this window. Analysis takes 10–15 seconds.</span>
-            <span class="loc-hi" lang="hi">कृपया इस विंडो को बंद न करें। विश्लेषण में 10-15 सेकंड लगते हैं।</span>
+        <div style="text-align:center;color:var(--text-muted);font-size:.88rem;margin-top:1.5rem;">
+            <!-- Pulsing Progress Indicator -->
+            <div id="pulsing-progress" class="pulsing-indicator">
+                <span class="loc-en">⟳ Analyzing your report... (this takes 30-60 seconds)</span>
+                <span class="loc-hi" lang="hi">⟳ आपकी रिपोर्ट का विश्लेषण हो रहा है... (इसमें 30-60 सेकंड लगते हैं)</span>
+            </div>
+            <!-- Attempt Counter -->
+            <div id="attempt-counter" class="attempt-counter">
+                <span class="loc-en">Checking status... (attempt 0 of 30)</span>
+                <span class="loc-hi" lang="hi">स्थिति की जांच की जा रही है... (प्रयास 0/30)</span>
+            </div>
+            <!-- Stuck pipeline / Timeout Message Box -->
+            <div id="timeout-message" class="timeout-message-box">
+                <span class="loc-en">Analysis is taking longer than expected. Please refresh the page in a few minutes or check back later using your Report ID.</span>
+                <span class="loc-hi" lang="hi">विश्लेषण में अपेक्षा से अधिक समय लग रहा है। कृपया कुछ मिनट बाद पेज रिफ्रेश करें या अपनी Report ID से दोबारा जांचें।</span>
+            </div>
         </div>
     </div>
 
@@ -645,6 +900,7 @@
         </div>
 
     </div>
+    </div>
 </main>
 
 <footer>
@@ -656,30 +912,26 @@
 const signalId = "{{ signal_id }}";
 const siteUrl = "{{ site_url }}";
 const trackingId = "{{ tracking_id }}";
-const pollInterval = 3000;
+const pollInterval = 6000;
 let pollTimer = null;
 let pipelineCompleted = false;
 let currentResult = null;
 let outcomeStatsData = null;
 const preferredLanguageFromContext = "{{ preferred_language }}";
 
+let pollAttempts = 0;
+const maxPollAttempts = 30;
+
 // ── Language ──────────────────────────────────────────────
 function initLanguage() {
-    let lang = preferredLanguageFromContext || localStorage.getItem('prahari_lang');
+    let lang = preferredLanguageFromContext;
+    if (!lang || lang === 'undefined') {
+        lang = localStorage.getItem('prahari_lang');
+    }
     if (!lang || lang === 'undefined') {
         const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
         if (userLang.startsWith('hi')) {
             lang = 'hindi';
-        } else if (userLang.startsWith('bn')) {
-            lang = 'bengali';
-        } else if (userLang.startsWith('mr')) {
-            lang = 'marathi';
-        } else if (userLang.startsWith('ta')) {
-            lang = 'tamil';
-        } else if (userLang.startsWith('te')) {
-            lang = 'telugu';
-        } else if (userLang.startsWith('kn')) {
-            lang = 'kannada';
         } else {
             lang = 'english';
         }
@@ -701,6 +953,12 @@ function setLanguageTheme(lang) {
         }
     });
 
+    // Sync select dropdown
+    const select = document.querySelector('.lang-selector-select');
+    if (select) {
+        select.value = lang;
+    }
+
     // If result is already loaded, re-render to apply active language translations
     if (pipelineCompleted && currentResult) {
         renderResult(currentResult);
@@ -709,6 +967,15 @@ function setLanguageTheme(lang) {
 
 function changeLanguage(lang) {
     setLanguageTheme(lang);
+}
+
+function toggleMobileMenu() {
+    const nav = document.querySelector('.nav-links');
+    const burger = document.querySelector('.hamburger-menu');
+    if (nav && burger) {
+        nav.classList.toggle('active');
+        burger.classList.toggle('active');
+    }
 }
 function shareReport() {
     const base = siteUrl && siteUrl.trim() !== '' ? siteUrl : window.location.origin;
@@ -830,7 +1097,7 @@ async function loadOutcomeStats(incidentId) {
         if (!response.ok) throw new Error("Failed to fetch similar stats");
         const data = await response.json();
         const stats = data.outcome_stats;
-        if (stats && stats.total_similar >= 2) {
+        if (stats && stats.total_similar >= 2 && stats.resolved_count > 0) {
             outcomeStatsData = stats;
             renderStats(stats);
         } else {
@@ -844,10 +1111,37 @@ async function loadOutcomeStats(incidentId) {
 
 // ── Polling ───────────────────────────────────────────────
 async function checkPipelineStatus() {
+    if (!pipelineCompleted) {
+        pollAttempts++;
+        const attemptEn = document.querySelector('#attempt-counter .loc-en');
+        const attemptHi = document.querySelector('#attempt-counter .loc-hi');
+        if (attemptEn) attemptEn.textContent = `Checking status... (attempt ${pollAttempts} of 30)`;
+        if (attemptHi) attemptHi.textContent = `स्थिति की जांच की जा रही है... (प्रयास ${pollAttempts}/30)`;
+        
+        if (pollAttempts > maxPollAttempts) {
+            clearInterval(pollTimer);
+            const pulsing = document.getElementById('pulsing-progress');
+            if (pulsing) pulsing.style.display = 'none';
+            const timeoutBox = document.getElementById('timeout-message');
+            if (timeoutBox) timeoutBox.style.display = 'block';
+            return;
+        }
+    }
+
     try {
         const res = await fetch(`/report/${signalId}/status/`);
         if (!res.ok) throw new Error('HTTP error polling status');
         const data = await res.json();
+        
+        if (data.status === 'pipeline_error') {
+            clearInterval(pollTimer);
+            const pulsing = document.getElementById('pulsing-progress');
+            if (pulsing) pulsing.style.display = 'none';
+            const timeoutBox = document.getElementById('timeout-message');
+            if (timeoutBox) timeoutBox.style.display = 'block';
+            return;
+        }
+
         updateChecklistUI(data.steps);
         if (data.status === 'processed' && data.result) {
             currentResult = data.result;
@@ -1043,7 +1337,9 @@ function renderResult(result) {
     // Create local copy to override with language translations
     const resCopy = { ...result };
     const activeLang = localStorage.getItem('prahari_lang') || 'english';
-    const langOut = (result.language_outputs && result.language_outputs[activeLang]) ? result.language_outputs[activeLang] : null;
+    const preferred = result.preferred_language || 'hindi';
+    const langData = result.language_outputs;
+    const langOut = langData?.[activeLang] || langData?.[preferred] || langData?.['hindi'] || null;
     
     if (langOut) {
         resCopy.title_hi = langOut.situation_title || result.title_hi || result.title_en;
@@ -1909,11 +2205,102 @@ function printLegalNotice() {
     }
 }
 
+// ── Verification check & code submission (Upgrade 6) ──────
+const isAnonymous = {% if is_anonymous %}true{% else %}false{% endif %};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function checkVerification() {
+    if (isAnonymous) {
+        const verifiedKey = 'prahari_verified_' + signalId;
+        if (sessionStorage.getItem(verifiedKey) === 'true') {
+            document.getElementById('report-content-wrapper').style.display = 'block';
+            const verificationWrapper = document.getElementById('verification-wrapper');
+            if (verificationWrapper) verificationWrapper.style.display = 'none';
+            return true;
+        } else {
+            document.getElementById('report-content-wrapper').style.display = 'none';
+            const verificationWrapper = document.getElementById('verification-wrapper');
+            if (verificationWrapper) verificationWrapper.style.display = 'flex';
+            return false;
+        }
+    } else {
+        document.getElementById('report-content-wrapper').style.display = 'block';
+        return true;
+    }
+}
+
+async function verifyAccessCode(event) {
+    event.preventDefault();
+    const input = document.getElementById('access-code-input');
+    const errorDiv = document.getElementById('verification-error');
+    if (!input || !errorDiv) return;
+    
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+    
+    try {
+        const response = await fetch(`/api/signals/${signalId}/verify-code/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') || ''
+            },
+            body: JSON.stringify({ code: code })
+        });
+        
+        if (!response.ok) throw new Error("Verification request failed");
+        
+        const data = await response.json();
+        if (data.valid) {
+            sessionStorage.setItem('prahari_verified_' + signalId, 'true');
+            errorDiv.style.display = 'none';
+            
+            // Show report content and hide verification card
+            document.getElementById('report-content-wrapper').style.display = 'block';
+            document.getElementById('verification-wrapper').style.display = 'none';
+            
+            // Start polling if not already started
+            if (!pollTimer) {
+                checkPipelineStatus();
+                pollTimer = setInterval(checkPipelineStatus, pollInterval);
+            }
+        } else {
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error("Verification error:", err);
+        errorDiv.style.display = 'block';
+    }
+}
+
 // ── Boot ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
     initLanguage();
-    checkPipelineStatus();
-    pollTimer = setInterval(checkPipelineStatus, pollInterval);
+    
+    // Auto-verify if the raw code is passed directly in the template context (redirect from submission)
+    const anonCodeFromContext = "{{ anonymous_access_code|default:'' }}";
+    if (anonCodeFromContext) {
+        sessionStorage.setItem('prahari_verified_' + signalId, 'true');
+    }
+    
+    if (checkVerification()) {
+        checkPipelineStatus();
+        pollTimer = setInterval(checkPipelineStatus, pollInterval);
+    }
 });
 </script>
 </body>

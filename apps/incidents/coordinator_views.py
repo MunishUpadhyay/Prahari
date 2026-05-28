@@ -144,7 +144,7 @@ def coordinator_incident_detail(request, incident_id):
         "rights": outputs.get("rights"),
         "triage": outputs.get("triage"),
         "coordination": outputs.get("coordination"),
-        "language": outputs.get("language", {}).get("hindi"),
+        "language": outputs.get("language", {}).get(outputs.get("language", {}).get("preferred", "hindi")),
         "timeline": timeline,
         "timing": outputs.get("timing"),
     }
