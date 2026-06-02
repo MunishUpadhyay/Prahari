@@ -71,8 +71,8 @@ SECURE_PROXY_SSL_HEADER = (
     'HTTP_X_FORWARDED_PROTO', 'https')
 
 # CORS — update after deployment with real URL
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    'CORS_ALLOWED_ORIGINS', '').split(',')
+cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()] if cors_origins else []
 
 # Logging
 LOGGING = {
