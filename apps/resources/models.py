@@ -31,16 +31,23 @@ class Resource(models.Model):
         choices=ResourceType.choices,
         default=ResourceType.OTHER,
     )
-    try:
-        from django.contrib.gis.db import models as gis_models
-        location = gis_models.PointField(
-            null=True,
-            blank=True,
-            help_text="Resource location (WGS84). Required for proximity queries.",
-        )
-    except Exception:
-        from django.db import models as std_models
-        location = std_models.JSONField(
+    from django.conf import settings
+    if "django.contrib.gis" in getattr(settings, "INSTALLED_APPS", []):
+        try:
+            from django.contrib.gis.db import models as gis_models
+            location = gis_models.PointField(
+                null=True,
+                blank=True,
+                help_text="Resource location (WGS84). Required for proximity queries.",
+            )
+        except Exception:
+            location = models.JSONField(
+                null=True,
+                blank=True,
+                help_text="Fallback: store as {lat, lng} when GDAL unavailable",
+            )
+    else:
+        location = models.JSONField(
             null=True,
             blank=True,
             help_text="Fallback: store as {lat, lng} when GDAL unavailable",
