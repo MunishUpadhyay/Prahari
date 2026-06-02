@@ -251,6 +251,48 @@
         .card-desc[lang="hi"] {
             font-family: 'Noto Sans Devanagari', sans-serif;
         }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            main {
+                padding: 2.5rem 1.25rem;
+                gap: 2.5rem;
+            }
+            .hero-section {
+                gap: 1.5rem;
+                margin: 1rem auto;
+            }
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            .hero-title[lang="hi"] {
+                font-size: 2.0rem;
+                line-height: 1.35;
+            }
+            .hero-subtitle {
+                font-size: 1.05rem;
+            }
+            .hero-subtitle[lang="hi"] {
+                font-size: 1.05rem;
+            }
+            .cta-btn {
+                padding: 1rem 2.25rem;
+                font-size: 1.05rem;
+            }
+            .tracking-container {
+                padding: 1.5rem 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #tracking-form {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            #tracking-form button {
+                width: 100%;
+            }
+        }
     </style>
 {% endblock %}
 

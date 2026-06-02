@@ -2,6 +2,8 @@
 
 Prahari is a real-time civic intelligence and incident management platform designed to empower citizens, support NGOs, and assist operations coordinators. It ingests raw civic signals (text, SMS, webhooks), processes them sequentially through a **5-Agent AI Pipeline** backed by **Retrieval-Augmented Generation (RAG)** over Indian legal databases and emergency medical protocols, and translates the output dynamically into English or Hindi. Live incident alerts are streamed in real time to a WebSocket-powered operations dashboard for coordinator intervention, notice generation, and resolution tracking.
 
+**Live Deployment URL**: [https://prahari-zbgm.onrender.com](https://prahari-zbgm.onrender.com)
+
 ---
 
 ## Pictorial Flowchart (Interconnection Architecture)
@@ -192,5 +194,3 @@ Prahari/
    ```bash
    daphne -b 0.0.0.0 -p 8000 config.asgi:application
    ```
-10. **Open local application**:
-    - URL: http://localhost:8000/

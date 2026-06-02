@@ -659,6 +659,38 @@
             .gw-time { font-size:1.8rem; }
             header { padding:1rem 1.1rem; }
         }
+
+        @media (max-width: 480px) {
+            .top-contact-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .top-contact-btn {
+                width: 100% !important;
+                min-width: 0 !important;
+                padding: 0.75rem 1rem;
+            }
+            .top-contact-num {
+                font-size: 1.25rem;
+            }
+            .action-step-card {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+            .step-num-circle {
+                margin-top: 0;
+                margin-bottom: 0.25rem;
+            }
+            .evidence-item-card {
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+                padding: 1rem !important;
+            }
+            .emergency-contacts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 {% endblock %}
 

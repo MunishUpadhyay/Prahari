@@ -192,6 +192,24 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem 1rem;
+            }
+            .form-card {
+                padding: 1.75rem 1.25rem;
+                gap: 1.25rem;
+            }
+            .form-title {
+                font-size: 1.5rem;
+            }
+            .submit-btn {
+                padding: 0.85rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
     </style>
 {% endblock %}
 
