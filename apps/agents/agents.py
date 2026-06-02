@@ -607,8 +607,8 @@ class LegalNoticeAgent(BaseAgent):
     prompt_name = "legal_notice"
     max_tokens = 3000
 
-    def run(self, signal, rights_result: dict) -> str:
-        logger.info("[LegalNoticeAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
+    def run(self, signal, rights_result: dict, target_language: str = "english") -> str:
+        logger.info("[LegalNoticeAgent] Running on signal %s with target_language %s", getattr(signal, 'id', 'mock_id'), target_language)
         
         # Format rights result context
         rights_context = ""
@@ -622,9 +622,16 @@ class LegalNoticeAgent(BaseAgent):
             rights_context += f"Recommended Immediate Actions: {', '.join(rights_result.get('immediate_actions', []))}\n"
             rights_context += f"Authority to Contact: {rights_result.get('authority_to_contact')}\n"
 
+        lang_instruction = ""
+        if target_language == "hindi":
+            lang_instruction = "Generate the complete legal notice in fluent, professional, and authoritative legal HINDI (Devanagari script), translating all sections, facts, demands, and compliance details fully. Maintain a high-quality formal tone."
+        else:
+            lang_instruction = "Generate the complete legal notice in fluent, professional, and authoritative legal English."
+
         user_message = (
             f"Signal text: {signal.raw_text}\n\n"
             f"Rights Assessment context:\n{rights_context}\n\n"
+            f"{lang_instruction}\n\n"
             f"Please generate the complete legal notice draft based on the above information."
         )
 

@@ -4,12 +4,14 @@ from .models import Incident
 
 class IncidentListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for the list endpoint."""
+    signal_raw_text = serializers.CharField(source="signal.raw_text", read_only=True)
 
     class Meta:
         model = Incident
         fields = [
             "id",
             "signal",
+            "signal_raw_text",
             "severity_score",
             "severity_label",
             "domain",

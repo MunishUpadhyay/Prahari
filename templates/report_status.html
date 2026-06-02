@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prahari — Report Status</title>
-    <meta name="description" content="Prahari real-time status of your submitted civic signal — know your rights, actions, and who to contact.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Prahari — Report Status{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --bg-primary: #090d16;
             --bg-secondary: #0f172a;
             --bg-card: rgba(22, 28, 45, 0.75);
@@ -665,37 +660,18 @@
             header { padding:1rem 1.1rem; }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-<header>
-    <a href="/" class="logo-container">
-        <div class="logo-pulse"></div>
-        <h1>Prahari</h1>
-    </a>
-    <div class="nav-right">
-        <nav class="nav-links">
+{% block nav_links %}
+<nav class="nav-links">
             <a href="/login/" class="login-link loc-en">Coordinator Login</a>
             <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
         </nav>
-        <div class="lang-selector-bar">
-            <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-            <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-        </div>
-        <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-            <option value="english">English</option>
-            <option value="hindi">हिंदी</option>
-        </select>
-        <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </div>
-</header>
+{% endblock %}
 
+{% block content %}
 <main>
-    {% if is_anonymous %}
+{% if is_anonymous %}
     <!-- Verification Card (shown when sessionStorage key is not set) -->
     <div id="verification-wrapper" style="display: none; justify-content: center; align-items: center; min-height: 50vh; padding: 2rem 0; animation: fadeInUp 0.4s ease-out; width: 100%;">
         <div class="rs-section" style="max-width: 450px; width: 100%; text-align: center; background: var(--bg-card); border-color: var(--color-indigo); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);">
@@ -840,7 +816,7 @@
     </div>
 
     <!-- Result section (hidden until analysis complete) -->
-    <div id="result-section">
+    <div id="result-section" style="display: none;">
 
         <!-- Toolbar Row -->
         <div class="result-meta">
@@ -899,16 +875,21 @@
             </div>
         </div>
 
-    </div>
+    
+        <!-- Done — Close Session Button (Improvement/Core Request) -->
+        <div class="close-session-container" style="display:flex; justify-content:center; margin-top:2rem; margin-bottom:1rem;">
+            <button onclick="closeSessionAndGoHome()" class="toolbar-btn" style="background: linear-gradient(135deg, var(--color-indigo), #8b5cf6); border: none; color: white; padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35); transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <span class="loc-en">Done — Close Session & Submit Another Report</span>
+                <span class="loc-hi" lang="hi">पूर्ण — सत्र समाप्त करें और दूसरी रिपोर्ट सबमिट करें</span>
+            </button>
+        </div>
+</div>
     </div>
 </main>
+{% endblock %}
 
-<footer>
-    <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
-    <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
-</footer>
-
-<script>
+{% block extra_js %}
+    <script>
 const signalId = "{{ signal_id }}";
 const siteUrl = "{{ site_url }}";
 const trackingId = "{{ tracking_id }}";
@@ -2014,7 +1995,7 @@ function renderResult(result) {
 
     // ── TIMING BLOCK ─────────────────────────────────────
     if (result.timing) {
-        const order = ['sentinel', 'triage', 'rights', 'coordination', 'language'];
+        const order = ['sentinel', 'triage', 'rights', 'coordination'];
         const chips = order.map(agent => {
             const t = result.timing[agent];
             if (!t || !t.start || !t.end) return '';
@@ -2302,6 +2283,14 @@ window.addEventListener('DOMContentLoaded', () => {
         pollTimer = setInterval(checkPipelineStatus, pollInterval);
     }
 });
-</script>
-</body>
-</html>
+
+function closeSessionAndGoHome() {
+    // Clear verification sessionStorage for this signal so they have to re-authenticate if they return
+    const verifiedKey = 'prahari_verified_' + signalId;
+    sessionStorage.removeItem(verifiedKey);
+    // Redirect to home page
+    window.location.href = '/';
+}
+
+    </script>
+{% endblock %}

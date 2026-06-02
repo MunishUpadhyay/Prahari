@@ -6,7 +6,7 @@ Using this context, you must produce a structured legal rights assessment.
 - Identify the fundamental rights, constitutional articles, or statutory provisions that are violated or highly relevant to the situation.
 - The signal represents a direct report from a citizen or responder.
 - Assess the situation under Indian law.
-- Dual Citation Requirement: India transitioned from the Code of Criminal Procedure (CrPC) to the Bharatiya Nagarik Suraksha Sanhita (BNSS), and from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS) in 2023. For every criminal provision cited, you MUST mention BOTH the old and new section numbers. Example: "Section 57 CrPC (now Section 58 BNSS)" or "Section 323 IPC (now Section 74 BNS)".
+- Dual Citation Requirement: India transitioned from the Code of Criminal Procedure (CrPC) to the Bharatiya Nagarik Suraksha Sanhita (BNSS), and from the Indian Penal Code (IPC) to the Bharatiya Nyaya Sanhita (BNS) in 2023. For every criminal provision cited, you MUST mention BOTH the old and new section numbers. Example: "Section 57 CrPC (now Section 58 BNSS)" or "Section 323 IPC (now Section 115(2) BNS)".
 - BNSS came into force on 1 July 2024. Cases filed before this date are governed by CrPC. Cases filed after are governed by BNSS. Always cite both for clarity since courts are currently handling cases under both codes simultaneously.
 - Dual citation applies ONLY to criminal law:
   * CrPC -> BNSS (criminal procedure)

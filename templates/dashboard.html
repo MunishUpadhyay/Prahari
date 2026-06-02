@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRAHARI — Live Operations Command Centre</title>
-    
-    <!-- Premium Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
 
+{% block title %}PRAHARI — Live Operations Command Centre{% endblock %}
+
+{% block extra_css %}
     <style>
-        /* Base Styling & Color Variables */
+/* Base Styling & Color Variables */
         :root {
             --bg-primary: #090d16;
             --bg-secondary: #0f172a;
@@ -524,27 +517,19 @@
             margin-top: auto;
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-    <header>
-        <div class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </div>
-        <div class="header-meta">
+{% block nav_links %}
+<div class="header-meta">
             <div class="pill">
                 Status: <span id="status-text">Connecting</span>
                 <span id="status-indicator" class="status-dot"></span>
             </div>
-            <div class="pill">
-                Session Incidents: <span id="incident-count" class="counter-badge">0</span>
-            </div>
-        </div>
-    </header>
+{% endblock %}
 
-    <main>
-        <!-- Awaiting State (Hidden once first card arrives) -->
+{% block content %}
+<main>
+<!-- Awaiting State (Hidden once first card arrives) -->
         <div id="no-incidents-placeholder" class="waiting-state">
             <div class="radar"></div>
             <h3>System Online</h3>
@@ -553,14 +538,12 @@
 
         <!-- Scrollable Incident Cards Feed -->
         <div id="incident-feed"></div>
-    </main>
+</main>
+{% endblock %}
 
-    <footer>
-        PRAHARI Real-Time Operations. Operationalized by Multi-Agent Synthesized Diagnostics.
-    </footer>
-
+{% block extra_js %}
     <script>
-        // Track stats
+// Track stats
         let totalIncidents = 0;
 
         // UI Selectors
@@ -759,5 +742,4 @@
             card.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
     </script>
-</body>
-</html>
+{% endblock %}

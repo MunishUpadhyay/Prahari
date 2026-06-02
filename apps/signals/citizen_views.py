@@ -1,12 +1,46 @@
 import logging
+import re
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from apps.signals.models import Signal
 from apps.incidents.models import Incident
 from apps.tenants.models import Tenant
 from pipeline.tasks import ingest_signal
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_signal(signal_id):
+    """
+    Resolves signal_id (which could be a standard UUID string or a PRAH-YYYYMMDD-XXXX string)
+    to a Signal object. Raises Http404 if not found or invalid.
+    """
+    signal_id_str = str(signal_id).strip()
+    
+    # Check if it matches PRAH-YYYYMMDD-XXXX pattern (case insensitive)
+    match = re.match(r'^PRAH-(\d{8})-([0-9A-F]{4})$', signal_id_str, re.IGNORECASE)
+    if match:
+        date_str = match.group(1)
+        prefix = match.group(2).lower()
+        try:
+            date_obj = datetime.strptime(date_str, "%Y%m%d").date()
+        except ValueError:
+            raise Http404("Invalid tracking ID format date")
+        
+        # Filter signals created on that date
+        signals_on_date = Signal.objects.filter(created_at__date=date_obj)
+        # Find the one where str(id) starts with prefix
+        for sig in signals_on_date:
+            if str(sig.id).lower().startswith(prefix):
+                return sig
+        raise Http404("Signal not found by tracking ID")
+    else:
+        # Try finding by UUID directly
+        try:
+            return Signal.objects.get(id=signal_id_str)
+        except (Signal.DoesNotExist, ValueError):
+            raise Http404("Signal not found by UUID")
 
 
 def citizen_home(request):
@@ -77,7 +111,11 @@ def citizen_submit(request):
         # Enqueue the processing task
         ingest_signal.delay(str(signal.id))
 
-        return redirect(f"/report/{signal.id}/")
+        # Redirect using the user-friendly tracking ID format
+        date_str = signal.created_at.strftime("%Y%m%d")
+        uuid_first_4 = str(signal.id)[:4].upper()
+        tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
+        return redirect(f"/report/{tracking_id}/")
 
     return render(request, "submit.html")
 
@@ -91,7 +129,7 @@ def citizen_report_status(request, signal_id):
     Renders the polling progress page for a submitted signal.
     """
     # Ensure signal exists
-    signal = get_object_or_404(Signal, id=signal_id)
+    signal = resolve_signal(signal_id)
     date_str = signal.created_at.strftime("%Y%m%d")
     uuid_first_4 = str(signal.id)[:4].upper()
     tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
@@ -118,7 +156,7 @@ def citizen_signal_status_api(request, signal_id):
     GET /report/<signal_id>/status/
     Unauthenticated API endpoint for AJAX polling of pipeline status.
     """
-    signal = get_object_or_404(Signal, id=signal_id)
+    signal = resolve_signal(signal_id)
     
     # Stuck pipeline check: if signal.status == 'processing' and is more than 5 minutes old
     from django.utils import timezone
@@ -193,7 +231,10 @@ def citizen_signal_status_api(request, signal_id):
                 "legal_provisions_hi": lang_out.get("legal_provisions", []),
                 "legal_timeline": rights_out.get("legal_timeline", []),
                 "legal_timeline_hi": lang_out.get("legal_timeline", []),
-                "nearest_authority_type": rights_out.get("nearest_authority_type", "DLSA"),
+                "nearest_authority_type": rights_out.get("nearest_authority_type") or triage_out.get("nearest_authority_type") or "DLSA",
+                "nearest_authority_type_hi": lang_out.get("nearest_authority_type") or rights_out.get("nearest_authority_type") or triage_out.get("nearest_authority_type") or "DLSA",
+                "authority_to_contact": rights_out.get("authority_to_contact") or triage_out.get("authority_to_contact") or "National Legal Services Authority (NALSA)",
+                "authority_to_contact_hi": lang_out.get("authority_to_contact") or rights_out.get("authority_to_contact") or triage_out.get("authority_to_contact") or "National Legal Services Authority (NALSA)",
                 "triage_severity": triage_out.get("triage_severity", ""),
                 "hospital_denial_detected": triage_out.get("hospital_denial_detected", False),
                 
@@ -208,6 +249,7 @@ def citizen_signal_status_api(request, signal_id):
                 "conflict_resolution_hi": lang_out.get("conflict_resolution"),
                 "escalation_path": coord_out.get("escalation_path", []),
                 "escalation_path_hi": lang_out.get("escalation_path", []),
+                "escalation_required": coord_out.get("escalation_required", False),
                 
                 "immediate_actions": coord_out.get("immediate_actions", []),
                 "immediate_actions_hi": lang_out.get("immediate_actions", []),
@@ -222,7 +264,8 @@ def citizen_signal_status_api(request, signal_id):
                 "coordinator_notes": incident.coordinator_notes,
                 "timing": outputs.get("timing", {}),
                 "language_outputs": outputs.get("language", {}),
-                "preferred_language": signal.preferred_language
+                "preferred_language": signal.preferred_language,
+                "agent_outputs": outputs
             }
 
     # Signal status mapper
@@ -236,5 +279,9 @@ def citizen_signal_status_api(request, signal_id):
         "signal_id": str(signal.id),
         "status": pipeline_status,
         "steps": steps,
-        "result": result
+        "result": result,
+        "preferred_language": signal.preferred_language,
+        "agent_outputs": incident.agent_outputs if incident else {},
+        "coordination": incident.agent_outputs.get("coordination", {}) if incident and incident.agent_outputs else {},
+        "language": incident.agent_outputs.get("language", {}) if incident and incident.agent_outputs else {},
     })

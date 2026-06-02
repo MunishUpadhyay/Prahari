@@ -1,239 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prahari — Report an Incident</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Prahari — Report an Incident{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
-            --bg-primary: #090d16;
-            --bg-secondary: #0f172a;
-            --bg-card: rgba(22, 28, 45, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --color-indigo: #6366f1;
-            --color-indigo-hover: #4f46e5;
-            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
-            --color-error: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
-        }
-
-        /* Header */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-
-        .logo-pulse {
-            width: 12px;
-            height: 12px;
-            background-color: var(--color-indigo);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--color-indigo);
-        }
-
-        h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .login-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .login-link:hover {
-            color: var(--text-main);
-        }
-
-        /* Language Selector Bar */
-        .lang-selector-bar {
-            display: flex;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            padding: 4px;
-            border-radius: 9999px;
-            flex-wrap: nowrap;
-            max-width: 100%;
-        }
-        .lang-selector-bar::-webkit-scrollbar {
-            display: none;
-        }
-        .lang-pill {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 6px 10px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .lang-pill:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .lang-pill.active {
-            background: var(--color-indigo);
-            color: #fff;
-            font-weight: 600;
-        }
-
-        /* Hamburger Menu Styling */
-        .hamburger-menu {
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 24px;
-            height: 18px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            z-index: 101;
-        }
-        .hamburger-menu span {
-            width: 100%;
-            height: 2px;
-            background-color: var(--text-main);
-            transition: all 0.3s ease;
-        }
-        .lang-selector-select {
-            display: none;
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 0.75rem;
-                padding: 1rem;
-                align-items: center;
-                text-align: center;
-                position: relative;
-            }
-            .logo-container {
-                margin-bottom: 0.25rem;
-            }
-            .nav-right {
-                display: flex;
-                width: 100%;
-                justify-content: space-between;
-                align-items: center;
-                gap: 1rem;
-            }
-            .lang-selector-bar {
-                display: none !important;
-            }
-            .lang-selector-select {
-                display: block;
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid var(--border-color);
-                color: var(--text-main);
-                padding: 6px 10px;
-                border-radius: 8px;
-                font-size: 11px;
-                outline: none;
-                cursor: pointer;
-                font-family: inherit;
-                max-width: 110px;
-            }
-            .lang-selector-select option {
-                background: #121216;
-                color: var(--text-main);
-            }
-            .hamburger-menu {
-                display: flex;
-            }
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                right: 1rem;
-                background: #1e1e24;
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 0.75rem 1rem;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-                z-index: 100;
-                flex-direction: column;
-                gap: 0.5rem;
-                text-align: right;
-            }
-            .nav-links.active {
-                display: flex;
-            }
-            .hamburger-menu.active span:nth-child(1) {
-                transform: translateY(8px) rotate(45deg);
-            }
-            .hamburger-menu.active span:nth-child(2) {
-                opacity: 0;
-            }
-            .hamburger-menu.active span:nth-child(3) {
-                transform: translateY(-8px) rotate(-45deg);
-            }
-        }
-
-        /* Main Form Container */
+        /* Form Specific Styles */
         main {
             flex: 1;
             max-width: 680px;
@@ -243,6 +14,26 @@
             display: flex;
             flex-direction: column;
             gap: 2rem;
+        }
+
+        .login-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(4px);
+        }
+
+        .login-link:hover {
+            color: var(--text-main);
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
         }
 
         .form-card {
@@ -352,162 +143,6 @@
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
         }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--border-color);
-            background: rgba(9, 13, 22, 0.5);
-            margin-top: auto;
-        }
-
-        /* Localization Helper Class */
-        .loc-hi {
-            display: none !important;
-        }
-        
-        html[lang="hi"] .loc-en {
-            display: none !important;
-        }
-
-        html[lang="hi"] .loc-hi {
-            display: block !important;
-        }
-
-        html[lang="hi"] span.loc-hi,
-        html[lang="hi"] a.loc-hi,
-        html[lang="hi"] button.loc-hi,
-        html[lang="hi"] label.loc-hi {
-            display: inline-block !important;
-        }
-
-        /* Microphone Button Styles */
-        .mic-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            color: #94a3b8;
-            border-radius: 10px;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .mic-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-main);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .mic-icon-wrapper {
-            position: relative;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .mic-svg {
-            transition: opacity 0.2s;
-            display: block;
-        }
-
-        .mic-pulse {
-            display: none;
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #ef4444;
-        }
-
-        @keyframes pulse-anim {
-            0% {
-                transform: scale(0.85);
-                opacity: 0.5;
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-            }
-            70% {
-                transform: scale(1.2);
-                opacity: 1;
-                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-            }
-            100% {
-                transform: scale(0.85);
-                opacity: 0.5;
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-            }
-        }
-
-        .mic-spinner {
-            display: none;
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--color-indigo);
-            border-radius: 50%;
-            animation: spin-anim 0.8s linear infinite;
-        }
-
-        @keyframes spin-anim {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .mic-check {
-            display: none;
-            position: absolute;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #22c55e;
-        }
-
-        .mic-btn.recording {
-            border-color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-        .mic-btn.recording .mic-svg {
-            display: none;
-        }
-        .mic-btn.recording .mic-pulse {
-            display: block;
-            animation: pulse-anim 1.5s infinite;
-        }
-
-        .mic-btn.processing {
-            border-color: var(--color-indigo);
-            background: rgba(99, 102, 241, 0.1);
-        }
-        .mic-btn.processing .mic-svg {
-            display: none;
-        }
-        .mic-btn.processing .mic-spinner {
-            display: block;
-        }
-
-        .mic-btn.done {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
-        }
-        .mic-btn.done .mic-svg {
-            display: none;
-        }
-        .mic-btn.done .mic-check {
-            display: block;
-        }
-
         /* Anonymous Toggle Switch (Upgrade 6) */
         .switch-container {
             display: flex;
@@ -558,35 +193,16 @@
             transform: translateX(22px);
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-    <header>
-        <a href="/" class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </a>
-        <div class="nav-right">
-            <nav class="nav-links">
-                <a href="/login/" class="login-link loc-en">Coordinator Login</a>
-                <a href="/login/" class="login-link loc-hi">समन्वयक लॉगिन</a>
-            </nav>
-            <div class="lang-selector-bar">
-                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            </div>
-            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी</option>
-            </select>
-            <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+{% block nav_links %}
+    <a href="/login/" class="login-link">
+        <span class="loc-en">Coordinator Login</span>
+        <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
+    </a>
+{% endblock %}
 
+{% block content %}
     <main>
         <div class="form-card">
             <div class="form-header">
@@ -611,35 +227,13 @@
                     <label class="form-label loc-en" for="raw_text">Describe what is happening *</label>
                     <label class="form-label loc-hi" lang="hi" for="raw_text">वर्णन करें कि क्या हो रहा है *</label>
                     
-                    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
-                        <textarea 
-                            name="raw_text" 
-                            id="raw_text" 
-                            class="form-control" 
-                            required
-                            placeholder="Explain the situation in details (e.g. medical denial, custody violations, emergency accident, building collapse)..."
-                        ></textarea>
-                        
-                        <button type="button" id="voice-input-btn" class="mic-btn" title="Voice Input" style="display: none;">
-                            <div class="mic-icon-wrapper">
-                                <svg class="mic-svg" viewBox="0 0 24 24" width="24" height="24">
-                                    <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
-                                </svg>
-                                <div class="mic-spinner"></div>
-                                <div class="mic-pulse"></div>
-                                <div class="mic-check">✓</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Live Interim Transcription Preview -->
-                    <div id="voice-preview" style="display: none; font-size: 0.85rem; color: #94a3b8; font-style: italic; margin-top: 0.25rem; min-height: 1.2rem; word-break: break-word;"></div>
-
-                    <!-- Bilingual Voice Note -->
-                    <div id="voice-note" style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
-                        <span class="loc-en">Voice input works best on Chrome and Edge. Hindi voice input supported.</span>
-                        <span class="loc-hi" lang="hi">वॉइस इनपुट Chrome और Edge पर सबसे अच्छा काम करता है। हिंदी वॉइस इनपुट समर्थित है।</span>
-                    </div>
+                    <textarea 
+                        name="raw_text" 
+                        id="raw_text" 
+                        class="form-control" 
+                        required
+                        placeholder="Explain the situation in details (e.g. medical denial, custody violations, emergency accident, building collapse)..."
+                    ></textarea>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -692,14 +286,10 @@
             </form>
         </div>
     </main>
+{% endblock %}
 
-    <footer>
-        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
-        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
-    </footer>
-
+{% block extra_js %}
     <script>
-        // Placeholders localized dynamic dictionary
         const placeholders = {
             en: {
                 raw_text: "Provide details: what is happening, who is involved, facility names, any immediate medical or legal assistance required...",
@@ -713,45 +303,9 @@
             }
         };
 
-        function initLanguage() {
-            let selectedLang = localStorage.getItem('prahari_lang');
-            if (!selectedLang) {
-                const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-                if (userLang.startsWith('hi')) {
-                    selectedLang = 'hindi';
-                } else {
-                    selectedLang = 'english';
-                }
-                localStorage.setItem('prahari_lang', selectedLang);
-            }
-            const field = document.getElementById('preferred_language_field');
-            if (field) {
-                field.value = selectedLang;
-            }
-            setLanguageTheme(selectedLang);
-        }
-
-        function setLanguageTheme(lang) {
-            document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
-            localStorage.setItem('prahari_lang', lang);
-            
-            // Highlight active lang pill
-            const pills = document.querySelectorAll('.lang-pill');
-            pills.forEach(pill => {
-                if (pill.getAttribute('data-lang') === lang) {
-                    pill.classList.add('active');
-                } else {
-                    pill.classList.remove('active');
-                }
-            });
-
-            // Sync select dropdown
-            const select = document.querySelector('.lang-selector-select');
-            if (select) {
-                select.value = lang;
-            }
-
-            // Set input placeholders dynamically (fallback to English if not Hindi)
+        const parentSetLanguageTheme = setLanguageTheme;
+        setLanguageTheme = function(lang) {
+            parentSetLanguageTheme(lang);
             const pKey = lang === 'hindi' ? 'hi' : 'en';
             const rawTextEl = document.getElementById('raw_text');
             const locEl = document.getElementById('location');
@@ -760,22 +314,19 @@
             if (rawTextEl) rawTextEl.placeholder = placeholders[pKey].raw_text;
             if (locEl) locEl.placeholder = placeholders[pKey].location;
             if (contactEl) contactEl.placeholder = placeholders[pKey].contact_number;
-        }
 
-        function changeLanguage(lang) {
             const field = document.getElementById('preferred_language_field');
             if (field) {
                 field.value = lang;
             }
-            setLanguageTheme(lang);
         }
 
-        function toggleMobileMenu() {
-            const nav = document.querySelector('.nav-links');
-            const burger = document.querySelector('.hamburger-menu');
-            if (nav && burger) {
-                nav.classList.toggle('active');
-                burger.classList.toggle('active');
+        const parentChangeLanguage = changeLanguage;
+        changeLanguage = function(lang) {
+            parentChangeLanguage(lang);
+            const field = document.getElementById('preferred_language_field');
+            if (field) {
+                field.value = lang;
             }
         }
 
@@ -786,119 +337,6 @@
                 return false;
             }
             return true;
-        }
-
-        function initVoiceInput() {
-            const recognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!recognitionClass) return;
-
-            const voiceBtn = document.getElementById("voice-input-btn");
-            const voiceNote = document.getElementById("voice-note");
-            const voicePreview = document.getElementById("voice-preview");
-            const textarea = document.getElementById("raw_text");
-
-            if (!voiceBtn || !voiceNote || !textarea) return;
-
-            // Show voice components
-            voiceBtn.style.display = "flex";
-            voiceNote.style.display = "block";
-
-            const recognition = new recognitionClass();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-
-            let isRecording = false;
-
-            // Helper to get active language
-            function getLangCode() {
-                const currentLang = localStorage.getItem('prahari_lang') || 'english';
-                const mapping = {
-                    hindi: 'hi-IN'
-                };
-                return mapping[currentLang] || 'en-IN';
-            }
-
-            voiceBtn.addEventListener("click", () => {
-                if (isRecording) {
-                    recognition.stop();
-                    setVisualState("processing");
-                } else {
-                    try {
-                        recognition.lang = getLangCode();
-                        recognition.start();
-                        setVisualState("recording");
-                        isRecording = true;
-                    } catch (err) {
-                        console.error("Speech start error:", err);
-                    }
-                }
-            });
-
-            recognition.onresult = (event) => {
-                let interimTranscript = "";
-                let finalTranscript = "";
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-
-                if (interimTranscript) {
-                    voicePreview.style.display = "block";
-                    voicePreview.textContent = interimTranscript;
-                }
-
-                if (finalTranscript) {
-                    const currentVal = textarea.value.trim();
-                    textarea.value = currentVal ? currentVal + " " + finalTranscript : finalTranscript;
-                    
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                    
-                    voicePreview.textContent = "";
-                    voicePreview.style.display = "none";
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                setVisualState("default");
-                isRecording = false;
-                voicePreview.textContent = "";
-                voicePreview.style.display = "none";
-            };
-
-            recognition.onend = () => {
-                if (isRecording) {
-                    setVisualState("processing");
-                    setTimeout(() => {
-                        setVisualState("done");
-                        setTimeout(() => {
-                            setVisualState("default");
-                        }, 2000);
-                    }, 500);
-                }
-                isRecording = false;
-            };
-
-            function setVisualState(state) {
-                voiceBtn.classList.remove("recording", "processing", "done");
-                
-                if (state === "recording") {
-                    voiceBtn.classList.add("recording");
-                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'रिकॉर्डिंग बंद करें' : 'Stop Recording';
-                } else if (state === "processing") {
-                    voiceBtn.classList.add("processing");
-                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'संसाधित किया जा रहा है...' : 'Processing...';
-                } else if (state === "done") {
-                    voiceBtn.classList.add("done");
-                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'पूरा हुआ' : 'Done';
-                } else {
-                    voiceBtn.title = localStorage.getItem('prahari_lang') === 'hi' ? 'वॉइस इनपुट' : 'Voice Input';
-                }
-            }
         }
 
         function initAnonymousToggle() {
@@ -928,10 +366,24 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            initLanguage();
-            initVoiceInput();
+            // Set the form field language context
+            const selectedLang = localStorage.getItem('prahari_lang') || 'hindi';
+            const field = document.getElementById('preferred_language_field');
+            if (field) {
+                field.value = selectedLang;
+            }
+            
             initAnonymousToggle();
+            
+            // Set initial placeholders
+            const pKey = selectedLang === 'hindi' ? 'hi' : 'en';
+            const rawTextEl = document.getElementById('raw_text');
+            const locEl = document.getElementById('location');
+            const contactEl = document.getElementById('contact_number');
+
+            if (rawTextEl) rawTextEl.placeholder = placeholders[pKey].raw_text;
+            if (locEl) locEl.placeholder = placeholders[pKey].location;
+            if (contactEl) contactEl.placeholder = placeholders[pKey].contact_number;
         });
     </script>
-</body>
-</html>
+{% endblock %}

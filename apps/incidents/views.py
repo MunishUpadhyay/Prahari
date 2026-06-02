@@ -16,7 +16,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rag.retriever import retrieve_similar_incidents
 
@@ -65,7 +65,17 @@ class IncidentDetailView(RetrieveUpdateAPIView):
         status_changed = ('coordinator_status' in self.request.data and self.request.data['coordinator_status'] != instance.coordinator_status)
         notes_changed = ('coordinator_notes' in self.request.data and self.request.data['coordinator_notes'] != instance.coordinator_notes)
         
-        if status_changed or notes_changed:
+        if status_changed:
+            new_status = self.request.data['coordinator_status']
+            extra = {'status_updated_at': timezone.now()}
+            if new_status == 'resolved':
+                extra['is_resolved'] = True
+                extra['resolved_at'] = timezone.now()
+            else:
+                extra['is_resolved'] = False
+                extra['resolved_at'] = None
+            serializer.save(**extra)
+        elif notes_changed:
             serializer.save(status_updated_at=timezone.now())
         else:
             serializer.save()
@@ -76,7 +86,7 @@ class SimilarIncidentsView(APIView):
     GET /api/incidents/<uuid:id>/similar/
     Returns the top similar past incidents and their outcome statistics.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, id):
         incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
@@ -89,6 +99,29 @@ class SimilarIncidentsView(APIView):
             n_results=5,
             exclude_id=str(id)
         )
+        
+        # Look up similar Incident details from Postgres DB to retrieve Hindi situation brief
+        incident_ids = [r["incident_id"] for r in results if r.get("incident_id")]
+        incidents_by_id = {}
+        if incident_ids:
+            try:
+                db_incidents = Incident.objects.filter(id__in=incident_ids)
+                for db_inc in db_incidents:
+                    incidents_by_id[str(db_inc.id)] = db_inc
+            except Exception:
+                pass
+
+        for r in results:
+            inc_id = r.get("incident_id")
+            db_inc = incidents_by_id.get(str(inc_id))
+            if db_inc:
+                outputs = db_inc.agent_outputs or {}
+                lang_data = outputs.get("language") or {}
+                pref_lang = lang_data.get("preferred", "hindi")
+                lang_out = lang_data.get(pref_lang, {}) or lang_data.get("hindi", {})
+                r["situation_brief_hi"] = lang_out.get("situation_brief") or db_inc.situation_brief or ""
+            else:
+                r["situation_brief_hi"] = ""
         
         total_similar = len(results)
         if total_similar < 2:
@@ -157,7 +190,7 @@ class LegalNoticeView(APIView):
     GET /api/incidents/<uuid:id>/legal-notice/
     Generates a formal legal notice draft for the incident.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, id):
         incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
@@ -179,6 +212,7 @@ class LegalNoticeView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        notice_text = LegalNoticeAgent().run(signal, rights_result)
+        lang = request.query_params.get("lang") or signal.preferred_language or "english"
+        notice_text = LegalNoticeAgent().run(signal, rights_result, target_language=lang)
         return Response({"notice": notice_text}, status=status.HTTP_200_OK)
 

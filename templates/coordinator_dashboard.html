@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prahari — Coordinator Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Prahari — Coordinator Dashboard{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --bg-primary: #090d16;
             --bg-secondary: #0f172a;
             --bg-card: rgba(22, 28, 45, 0.7);
@@ -611,14 +607,10 @@
             display: inline-block !important;
         }
     </style>
-</head>
-<body>    <header>
-        <a href="/" class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </a>
-        <div class="nav-right">
-            <nav class="nav-links">
+{% endblock %}
+
+{% block nav_links %}
+<nav class="nav-links">
                 <span class="loc-en" style="font-size: 0.85rem; font-weight: 500;">
                     <span class="status-dot connected" id="ws-indicator"></span> WebSocket Live Feed
                 </span>
@@ -628,24 +620,11 @@
                 <a href="/logout/" class="logout-link loc-en">Log Out</a>
                 <a href="/logout/" class="logout-link loc-hi">लॉग आउट</a>
             </nav>
-            <div class="lang-selector-bar">
-                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            </div>
-            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी</option>
-            </select>
-            <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+{% endblock %}
 
-    <main>
-        <!-- Stats Row -->
+{% block content %}
+<main>
+<!-- Stats Row -->
         <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label loc-en">Total Ingested Today</div>
@@ -697,15 +676,12 @@
         <section id="incident-feed">
             <!-- Rendered dynamically -->
         </section>
-    </main>
+</main>
+{% endblock %}
 
-    <footer>
-        <span class="loc-en">PRAHARI Coordinator Command Centre. For official monitoring use only.</span>
-        <span class="loc-hi" lang="hi">प्रहरी समन्वयक कमांड सेंटर। केवल आधिकारिक निगरानी उपयोग के लिए।</span>
-    </footer>
-
+{% block extra_js %}
     <script>
-        // CSRF helper
+// CSRF helper
         const csrfToken = "{{ csrf_token }}";
         const tenantId = "{{ tenant_id }}";
         
@@ -900,6 +876,9 @@
             const feed = document.getElementById("incident-feed");
             if (!feed) return;
 
+            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const isHindi = activeLang === 'hindi';
+
             // Filter incidents
             let filtered = incidents;
             if (activeFilter === 'legal') {
@@ -915,8 +894,7 @@
             if (filtered.length === 0) {
                 feed.innerHTML = `
                     <div class="empty-feed">
-                        <span class="loc-en">No incidents found in this category.</span>
-                        <span class="loc-hi" lang="hi">इस श्रेणी में कोई घटना नहीं मिली।</span>
+                        <span>${isHindi ? 'इस श्रेणी में कोई घटना नहीं मिली।' : 'No incidents found in this category.'}</span>
                     </div>
                 `;
                 return;
@@ -948,63 +926,80 @@
                     });
                     actionsHTML = `
                         <div class="actions-box">
-                            <div class="actions-label">Directives</div>
+                            <div class="actions-label">${isHindi ? 'निर्देश' : 'Directives'}</div>
                             <ul class="action-mini-list">${items}</ul>
                         </div>
                     `;
                 }
 
+                // Localization values for badges
+                const domainLabel = isHindi ? (
+                    inc.domain === 'health' ? 'स्वास्थ्य' :
+                    inc.domain === 'legal' ? 'कानूनी' :
+                    inc.domain === 'emergency' ? 'आपातकालीन' : 'क्रॉस-डोमेन'
+                ) : inc.domain.toUpperCase();
+
+                const severityText = isHindi ? (
+                    severityLabel === 'critical' ? 'गंभीर' :
+                    severityLabel === 'high' ? 'उच्च' :
+                    severityLabel === 'medium' ? 'मध्यम' : 'कम'
+                ) : severityLabel.toUpperCase();
+
+                let statusBadgeHTML = '';
+                if (inc.is_resolved) {
+                    statusBadgeHTML = `<span class="badge resolved-badge">${isHindi ? 'हल हो गया' : 'RESOLVED'}</span>`;
+                } else {
+                    const statusText = isHindi ? (
+                        inc.coordinator_status === 'under_review' ? 'समीक्षा के तहत' :
+                        inc.coordinator_status === 'action_taken' ? 'कार्रवाई की गई' : 'लंबित'
+                    ) : (inc.coordinator_status || 'pending').replace('_', ' ').toUpperCase();
+                    statusBadgeHTML = `<span class="badge status-${inc.coordinator_status || 'pending'}">${statusText}</span>`;
+                }
+
+                const titleText = isHindi && inc.title_hi ? inc.title_hi : inc.title_en;
+                const briefText = isHindi && inc.situation_brief_hindi ? inc.situation_brief_hindi : inc.situation_brief;
+
                 card.innerHTML = `
                     <div class="severity-indicator"></div>
                     <div class="card-header">
                         <div class="title-block">
-                            <div class="incident-title-en">${inc.title_en}</div>
-                            ${inc.title_hi ? `<div class="incident-title-hi">${inc.title_hi}</div>` : ''}
+                            <div class="incident-title-en">${titleText}</div>
                         </div>
                         <div class="badge-row">
-                            ${inc.is_resolved ? `<span class="badge resolved-badge">RESOLVED</span>` : ''}
-                            <span class="badge status-${inc.coordinator_status || 'pending'}">${(inc.coordinator_status || 'pending').replace('_', ' ').toUpperCase()}</span>
-                            <span class="badge ${severityLabel}">${severityLabel} (${severityScore.toFixed(2)})</span>
-                            <span class="badge domain">${inc.domain}</span>
+                            ${statusBadgeHTML}
+                            <span class="badge ${severityLabel}">${severityText} (${severityScore.toFixed(2)})</span>
+                            <span class="badge domain">${domainLabel}</span>
                         </div>
                     </div>
 
                     <div class="briefs-panel">
-                        <div class="brief-text-en">${inc.situation_brief}</div>
-                        ${inc.situation_brief_hindi ? `
-                            <button id="hi-btn-${id}" class="hindi-collapse-trigger" onclick="toggleHindiCollapse(event, '${id}')">
-                                + हिन्दी विवरण / View Hindi
-                            </button>
-                            <div id="hi-brief-${id}" class="hindi-collapse-content">
-                                ${inc.situation_brief_hindi}
-                            </div>
-                        ` : ''}
+                        <div class="brief-text-en">${briefText}</div>
                     </div>
 
                     ${actionsHTML}
 
                     <div class="coordinator-status-control" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:0.75rem;border-top:1px solid rgba(255,255,255,0.03);padding-top:1rem;padding-left:0.5rem;margin-bottom:0.5rem;">
                         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">STATUS / स्थिति:</label>
+                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">${isHindi ? 'स्थिति:' : 'STATUS:'}</label>
                             <select onchange="updateStatus(event, '${id}')" style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.25rem .5rem;font-size:0.8rem;font-weight:600;">
-                                <option value="pending" ${inc.coordinator_status === 'pending' ? 'selected' : ''}>Pending / लंबित</option>
-                                <option value="under_review" ${inc.coordinator_status === 'under_review' ? 'selected' : ''}>Under Review / समीक्षा के तहत</option>
-                                <option value="action_taken" ${inc.coordinator_status === 'action_taken' ? 'selected' : ''}>Action Taken / कार्रवाई की गई</option>
-                                <option value="resolved" ${inc.coordinator_status === 'resolved' ? 'selected' : ''}>Resolved / हल हो गया</option>
+                                <option value="pending" ${inc.coordinator_status === 'pending' ? 'selected' : ''}>${isHindi ? 'लंबित' : 'Pending'}</option>
+                                <option value="under_review" ${inc.coordinator_status === 'under_review' ? 'selected' : ''}>${isHindi ? 'समीक्षा के तहत' : 'Under Review'}</option>
+                                <option value="action_taken" ${inc.coordinator_status === 'action_taken' ? 'selected' : ''}>${isHindi ? 'कार्रवाई की गई' : 'Action Taken'}</option>
+                                <option value="resolved" ${inc.coordinator_status === 'resolved' ? 'selected' : ''}>${isHindi ? 'हल हो गया' : 'Resolved'}</option>
                             </select>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:.35rem;">
-                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">COORDINATOR NOTES / समन्वयक की टिप्पणी:</label>
-                            <textarea onblur="updateNotes(event, '${id}')" placeholder="Add update notes for the citizen... / नागरिक के लिए अपडेट नोट्स जोड़ें..." style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.5rem;font-size:0.85rem;resize:vertical;min-height:60px;">${inc.coordinator_notes || ''}</textarea>
+                            <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">${isHindi ? 'समन्वयक की टिप्पणी:' : 'COORDINATOR NOTES:'}</label>
+                            <textarea onblur="updateNotes(event, '${id}')" placeholder="${isHindi ? 'नागरिक के लिए अपडेट नोट्स जोड़ें...' : 'Add update notes for the citizen...'}" style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.5rem;font-size:0.85rem;resize:vertical;min-height:60px;">${inc.coordinator_notes || ''}</textarea>
                         </div>
                     </div>
 
                     <div class="card-footer">
-                        <span class="card-timestamp">Updated: ${new Date(inc.timestamp).toLocaleTimeString() + ' ' + new Date(inc.timestamp).toLocaleDateString()}</span>
+                        <span class="card-timestamp">${isHindi ? 'अपडेट किया गया' : 'Updated'}: ${new Date(inc.timestamp).toLocaleTimeString() + ' ' + new Date(inc.timestamp).toLocaleDateString()}</span>
                         <div class="card-actions-btn">
-                            <a href="/coordinator/incident/${id}/" class="btn btn-secondary" onclick="event.stopPropagation()">View Details</a>
+                            <a href="/coordinator/incident/${id}/" class="btn btn-secondary" onclick="event.stopPropagation()">${isHindi ? 'विवरण देखें' : 'View Details'}</a>
                             ${!inc.is_resolved ? `
-                                <button class="btn btn-success" onclick="resolveIncident(event, '${id}')">Resolve</button>
+                                <button class="btn btn-success" onclick="resolveIncident(event, '${id}')">${isHindi ? 'हल करें' : 'Resolve'}</button>
                             ` : ''}
                         </div>
                     </div>
@@ -1084,5 +1079,4 @@
             setupWebSocket();
         });
     </script>
-</body>
-</html>
+{% endblock %}

@@ -16,7 +16,7 @@ Your job is to receive a citizen's report (Signal text), the legal rights assess
    - A detailed, chronologically organized summary of the facts of the incident as reported in the signal text. Be objective, precise, and professional.
 8. **Legal Violations & Provisions**:
    - Cite the relevant legal provisions, constitutional articles, or statutes from the rights assessment.
-   - Dual Citation Rule: For criminal provisions, you MUST cite both the CrPC and the BNSS section numbers, and/or the IPC and BNS section numbers. Example: "Section 154 CrPC (now Section 173 BNSS)" or "Section 323 IPC (now Section 74 BNS)".
+   - Dual Citation Rule: For criminal provisions, you MUST cite both the CrPC and the BNSS section numbers, and/or the IPC and BNS section numbers. Example: "Section 154 CrPC (now Section 173 BNSS)" or "Section 323 IPC (now Section 115(2) BNS)".
 9. **Demands / Action Required**:
    - Clearly state what the recipient is required to do to rectify the situation (e.g., pay specific wages, restore disconnected electricity/water, cease illegal eviction, issue apologies, etc.).
    - The demand must be specific and measurable — not 'take appropriate action' but 'register the FIR within 24 hours of receipt of this notice' or 'pay outstanding wages of Rs [X] within 15 days of receipt'.

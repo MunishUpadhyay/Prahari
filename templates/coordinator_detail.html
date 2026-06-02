@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prahari — Incident Detail #{{ incident.id }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Prahari — Coordinator Detail{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --bg-primary: #090d16;
             --bg-secondary: #0f172a;
             --bg-card: rgba(22, 28, 45, 0.7);
@@ -455,11 +451,8 @@
             border: 1px solid rgba(255, 255, 255, 0.03);
             border-radius: 0 0 12px 12px;
             padding: 1.75rem;
-            font-family: monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
+            font-family: 'Inter', sans-serif;
             color: #cbd5e1;
-            white-space: pre-wrap;
             line-height: 1.5;
         }
 
@@ -474,6 +467,84 @@
             padding: 0;
             color: inherit;
             font-family: inherit;
+        }
+
+        /* Tech Cards Styling */
+        .tech-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            font-family: 'Inter', sans-serif;
+            margin-top: 0.5rem;
+        }
+        .tech-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .tech-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+        .tech-card-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        .tech-card-value {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        .tech-card.full-width {
+            grid-column: 1 / -1;
+        }
+        .tech-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .tech-badge.true {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .tech-badge.false {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        /* Nested list display */
+        .tech-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .tech-list-item {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+        .tech-sub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.25rem;
         }
 
         /* General Buttons */
@@ -743,74 +814,87 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-    <header>
-        <a href="/" class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </a>
-        <div class="nav-right">
-            <nav class="nav-links">
+{% block nav_links %}
+<nav class="nav-links">
                 <a href="/coordinator/dashboard/" class="dashboard-link loc-en">← Back to Dashboard</a>
                 <a href="/coordinator/dashboard/" class="dashboard-link loc-hi">← डैशबोर्ड पर वापस जाएं</a>
             </nav>
-            <div class="lang-selector-bar">
-                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            </div>
-            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी</option>
-            </select>
-            <button class="hamburger-menu" aria-label="Toggle Menu" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+{% endblock %}
 
-    <main>
-        <div class="detail-card">
+{% block content %}
+<main>
+<div class="detail-card">
             
             <!-- Banner / Header -->
             <div class="detail-header">
                 <div class="title-block">
-                    <div class="incident-title-en">{{ coordination.situation_title|default:incident.situation_brief }}</div>
+                    <div class="loc-en" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ coordination.situation_title|default:incident.situation_brief }}</div>
                     {% if language.situation_title %}
-                        <div class="incident-title-hi">{{ language.situation_title }}</div>
+                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ language.situation_title }}</div>
+                    {% else %}
+                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ coordination.situation_title|default:incident.situation_brief }}</div>
                     {% endif %}
                     <div class="badge-row">
-                        <span class="badge {{ incident.severity_label|lower }}">{{ incident.severity_label }} ({{ incident.severity_score|floatformat:2 }})</span>
-                        <span class="badge domain">{{ incident.domain }}</span>
+                        <span class="badge {{ incident.severity_label|lower }}">
+                            <span class="loc-en">{{ incident.severity_label|upper }}</span>
+                            <span class="loc-hi">
+                                {% if incident.severity_label|lower == 'critical' %}गंभीर
+                                {% elif incident.severity_label|lower == 'high' %}उच्च
+                                {% elif incident.severity_label|lower == 'medium' %}मध्यम
+                                {% else %}कम{% endif %}
+                            </span>
+                            ({{ incident.severity_score|floatformat:2 }})
+                        </span>
+                        <span class="badge domain">
+                            <span class="loc-en">{{ incident.domain|upper }}</span>
+                            <span class="loc-hi">
+                                {% if incident.domain == 'health' %}स्वास्थ्य
+                                {% elif incident.domain == 'legal' %}कानूनी
+                                {% elif incident.domain == 'emergency' %}आपातकालीन
+                                {% else %}क्रॉस-डोमेन{% endif %}
+                            </span>
+                        </span>
                         {% if incident.is_resolved %}
-                            <span class="badge resolved-badge" id="res-badge">RESOLVED</span>
+                            <span class="badge resolved-badge" id="res-badge">
+                                <span class="loc-en">RESOLVED</span>
+                                <span class="loc-hi">हल हो गया</span>
+                            </span>
                         {% endif %}
                     </div>
                 </div>
                 
                 <div class="header-actions">
-                    <button class="btn btn-pdf" onclick="window.print()">Export as PDF / प्रिंट</button>
+                    <button class="btn btn-pdf" onclick="window.print()">
+                        <span class="loc-en">Export as PDF</span>
+                        <span class="loc-hi">पीडीएफ निर्यात करें</span>
+                    </button>
                     {% if not incident.is_resolved %}
-                        <button class="btn btn-success" id="resolve-btn" onclick="resolveIncident('{{ incident.id }}')">Mark as Resolved</button>
-                    {% else %}
-                        <button class="btn btn-success disabled" id="resolve-btn" disabled>Resolved</button>
+                        <button class="btn btn-success" id="resolve-btn" onclick="resolveIncident('{{ incident.id }}')">
+                            <span class="loc-en">Mark as Resolved</span>
+                            <span class="loc-hi">हल घोषित करें</span>
+                        </button>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Timeline -->
             <div class="timeline-section">
-                <div class="timeline-title">Diagnostic Pipeline Timeline</div>
+                <div class="timeline-title">
+                    <span class="loc-en">Diagnostic Pipeline Timeline</span>
+                    <span class="loc-hi">नैदानिक पाइपलाइन समयरेखा</span>
+                </div>
                 <div class="timeline-steps">
                     {% for step in timeline %}
                         <div class="timeline-item {{ step.status }}">
                             <div class="timeline-circle">
                                 {% if step.status == 'done' %}✓{% else %}•{% endif %}
                             </div>
-                            <div class="timeline-label">{{ step.name }}</div>
+                            <div class="timeline-label">
+                                <span class="loc-en">{{ step.name_en }}</span>
+                                <span class="loc-hi">{{ step.name_hi }}</span>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -818,9 +902,15 @@
 
             <!-- Agent Timing Timeline -->
             <div class="timeline-section" style="margin-top: -1rem;">
-                <div class="timeline-title">Agent Execution Timeline</div>
+                <div class="timeline-title">
+                    <span class="loc-en">Agent Execution Timeline</span>
+                    <span class="loc-hi">एजेंट निष्पादन समयरेखा</span>
+                </div>
                 <div id="timing-chart-content">
-                    <div style="color: var(--text-muted); font-size: 0.9rem;">Loading agent timing data...</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">
+                        <span class="loc-en">Loading agent timing data...</span>
+                        <span class="loc-hi">एजेंट समय डेटा लोड हो रहा है...</span>
+                    </div>
                 </div>
             </div>
 
@@ -830,55 +920,61 @@
                 <!-- Tabbed Agent Payloads (Left Side) -->
                 <div class="info-left">
                     <div class="tabs-header">
-                        <button class="tab-btn active" onclick="switchTab('tab-sentinel')">Sentinel</button>
-                        <button class="tab-btn" onclick="switchTab('tab-triage')">Triage (Medical)</button>
-                        <button class="tab-btn" onclick="switchTab('tab-rights')">Rights (Legal)</button>
-                        <button class="tab-btn" onclick="switchTab('tab-coordination')">Coordination</button>
-                        <button class="tab-btn" onclick="switchTab('tab-language')">Translation</button>
+                        <button class="tab-btn active" onclick="switchTab('tab-sentinel')">
+                            <span class="loc-en">Sentinel</span>
+                            <span class="loc-hi">सेंटीनेल</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('tab-triage')">
+                            <span class="loc-en">Triage (Medical)</span>
+                            <span class="loc-hi">ट्राइएज (चिकित्सा)</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('tab-rights')">
+                            <span class="loc-en">Rights (Legal)</span>
+                            <span class="loc-hi">अधिकार (कानूनी)</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('tab-coordination')">
+                            <span class="loc-en">Coordination</span>
+                            <span class="loc-hi">समन्वय</span>
+                        </button>
                     </div>
 
                     <!-- Sentinel Output -->
-                    <div id="tab-sentinel" class="tab-content active">
+                    <div id="tab-sentinel" class="tab-content active" style="font-family: inherit; font-size: inherit; white-space: normal;">
                         {% if sentinel %}
-                            <pre>{{ sentinel|pprint }}</pre>
+                            <div id="tech-sentinel"></div>
                         {% else %}
-                            <div style="color: var(--text-muted);">Sentinel agent payload not recorded.</div>
+                            <div style="color: var(--text-muted);" class="loc-en">Sentinel agent payload not recorded.</div>
+                            <div style="color: var(--text-muted);" class="loc-hi">सेंटीनेल एजेंट पेलोड रिकॉर्ड नहीं किया गया।</div>
                         {% endif %}
                     </div>
 
                     <!-- Triage Output -->
-                    <div id="tab-triage" class="tab-content">
+                    <div id="tab-triage" class="tab-content" style="font-family: inherit; font-size: inherit; white-space: normal;">
                         {% if triage %}
-                            <pre>{{ triage|pprint }}</pre>
+                            <div id="tech-triage"></div>
                         {% else %}
-                            <div style="color: var(--text-muted);">Triage agent did not run (domain classification: {{ incident.domain }}).</div>
+                            <div style="color: var(--text-muted);" class="loc-en">Triage agent did not run (domain classification: {{ incident.domain }}).</div>
+                            <div style="color: var(--text-muted);" class="loc-hi">ट्राइएज एजेंट नहीं चला (डोमेन वर्गीकरण: {{ incident.domain }})।</div>
                         {% endif %}
                     </div>
 
                     <!-- Rights Output -->
-                    <div id="tab-rights" class="tab-content">
+                    <div id="tab-rights" class="tab-content" style="font-family: inherit; font-size: inherit; white-space: normal;">
                         {% if rights %}
-                            <pre>{{ rights|pprint }}</pre>
+                            <div id="tech-rights"></div>
                         {% else %}
-                            <div style="color: var(--text-muted);">Rights agent did not run (domain classification: {{ incident.domain }}).</div>
+                            <div style="color: var(--text-muted);" class="loc-en">Rights agent did not run (domain classification: {{ incident.domain }}).</div>
+                            <div style="color: var(--text-muted);" class="loc-hi">अधिकार एजेंट नहीं चला (डोमेन वर्गीकरण: {{ incident.domain }})।</div>
                         {% endif %}
                     </div>
 
                     <!-- Coordination Output -->
-                    <div id="tab-coordination" class="tab-content">
+                    <div id="tab-coordination" class="tab-content" style="font-family: inherit; font-size: inherit; white-space: normal;">
                         {% if coordination %}
-                            <pre>{{ coordination|pprint }}</pre>
+                            <div id="tech-coordination"></div>
                         {% else %}
-                            <div style="color: var(--text-muted);">Coordination agent payload not recorded.</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Language Output -->
-                    <div id="tab-language" class="tab-content">
-                        {% if language %}
-                            <pre>{{ language|pprint }}</pre>
-                        {% else %}
-                            <div style="color: var(--text-muted);">Hindi language agent did not run.</div>
+                            <div style="color: var(--text-muted);" class="loc-en">Coordination agent payload not recorded.</div>
+                            <div style="color: var(--text-muted);" class="loc-hi">समन्वय एजेंट पेलोड रिकॉर्ड नहीं किया गया।</div>
                         {% endif %}
                     </div>
                 </div>
@@ -886,65 +982,516 @@
                 <!-- Signal & Contact Details (Right Side) -->
                 <div class="info-right">
                     <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.75rem;">
-                        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700;">Raw Ingestion Meta</h4>
+                        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700;">
+                            <span class="loc-en">Raw Ingestion Meta</span>
+                            <span class="loc-hi">कच्चा अंतर्ग्रहण डेटा</span>
+                        </h4>
                     </div>
 
                     <div>
-                        <div class="detail-meta-label">Signal ID</div>
+                        <div class="detail-meta-label">
+                            <span class="loc-en">Signal ID</span>
+                            <span class="loc-hi">सिग्नल आईडी</span>
+                        </div>
                         <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">{{ incident.signal.id }}</div>
                     </div>
 
                     <div>
-                        <div class="detail-meta-label">Raw Reported Text</div>
+                        <div class="detail-meta-label">
+                            <span class="loc-en">Raw Reported Text</span>
+                            <span class="loc-hi">कच्चा रिपोर्ट किया गया पाठ</span>
+                        </div>
                         <div class="detail-meta-value" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;">"{{ incident.signal.raw_text }}"</div>
                     </div>
 
                     <div>
-                        <div class="detail-meta-label">Location (Citizen Input)</div>
-                        <div class="detail-meta-value">{{ incident.signal.metadata.location|default:"Not Provided" }}</div>
+                        <div class="detail-meta-label">
+                            <span class="loc-en">Location (Citizen Input)</span>
+                            <span class="loc-hi">स्थान (नागरिक इनपुट)</span>
+                        </div>
+                        <div class="detail-meta-value">
+                            <span class="loc-en">{{ incident.signal.metadata.location|default:"Not Provided" }}</span>
+                            <span class="loc-hi">{{ incident.signal.metadata.location|default:"प्रदान नहीं किया गया" }}</span>
+                        </div>
                     </div>
 
                     <div>
-                        <div class="detail-meta-label">Citizen Phone (Outbound Contact)</div>
-                        <div class="detail-meta-value" style="font-family: monospace; font-weight: 600; color: #f472b6;">{{ incident.signal.metadata.contact_number|default:"Not Provided" }}</div>
+                        <div class="detail-meta-label">
+                            <span class="loc-en">Citizen Phone (Outbound Contact)</span>
+                            <span class="loc-hi">नागरिक फोन (आउटबाउंड संपर्क)</span>
+                        </div>
+                        <div class="detail-meta-value" style="font-family: monospace; font-weight: 600; color: #f472b6;">
+                            <span class="loc-en">{{ incident.signal.metadata.contact_number|default:"Not Provided" }}</span>
+                            <span class="loc-hi">{{ incident.signal.metadata.contact_number|default:"प्रदान नहीं किया गया" }}</span>
+                        </div>
                     </div>
 
                     <div>
-                        <div class="detail-meta-label">Created At</div>
+                        <div class="detail-meta-label">
+                            <span class="loc-en">Created At</span>
+                            <span class="loc-hi">निर्माण का समय</span>
+                        </div>
                         <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem;">{{ incident.created_at }}</div>
                     </div>
 
                     {% if incident.is_resolved %}
                         <div>
-                            <div class="detail-meta-label" style="color: var(--color-low);">Resolved At</div>
+                            <div class="detail-meta-label" style="color: var(--color-low);">
+                                <span class="loc-en">Resolved At</span>
+                                <span class="loc-hi">समाधान का समय</span>
+                            </div>
                             <div class="detail-meta-value" style="font-family: monospace; font-size: 0.85rem; color: var(--color-low);" id="resolved-time">{{ incident.resolved_at }}</div>
                         </div>
                     {% endif %}
-                </div>
-
-            </div>
-
-            <!-- Similar Past Incidents Section -->
-            <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 2rem; margin-top: 1.5rem;">
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 1.25rem;">Similar Past Incidents</h3>
-                <div id="similar-incidents-container" class="similar-grid">
-                    <div style="color: var(--text-muted); font-size: 0.95rem;">Loading similar past incidents...</div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <footer>
-        <span class="loc-en">PRAHARI Coordinator Command Centre. For official monitoring use only.</span>
-        <span class="loc-hi" lang="hi">प्रहरी समन्वयक कमांड सेंटर। केवल आधिकारिक निगरानी उपयोग के लिए।</span>
-    </footer>
-
-    {{ timing|json_script:"timing-data" }}
-
+{% block extra_js %}
     <script>
-        // CSRF helper
+// CSRF helper
         const csrfToken = "{{ csrf_token }}";
+
+        function getJsonData(elementId) {
+            const script = document.getElementById(elementId);
+            if (!script) return null;
+            try {
+                return JSON.parse(script.textContent);
+            } catch (e) {
+                console.error("Failed to parse json script " + elementId, e);
+                return null;
+            }
+        }
+
+        function renderSentinel(data, isHindi) {
+            if (!data) return '';
+            let html = '<div class="tech-cards-container">';
+            
+            // Domain
+            const domainText = isHindi ? (
+                data.domain === 'health' ? 'स्वास्थ्य' :
+                data.domain === 'legal' ? 'कानूनी' :
+                data.domain === 'emergency' ? 'आपातकालीन' : 'क्रॉस-डोमेन'
+            ) : (data.domain ? data.domain.toUpperCase() : 'N/A');
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'कार्यक्षेत्र (डोमेन)' : 'Domain'}</div>
+                    <div class="tech-card-value"><span class="badge domain">${domainText}</span></div>
+                </div>
+            `;
+
+            // Confidence
+            const conf = data.confidence_pct !== undefined ? data.confidence_pct : (data.confidence ? Math.round(data.confidence * 100) : 0);
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'विश्वास स्तर' : 'Confidence'}</div>
+                    <div class="tech-card-value" style="font-weight: 700; color: var(--color-indigo);">${conf}%</div>
+                </div>
+            `;
+
+            // Requires Immediate Action
+            const immediate = data.requires_immediate_action;
+            const immediateLabel = isHindi ? (immediate ? 'हाँ' : 'नहीं') : (immediate ? 'YES' : 'NO');
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'तत्काल कार्रवाई आवश्यक' : 'Requires Immediate Action'}</div>
+                    <div class="tech-card-value"><span class="tech-badge ${immediate}">${immediateLabel}</span></div>
+                </div>
+            `;
+
+            // Keywords
+            const keywords = data.keywords || [];
+            let kwHtml = keywords.map(kw => `<span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); margin-right: 0.25rem; font-size: 0.75rem;">${kw}</span>`).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'महत्वपूर्ण शब्द (कीवर्ड्स)' : 'Keywords'}</div>
+                    <div class="tech-card-value" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">${kwHtml || 'None'}</div>
+                </div>
+            `;
+
+            // Reasoning
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'तर्क (रीज़निंग)' : 'Reasoning'}</div>
+                    <div class="tech-card-value" style="color: #cbd5e1;">${data.reasoning || ''}</div>
+                </div>
+            `;
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderTriage(data, langData, isHindi) {
+            if (!data) return '';
+            let html = '<div class="tech-cards-container">';
+
+            const primaryConcern = isHindi && langData && langData.primary_concern ? langData.primary_concern : (data.primary_concern || '');
+            const gw = isHindi && langData && langData.golden_window ? langData.golden_window : (data.golden_window || {});
+            const interventions = isHindi && langData && langData.immediate_actions ? langData.immediate_actions.map(a => a.action) : (data.interventions || []);
+            const contacts = isHindi && langData && langData.emergency_contacts ? langData.emergency_contacts : (data.emergency_contacts || []);
+
+            // Primary Concern
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'प्राथमिक चिंता' : 'Primary Concern'}</div>
+                    <div class="tech-card-value" style="color: #cbd5e1;">${primaryConcern}</div>
+                </div>
+            `;
+
+            // Triage Severity
+            const severityVal = data.triage_severity || 'N/A';
+            const severityText = isHindi ? (
+                severityVal === 'immediate' ? 'तत्काल' :
+                severityVal === 'critical' ? 'गंभीर' :
+                severityVal === 'high' ? 'उच्च' :
+                severityVal === 'medium' ? 'मध्यम' :
+                severityVal === 'low' ? 'कम' : severityVal
+            ) : severityVal.toUpperCase();
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'ट्राइएज गंभीरता' : 'Triage Severity'}</div>
+                    <div class="tech-card-value"><span class="badge ${severityVal === 'immediate' ? 'critical' : severityVal}">${severityText}</span></div>
+                </div>
+            `;
+
+            // Required Facility
+            const facilityVal = data.required_facility || 'N/A';
+            const facilityText = isHindi ? (
+                facilityVal === 'trauma_center' ? 'ट्रॉमा सेंटर' :
+                facilityVal === 'hospital' ? 'अस्पताल' : facilityVal
+            ) : facilityVal.toUpperCase().replace('_', ' ');
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'आवश्यक चिकित्सा सुविधा' : 'Required Facility'}</div>
+                    <div class="tech-card-value" style="font-weight: 600;">${facilityText}</div>
+                </div>
+            `;
+
+            // Golden Window
+            const gwTime = gw.time_remaining || 'N/A';
+            const gwTimeText = isHindi ? gwTime : gwTime.toUpperCase();
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'स्वर्ण अवसर (गोल्डन विंडो)' : 'Golden Window'}</div>
+                    <div class="tech-card-value">
+                        <strong>${isHindi ? 'शेष समय' : 'Time Remaining'}:</strong> <span class="tech-badge true" style="padding: 0.15rem 0.35rem; font-size: 0.75rem;">${gwTimeText}</span><br>
+                        <div style="margin-top: 0.35rem;"><strong>${isHindi ? 'देरी का परिणाम' : 'Consequence of Delay'}:</strong> ${gw.consequence_of_delay || ''}</div>
+                    </div>
+                </div>
+            `;
+
+            // Flags: Hospital Denial and Escalations
+            const denial = data.hospital_denial_detected;
+            const denialLabel = isHindi ? (denial ? 'हाँ' : 'नहीं') : (denial ? 'YES' : 'NO');
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'अस्पताल द्वारा इनकार का पता चला' : 'Hospital Denial Detected'}</div>
+                    <div class="tech-card-value"><span class="tech-badge ${denial}">${denialLabel}</span></div>
+                </div>
+            `;
+
+            const escalate = data.escalate_to_rights_agent;
+            const escalateLabel = isHindi ? (escalate ? 'हाँ' : 'नहीं') : (escalate ? 'YES' : 'NO');
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'अधिकार एजेंट को बढ़ाएं' : 'Escalate to Rights Agent'}</div>
+                    <div class="tech-card-value"><span class="tech-badge ${escalate}">${escalateLabel}</span></div>
+                </div>
+            `;
+
+            // Interventions
+            let interventionsHtml = interventions.map(item => `
+                <li class="tech-list-item">
+                    <div class="tech-card-value" style="font-size: 0.85rem; color: #cbd5e1;">${item}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'आवश्यक चिकित्सा हस्तक्षेप' : 'Required Interventions'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${interventionsHtml || '<li>No interventions defined</li>'}</ul>
+                </div>
+            `;
+
+            // Emergency Contacts
+            let contactsHtml = contacts.map(c => `
+                <li class="tech-list-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <strong style="color: #fff;">${c.name}</strong>
+                        <span style="font-family: monospace; font-weight: 700; color: var(--color-indigo);">${c.number}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${c.when_to_call}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'आपातकालीन संपर्क' : 'Emergency Contacts'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${contactsHtml || '<li>No contacts defined</li>'}</ul>
+                </div>
+            `;
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderRights(data, langData, isHindi) {
+            if (!data) return '';
+            let html = '<div class="tech-cards-container">';
+
+            const provisions = isHindi && langData && langData.legal_provisions ? langData.legal_provisions : (data.legal_provisions || []);
+            const timeline = isHindi && langData && langData.legal_timeline ? langData.legal_timeline : (data.legal_timeline || []);
+            const violated = data.rights_violated || [];
+
+            // Case Strength
+            const strengthVal = data.case_strength_pct !== undefined ? data.case_strength_pct : (data.case_strength ? Math.round(data.case_strength * 100) : 0);
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'मामले की मजबूती' : 'Case Strength'}</div>
+                    <div class="tech-card-value" style="font-weight: 700; color: var(--color-indigo);">${strengthVal}%</div>
+                </div>
+            `;
+
+            // Nearest Authority
+            const authVal = data.nearest_authority_type || 'N/A';
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'निकटतम कानूनी प्राधिकरण' : 'Nearest Authority Type'}</div>
+                    <div class="tech-card-value" style="font-weight: 600;">${authVal}</div>
+                </div>
+            `;
+
+            // Confidence
+            const confVal = data.confidence_pct !== undefined ? data.confidence_pct : (data.confidence ? Math.round(data.confidence * 100) : 0);
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'विश्वास स्तर' : 'Confidence'}</div>
+                    <div class="tech-card-value" style="font-weight: 700; color: var(--color-indigo);">${confVal}%</div>
+                </div>
+            `;
+
+            // Rights Violated
+            let violatedHtml = violated.map(item => `<span class="badge" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; margin-right: 0.25rem; font-size: 0.75rem;">${item}</span>`).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'उल्लंघन किए गए अधिकार' : 'Rights Violated'}</div>
+                    <div class="tech-card-value" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">${violatedHtml || 'None'}</div>
+                </div>
+            `;
+
+            // Legal Provisions
+            let provisionsHtml = provisions.map(p => `
+                <li class="tech-list-item">
+                    <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <strong style="color: #fff;">${p.provision}</strong>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.35rem;">${p.relevance}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">${p.description || ''}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'कानूनी प्रावधान' : 'Legal Provisions'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${provisionsHtml || '<li>No provisions defined</li>'}</ul>
+                </div>
+            `;
+
+            // Legal Timeline
+            let timelineHtml = timeline.map(t => `
+                <li class="tech-list-item">
+                    <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <span class="tech-badge true" style="border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; padding: 0;">${t.step}</span>
+                        <strong style="color: #fff;">${t.action}</strong>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 0.25rem;"><strong>${isHindi ? 'समय सीमा' : 'Timeframe'}:</strong> ${t.timeframe}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${t.why_urgent}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'कानूनी समयरेखा' : 'Legal Timeline'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${timelineHtml || '<li>No legal timeline defined</li>'}</ul>
+                </div>
+            `;
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderCoordination(data, langData, isHindi) {
+            if (!data) return '';
+            let html = '<div class="tech-cards-container">';
+
+            const situationBrief = isHindi && langData && langData.situation_brief ? langData.situation_brief : (data.situation_brief || '');
+            const situationTitle = isHindi && langData && langData.situation_title ? langData.situation_title : (data.situation_title || '');
+            const whatIsHappening = isHindi && langData && langData.what_is_happening ? langData.what_is_happening : (data.what_is_happening || '');
+            const resources = isHindi && langData && langData.resources_needed ? langData.resources_needed : (data.resources_needed || []);
+            const actions = isHindi && langData && langData.immediate_actions ? langData.immediate_actions : (data.immediate_actions || []);
+            const authorities = isHindi && langData && langData.authorities_to_notify ? langData.authorities_to_notify : (data.authorities_to_notify || []);
+            const escalation = isHindi && langData && langData.escalation_path ? langData.escalation_path : (data.escalation_path || []);
+            const evidence = isHindi && langData && langData.evidence_to_collect ? langData.evidence_to_collect : (data.evidence_to_collect || []);
+            
+            let conflictRes = isHindi && langData && langData.conflict_resolution ? langData.conflict_resolution : (data.conflict_resolution || null);
+
+            // Title
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'स्थिति का शीर्षक' : 'Situation Title'}</div>
+                    <div class="tech-card-value" style="font-weight: 700; color: #fff;">${situationTitle}</div>
+                </div>
+            `;
+
+            // What is Happening / Situation Brief
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'स्थिति का संक्षिप्त विवरण' : 'What is Happening'}</div>
+                    <div class="tech-card-value" style="color: #cbd5e1;">${whatIsHappening || situationBrief}</div>
+                </div>
+            `;
+
+            // Overall Severity
+            const sevVal = data.overall_severity || 'medium';
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'कुल मिलाकर गंभीरता' : 'Overall Severity'}</div>
+                    <div class="tech-card-value"><span class="badge ${sevVal.toLowerCase()}">${isHindi ? (sevVal === 'critical' ? 'गंभीर' : sevVal === 'high' ? 'उच्च' : sevVal === 'medium' ? 'मध्यम' : 'कम') : sevVal.toUpperCase()}</span></div>
+                </div>
+            `;
+
+            // Escalation Required
+            const escReq = data.escalation_required;
+            html += `
+                <div class="tech-card">
+                    <div class="tech-card-label">${isHindi ? 'एस्केलेशन की आवश्यकता' : 'Escalation Required'}</div>
+                    <div class="tech-card-value"><span class="tech-badge ${escReq}">${isHindi ? (escReq ? 'हाँ' : 'नहीं') : (escReq ? 'YES' : 'NO')}</span></div>
+                </div>
+            `;
+
+            // Resources Needed
+            let resourcesHtml = resources.map(r => `<span class="badge" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: #a5b4fc; margin-right: 0.25rem; font-size: 0.75rem;">${r}</span>`).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'आवश्यक संसाधन' : 'Resources Needed'}</div>
+                    <div class="tech-card-value" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">${resourcesHtml || 'None'}</div>
+                </div>
+            `;
+
+            // Immediate Actions
+            let actionsHtml = actions.map(act => `
+                <li class="tech-list-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <span class="tech-badge true" style="border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; padding: 0;">${act.priority}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${isHindi ? 'जिम्मेदार:' : 'Resp:'} ${act.responsible_party}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #fff; margin-bottom: 0.25rem;">${act.action}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);"><strong>${isHindi ? 'समय सीमा' : 'Timeframe'}:</strong> ${act.time_window}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'तत्काल कार्रवाई' : 'Immediate Actions'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${actionsHtml || '<li>No actions defined</li>'}</ul>
+                </div>
+            `;
+
+            // Escalation Path
+            let escalationHtml = escalation.map(esc => `
+                <li class="tech-list-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <strong style="color: #fff;">${isHindi ? 'स्तर' : 'Level'} ${esc.level}: ${esc.authority}</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${esc.contact}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1;"><strong>${isHindi ? 'ट्रिगर' : 'Trigger'}:</strong> ${esc.trigger}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'बढ़ावा देने का मार्ग (एस्केलेशन पाथ)' : 'Escalation Path'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${escalationHtml || '<li>No escalation defined</li>'}</ul>
+                </div>
+            `;
+
+            // Conflict Resolution
+            if (conflictRes) {
+                let contentHtml = '';
+                if (typeof conflictRes === 'object') {
+                    contentHtml = `
+                        <div><strong>${isHindi ? 'क्रम' : 'Sequence'}:</strong> ${conflictRes.sequence || ''}</div>
+                        <div style="margin-top: 0.25rem;"><strong>${isHindi ? 'तर्क' : 'Reasoning'}:</strong> ${conflictRes.reasoning || ''}</div>
+                    `;
+                } else {
+                    contentHtml = `<div>${conflictRes}</div>`;
+                }
+                html += `
+                    <div class="tech-card full-width">
+                        <div class="tech-card-label">${isHindi ? 'संघर्ष समाधान' : 'Conflict Resolution'}</div>
+                        <div class="tech-card-value">${contentHtml}</div>
+                    </div>
+                `;
+            }
+
+            // Evidence to Collect
+            let evidenceHtml = evidence.map(ev => `
+                <li class="tech-list-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
+                        <strong style="color: #fff;">${ev.item}</strong>
+                        <span class="tech-badge ${ev.time_sensitive}" style="font-size: 0.65rem;">${isHindi ? (ev.time_sensitive ? 'समय संवेदनशील' : 'सामान्य') : (ev.time_sensitive ? 'TIME SENSITIVE' : 'STANDARD')}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.25rem;"><strong>${isHindi ? 'महत्व' : 'Importance'}:</strong> ${ev.why_important}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);"><strong>${isHindi ? 'कैसे एकत्र करें' : 'How to Collect'}:</strong> ${ev.how_to_collect}</div>
+                </li>
+            `).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'एकत्र किए जाने वाले साक्ष्य' : 'Evidence to Collect'}</div>
+                    <ul class="tech-list" style="margin-top: 0.35rem;">${evidenceHtml || '<li>No evidence defined</li>'}</ul>
+                </div>
+            `;
+
+            // Authorities to Notify
+            let authoritiesHtml = authorities.map(a => `<li style="margin-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1;">${a}</li>`).join('');
+            html += `
+                <div class="tech-card full-width">
+                    <div class="tech-card-label">${isHindi ? 'सूचित किए जाने वाले अधिकारी' : 'Authorities to Notify'}</div>
+                    <ul style="margin-top: 0.25rem;">${authoritiesHtml || '<li>None</li>'}</ul>
+                </div>
+            `;
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderAgentOutputs() {
+            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const isHindi = activeLang === 'hindi';
+
+            // Get data from json scripts
+            const sentinelData = getJsonData('sentinel-data');
+            const triageData = getJsonData('triage-data');
+            const rightsData = getJsonData('rights-data');
+            const coordinationData = getJsonData('coordination-data');
+            
+            const outputs = getJsonData('agent-outputs-data') || {};
+            const langData = outputs.language ? (isHindi ? outputs.language.hindi : outputs.language.english) : null;
+
+            // Render Sentinel
+            const sentinelDiv = document.getElementById('tech-sentinel');
+            if (sentinelDiv && sentinelData) {
+                sentinelDiv.innerHTML = renderSentinel(sentinelData, isHindi);
+            }
+
+            // Render Triage
+            const triageDiv = document.getElementById('tech-triage');
+            if (triageDiv && triageData) {
+                triageDiv.innerHTML = renderTriage(triageData, langData, isHindi);
+            }
+
+            // Render Rights
+            const rightsDiv = document.getElementById('tech-rights');
+            if (rightsDiv && rightsData) {
+                rightsDiv.innerHTML = renderRights(rightsData, langData, isHindi);
+            }
+
+            // Render Coordination
+            const coordinationDiv = document.getElementById('tech-coordination');
+            if (coordinationDiv && coordinationData) {
+                coordinationDiv.innerHTML = renderCoordination(coordinationData, langData, isHindi);
+            }
+        }
 
         function initLanguage() {
             let selectedLang = localStorage.getItem('prahari_lang');
@@ -979,6 +1526,11 @@
             if (select) {
                 select.value = lang;
             }
+
+            // Re-render elements
+            renderAgentOutputs();
+            initTimingChart();
+            loadSimilarIncidents('{{ incident.id }}');
         }
 
         function changeLanguage(lang) {
@@ -1028,9 +1580,7 @@
                     // Update UI state
                     const resolveBtn = document.getElementById("resolve-btn");
                     if (resolveBtn) {
-                        resolveBtn.textContent = "Resolved";
-                        resolveBtn.className = "btn btn-success disabled";
-                        resolveBtn.disabled = true;
+                        resolveBtn.style.display = 'none';
                     }
 
                     // Add resolved badge if not exists
@@ -1039,7 +1589,17 @@
                         const span = document.createElement("span");
                         span.className = "badge resolved-badge";
                         span.id = "res-badge";
-                        span.textContent = "RESOLVED";
+                        
+                        const enSpan = document.createElement("span");
+                        enSpan.className = "loc-en";
+                        enSpan.textContent = "RESOLVED";
+                        
+                        const hiSpan = document.createElement("span");
+                        hiSpan.className = "loc-hi";
+                        hiSpan.textContent = "हल हो गया";
+                        
+                        span.appendChild(enSpan);
+                        span.appendChild(hiSpan);
                         titleBlock.appendChild(span);
                     }
                 } else {
@@ -1064,12 +1624,15 @@
             const container = document.getElementById('timing-chart-content');
             if (!container) return;
 
+            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const isHindi = activeLang === 'hindi';
+
             if (!timingData || Object.keys(timingData).length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">Agent timing metrics not available for this incident (processed before Improvement 5).</div>`;
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">${isHindi ? 'एजेंट समय मेट्रिक्स उपलब्ध नहीं हैं।' : 'Agent timing metrics not available for this incident.'}</div>`;
                 return;
             }
 
-            const agents = ['sentinel', 'triage', 'rights', 'coordination', 'language'];
+            const agents = ['sentinel', 'triage', 'rights', 'coordination'];
             let minStart = null;
             let maxEnd = null;
             let durations = {};
@@ -1087,7 +1650,7 @@
             });
 
             if (Object.keys(durations).length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">No agent timing records found.</div>`;
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">${isHindi ? 'कोई एजेंट समय रिकॉर्ड नहीं मिला।' : 'No agent timing records found.'}</div>`;
                 return;
             }
 
@@ -1103,12 +1666,16 @@
                     const ms = durations[agent];
                     const pct = scaleMax > 0 ? (ms / scaleMax) * 100 : 0;
                     
-                    const displayNames = {
+                    const displayNames = isHindi ? {
+                        'sentinel': 'सेंटीनेल (वर्गीकरण)',
+                        'triage': 'ट्राइएज (चिकित्सा)',
+                        'rights': 'अधिकार (कानूनी)',
+                        'coordination': 'समन्वय'
+                    } : {
                         'sentinel': 'Sentinel (Classify)',
                         'triage': 'Triage (Medical)',
                         'rights': 'Rights (Legal)',
-                        'coordination': 'Coordination',
-                        'language': 'Translation (Hindi)'
+                        'coordination': 'Coordination'
                     };
                     
                     html += `
@@ -1125,7 +1692,7 @@
 
             html += `
                 <div class="timing-total">
-                    <span style="margin-right: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">TOTAL PIPELINE TIME:</span>
+                    <span style="margin-right: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">${isHindi ? 'कुल पाइपलाइन समय:' : 'TOTAL PIPELINE TIME:'}</span>
                     <span class="timing-total-badge">${displayTotal} ms</span>
                 </div>
             </div>
@@ -1145,6 +1712,9 @@
             const container = document.getElementById("similar-incidents-container");
             if (!container) return;
 
+            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const isHindi = activeLang === 'hindi';
+
             try {
                 const response = await fetch(`/api/incidents/${incidentId}/similar/`);
                 if (!response.ok) {
@@ -1154,7 +1724,7 @@
                 const similar = Array.isArray(data) ? data : (data.similar_incidents || []);
 
                 if (!similar || similar.length === 0) {
-                    container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.95rem;">No similar past incidents found yet</div>`;
+                    container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.95rem;">${isHindi ? 'कोई समान पिछली घटनाएं नहीं मिलीं' : 'No similar past incidents found yet'}</div>`;
                     return;
                 }
 
@@ -1162,24 +1732,37 @@
                 similar.forEach(inc => {
                     const domain = inc.domain || "unknown";
                     const severity = inc.severity || "low";
-                    const resolvedStr = inc.resolved ? "Resolved" : "Active";
+                    const resolvedStr = isHindi ? (inc.resolved ? "हल हो गया" : "सक्रिय") : (inc.resolved ? "Resolved" : "Active");
                     const resolvedClass = inc.resolved ? "resolved" : "unresolved";
-                    const shortBrief = inc.situation_brief ? (inc.situation_brief.substring(0, 100) + (inc.situation_brief.length > 100 ? "..." : "")) : "No description";
+                    const shortBrief = isHindi && inc.situation_brief_hi ? inc.situation_brief_hi : (inc.situation_brief || "No description");
+                    const shortBriefTruncated = shortBrief.length > 100 ? (shortBrief.substring(0, 100) + "...") : shortBrief;
                     const scorePct = Math.round(inc.similarity_score * 100);
+
+                    const domainText = isHindi ? (
+                        domain === 'health' ? 'स्वास्थ्य' :
+                        domain === 'legal' ? 'कानूनी' :
+                        domain === 'emergency' ? 'आपातकालीन' : 'क्रॉस-डोमेन'
+                    ) : domain.toUpperCase();
+
+                    const severityText = isHindi ? (
+                        severity === 'critical' ? 'गंभीर' :
+                        severity === 'high' ? 'उच्च' :
+                        severity === 'medium' ? 'मध्यम' : 'कम'
+                    ) : severity.toUpperCase();
 
                     html += `
                         <a href="/coordinator/incident/${inc.incident_id}/" class="similar-card">
                             <div class="similar-card-header">
                                 <div class="similar-badges">
-                                    <span class="badge domain" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${domain}</span>
-                                    <span class="badge ${severity}" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${severity}</span>
+                                    <span class="badge domain" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${domainText}</span>
+                                    <span class="badge ${severity}" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">${severityText}</span>
                                 </div>
                                 <span class="similar-resolved-status ${resolvedClass}">${resolvedStr}</span>
                             </div>
-                            <div class="similar-brief">"${shortBrief}"</div>
+                            <div class="similar-brief">"${shortBriefTruncated}"</div>
                             <div class="similar-footer">
-                                <span>Match: ${scorePct}%</span>
-                                <span style="color: var(--color-indigo);">View Details →</span>
+                                <span>${isHindi ? 'मैच' : 'Match'}: ${scorePct}%</span>
+                                <span style="color: var(--color-indigo);">${isHindi ? 'विवरण देखें →' : 'View Details →'}</span>
                             </div>
                         </a>
                     `;
@@ -1197,5 +1780,4 @@
             loadSimilarIncidents('{{ incident.id }}');
         });
     </script>
-</body>
-</html>
+{% endblock %}

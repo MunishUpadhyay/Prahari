@@ -5,5 +5,5 @@ app_name = "signals"
 
 urlpatterns = [
     path("", SignalIngestView.as_view(), name="ingest"),
-    path("<uuid:signal_id>/verify-code/", SignalVerifyCodeView.as_view(), name="verify_code"),
+    path("<str:signal_id>/verify-code/", SignalVerifyCodeView.as_view(), name="verify_code"),
 ]

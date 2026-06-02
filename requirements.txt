@@ -29,6 +29,10 @@ psycopg2-binary==2.9.9        # PostgreSQL adapter (binary for easy install)
 dj-database-url==2.2.0
 # For production, prefer psycopg2 (compiled) over psycopg2-binary
 
+# ---- Production ----
+gunicorn==22.0.0
+whitenoise==6.7.0
+
 # ---- Auth ----
 djangorestframework-simplejwt==5.3.1
 

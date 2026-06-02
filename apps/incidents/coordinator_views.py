@@ -6,6 +6,11 @@ from django.http import JsonResponse
 from django.utils import timezone
 from apps.incidents.models import Incident, SeverityLevel
 from apps.signals.models import Domain
+from apps.incidents.serializers import IncidentListSerializer
+
+# Dynamically patch IncidentListSerializer to include agent_outputs on the list API
+if "agent_outputs" not in IncidentListSerializer.Meta.fields:
+    IncidentListSerializer.Meta.fields = list(IncidentListSerializer.Meta.fields) + ["agent_outputs"]
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +108,7 @@ def coordinator_dashboard(request):
             "coordinator_notes": inc.coordinator_notes,
             "timestamp": inc.updated_at.isoformat() if inc.updated_at else inc.created_at.isoformat(),
             "agent_outputs": inc.agent_outputs,
+            "signal_raw_text": inc.signal.raw_text,
         })
 
     # Pass tenant_id to connect to correct websocket group (first active tenant is default fallback)
@@ -110,10 +116,25 @@ def coordinator_dashboard(request):
     tenant = Tenant.objects.filter(is_active=True).first()
     tenant_id = str(tenant.id) if tenant else "default"
 
+    # Generate last 7 days daily counts for trend visualization
+    import datetime
+    daily_counts = []
+    for i in range(6, -1, -1):
+        day = today - datetime.timedelta(days=i)
+        daily_counts.append(Incident.objects.filter(created_at__date=day).count())
+
+    # Generate JWT token for API auth on page load
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(request.user)
+    jwt_token = str(refresh.access_token)
+
+    import json
     context = {
         "stats": stats,
-        "incidents_json": incidents_data,
-        "tenant_id": tenant_id
+        "incidents_json": json.dumps(incidents_data),
+        "tenant_id": tenant_id,
+        "jwt_token": jwt_token,
+        "daily_counts": daily_counts,
     }
     return render(request, "coordinator_dashboard.html", context)
 
@@ -126,25 +147,80 @@ def coordinator_incident_detail(request, incident_id):
     """
     incident = get_object_or_404(Incident.objects.select_related("signal"), id=incident_id)
     outputs = incident.agent_outputs or {}
-    
+    import json
+    # Ensure they are dicts if stored as strings
+    for k in ["sentinel", "rights", "triage", "coordination", "language"]:
+        val = outputs.get(k)
+        if isinstance(val, str):
+            try:
+                outputs[k] = json.loads(val)
+            except Exception:
+                pass
+
+    sentinel = outputs.get("sentinel")
+    if sentinel and isinstance(sentinel, dict):
+        confidence = sentinel.get("confidence")
+        if confidence is not None:
+            try:
+                sentinel["confidence_pct"] = int(float(confidence) * 100)
+            except Exception:
+                sentinel["confidence_pct"] = 0
+
+    triage = outputs.get("triage")
+    if triage and isinstance(triage, dict):
+        confidence = triage.get("confidence")
+        if confidence is not None:
+            try:
+                triage["confidence_pct"] = int(float(confidence) * 100)
+            except Exception:
+                triage["confidence_pct"] = 90
+        else:
+            triage["confidence_pct"] = 90
+
+    rights = outputs.get("rights")
+    if rights and isinstance(rights, dict):
+        confidence = rights.get("confidence")
+        if confidence is not None:
+            try:
+                rights["confidence_pct"] = int(float(confidence) * 100)
+            except Exception:
+                rights["confidence_pct"] = 90
+        else:
+            rights["confidence_pct"] = 90
+
+        # Calculate case_strength_pct
+        case_strength = rights.get("case_strength")
+        if case_strength is not None:
+            try:
+                rights["case_strength_pct"] = int(float(case_strength) * 100)
+            except Exception:
+                rights["case_strength_pct"] = rights["confidence_pct"]
+        else:
+            rights["case_strength_pct"] = rights["confidence_pct"]
+
     # Calculate complete steps for timeline
+    is_processed = incident.signal.status == 'processed'
     timeline = [
-        {"name": "Signal Ingested", "time": incident.created_at, "status": "done"},
-        {"name": "Sentinel Classified", "time": incident.created_at, "status": "done" if "sentinel" in outputs else "pending"},
-        {"name": "Triage Assessed", "time": incident.created_at, "status": "done" if "triage" in outputs else "skipped" if incident.domain == "legal" else "pending"},
-        {"name": "Rights Assessed", "time": incident.created_at, "status": "done" if "rights" in outputs else "skipped" if incident.domain == "health" or incident.domain == "emergency" else "pending"},
-        {"name": "Brief Coordinated", "time": incident.created_at, "status": "done" if "coordination" in outputs else "pending"},
-        {"name": "Hindi Translated", "time": incident.created_at, "status": "done" if "language" in outputs else "pending"},
+        {"name_en": "Signal Ingested", "name_hi": "सिग्नल प्राप्त हुआ", "time": incident.created_at, "status": "done"},
+        {"name_en": "Sentinel Classified", "name_hi": "सेंटीनेल वर्गीकृत", "time": incident.created_at, "status": "done" if "sentinel" in outputs else "failed" if is_processed else "pending"},
+        {"name_en": "Triage Assessed", "name_hi": "ट्राइएज मूल्यांकन", "time": incident.created_at, "status": "done" if "triage" in outputs else "skipped"},
+        {"name_en": "Rights Assessed", "name_hi": "अधिकार मूल्यांकन", "time": incident.created_at, "status": "done" if "rights" in outputs else "skipped"},
+        {"name_en": "Brief Coordinated", "name_hi": "संक्षिप्त विवरण समन्वित", "time": incident.created_at, "status": "done" if "coordination" in outputs else "failed" if is_processed else "pending"},
     ]
+
+    lang_full = outputs.get("language") or {}
+    pref_lang = lang_full.get("preferred", incident.signal.preferred_language or "hindi")
+    lang_sub = lang_full.get(pref_lang) if isinstance(lang_full, dict) else {}
 
     context = {
         "incident": incident,
         "outputs": outputs,
-        "sentinel": outputs.get("sentinel"),
+        "sentinel": sentinel,
         "rights": outputs.get("rights"),
         "triage": outputs.get("triage"),
         "coordination": outputs.get("coordination"),
-        "language": outputs.get("language", {}).get(outputs.get("language", {}).get("preferred", "hindi")),
+        "language": lang_sub,
+        "pref_lang": pref_lang,
         "timeline": timeline,
         "timing": outputs.get("timing"),
     }

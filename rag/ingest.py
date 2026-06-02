@@ -259,16 +259,33 @@ def ingest_legal_documents():
         {
             "id": "bns_sec74",
             "document": (
-                "Section 74 of the Bharatiya Nyaya Sanhita (BNS) — Punishment for voluntarily causing hurt. "
-                "This provision replaces Section 323 of the old Indian Penal Code (IPC). It states that whoever voluntarily causes hurt "
-                "to any person shall be punished with imprisonment for a term which may extend to one year, or with fine which may extend "
-                "to ten thousand rupees, or with both. Voluntarily causing hurt is a cognizable or non-cognizable offense depending on severity, "
-                "and under BNS, the penalty structure has been modernized."
+                "Section 74 of the Bharatiya Nyaya Sanhita (BNS) — Assault or criminal force to woman with intent to outrage her modesty. "
+                "This provision replaces Section 354 of the old Indian Penal Code (IPC). It states that whoever assaults or uses criminal force "
+                "to any woman, intending to outrage or knowing it to be likely that he will thereby outrage her modesty, shall be punished "
+                "with imprisonment which shall not be less than one year but which may extend to five years, and shall also be liable to fine. "
+                "Assault to outrage modesty is a cognizable and non-bailable offense under the new BNS code."
             ),
             "metadata": {
-                "category": "assault_provisions",
+                "category": "criminal_offence",
                 "act": "Bharatiya Nyaya Sanhita",
                 "section": "Section 74"
+            }
+        },
+        {
+            "id": "bns_115_2_voluntarily_causing_hurt",
+            "document": (
+                "BNS Section 115(2) (replaces IPC Section 323) — Voluntarily Causing Hurt. Whoever causes "
+                "bodily pain, disease, or infirmity to any person voluntarily causes hurt. Punishment: imprisonment "
+                "up to 1 year or fine up to 10,000 rupees or both. Relevant when a person physically assaults another "
+                "without causing grievous injury. In civic context: relevant when police or private individuals "
+                "physically assault citizens during eviction, protests, or custody. Remedy: file criminal "
+                "complaint at Police Station under BNS Section 115(2). For police assault, also cite D.K. Basu "
+                "Guidelines and Article 21."
+            ),
+            "metadata": {
+                "category": "criminal_offence",
+                "act": "BNS",
+                "section": "115_2"
             }
         },
         {
@@ -359,7 +376,7 @@ def ingest_legal_documents():
                 "Wage Theft Remedies India. For non-payment of wages: "
                 "1. Code on Wages 2019 Section 45 — file written complaint with Inspector-cum-Facilitator (not a court, not police — a labour inspector). "
                 "2. Payment of Wages Act 1936 — claim before Authority under Payment of Wages Act (Labour Court). NOT a Magistrate Court complaint. "
-                "3. BNS Section 111 (replaces IPC 420 cheating) — only if employer fraudulently induced workers under false promise of payment. "
+                "3. BNS Section 318 (replaces IPC 420 cheating) — Cheating (correct section for fraudulent non-payment by employer; note that BNS Section 111 defines Organised Crime, which is a completely different offence and not relevant to wage theft) — only if employer fraudulently induced workers under false promise of payment. "
                 "4. Industrial Disputes Act 1947 — if 10+ workers affected, can raise industrial dispute before Labour Commissioner."
             ),
             "metadata": {
@@ -476,6 +493,22 @@ def ingest_legal_documents():
                 "category": "arrest_procedure",
                 "act": "CrPC_BNSS_Constitution_Basu",
                 "section": "Arrest Safeguards Combined"
+            }
+        },
+        {
+            "id": "article_21_fir_refusal_remedy",
+            "document": (
+                "When police refuse to register an FIR, this may violate Article 21 (Right to Life and Personal Liberty) as access to justice is part of this right. "
+                "The specific remedy under Article 21 for FIR refusal is: "
+                "1. File a writ petition before the High Court under Article 226 of the Constitution seeking mandamus directing the police to register FIR. "
+                "2. This is the highest remedy available and police must comply with a High Court order. "
+                "3. The writ petition can be filed without a lawyer (though one is recommended) and NALSA can provide free legal assistance for this. "
+                "Note: Article 21 applies here because the refusal to register FIR is STATE action (police are state actors), not a private dispute. This is the key distinction from landlord-tenant or employer-employee cases."
+            ),
+            "metadata": {
+                "category": "constitutional_remedy",
+                "act": "Constitution",
+                "section": "Article_21"
             }
         }
     ]

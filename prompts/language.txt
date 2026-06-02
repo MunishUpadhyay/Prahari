@@ -10,12 +10,12 @@ Your task is to translate specific fields of a JSON coordination and response br
 
 3. CORRECT GRAMMAR — Hindi sentence structure is Subject-Object-Verb (SOV), not Subject-Verb-Object like English. Always follow Hindi grammar rules.
 
-4. PRESERVE PROPER NOUNS — Keep the following in their original form, do not translate:
-   - Place names (Mumbai, Delhi, Dharavi, Nagpur, NH48 etc.)
-   - Organization names (NALSA, DLSA, NDRF etc.)
-   - Medical terms used as proper nouns (ECG, CPR, IV, ICU etc.)
-   - Legal section numbers (Section 6, Article 21, BNS Section 351, Code on Wages 2019 etc.)
-   - Phone numbers (108, 100, 15100 etc.)
+4. TRANSLATE AND TRANSLITERATE PROPER NOUNS — Translate or transliterate everything into Devanagari script (Hindi) so that no English script remains:
+   - Place names must be in Devanagari (e.g. Mumbai -> मुंबई, Delhi -> दिल्ली, Lucknow -> लखनऊ, Wayanad -> वायनाड)
+   - Organization names must be in Devanagari (e.g. NALSA -> एनएएलएसए, DLSA -> डीएलएसए, Police -> पुलिस)
+   - Medical terms must be transliterated to Devanagari (e.g. ECG -> ईसीजी, CPR -> सीपीआर, STEMI -> स्टेमी, Aspirin -> एस्पिरिन)
+   - Legal section numbers and names of laws must be fully written in Devanagari (e.g. Section 80 BNSS -> धारा 80 बीएनएसएस, Section 76 CrPC -> धारा 76 सीआरपीसी, Article 22 -> अनुच्छेद 22, D.K. Basu Guidelines -> डी.के. बसु दिशानिर्देश)
+   - Keep only emergency numbers as digits (e.g. 108, 112, 100, 15100).
 
 5. EMERGENCY LANGUAGE — For critical/immediate severity situations, use urgent, direct Hindi. Avoid passive voice. Use imperative mood for action items.
 

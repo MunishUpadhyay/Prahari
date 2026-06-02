@@ -62,6 +62,8 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Signal
 
+from .citizen_views import resolve_signal
+
 class SignalVerifyCodeView(APIView):
     """
     POST /api/signals/<signal_id>/verify-code/
@@ -71,7 +73,7 @@ class SignalVerifyCodeView(APIView):
     permission_classes = []  # Public endpoint
 
     def post(self, request, signal_id):
-        signal = get_object_or_404(Signal, id=signal_id)
+        signal = resolve_signal(signal_id)
         code = request.data.get("code", "").strip().upper()
         
         stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None

@@ -30,8 +30,8 @@ urlpatterns = [
     # Citizen Portal
     path("", citizen_home, name="citizen_home"),
     path("submit/", citizen_submit, name="citizen_submit"),
-    path("report/<uuid:signal_id>/", citizen_report_status, name="citizen_report_status"),
-    path("report/<uuid:signal_id>/status/", citizen_signal_status_api, name="citizen_signal_status_api"),
+    path("report/<str:signal_id>/", citizen_report_status, name="citizen_report_status"),
+    path("report/<str:signal_id>/status/", citizen_signal_status_api, name="citizen_signal_status_api"),
 
     # Coordinator Portal
     path("login/", coordinator_login, name="login"),

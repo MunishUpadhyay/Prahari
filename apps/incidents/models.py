@@ -83,3 +83,28 @@ class Incident(models.Model):
 
     def __str__(self):
         return f"Incident({self.id}) — severity={self.severity_label} resolved={self.is_resolved}"
+
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        if self.pk:
+            try:
+                orig = Incident.objects.get(pk=self.pk)
+                if orig.coordinator_status != self.coordinator_status:
+                    self.status_updated_at = timezone.now()
+                    if self.coordinator_status == 'resolved':
+                        self.is_resolved = True
+                        if not self.resolved_at:
+                            self.resolved_at = timezone.now()
+                    else:
+                        self.is_resolved = False
+                        self.resolved_at = None
+            except Incident.DoesNotExist:
+                pass
+        else:
+            if not self.status_updated_at:
+                self.status_updated_at = timezone.now()
+            if self.coordinator_status == 'resolved':
+                self.is_resolved = True
+                if not self.resolved_at:
+                    self.resolved_at = timezone.now()
+        super().save(*args, **kwargs)

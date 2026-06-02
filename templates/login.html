@@ -1,173 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prahari — Coordinator Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Prahari — Coordinator Login{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
-            --bg-primary: #090d16;
-            --bg-secondary: #0f172a;
-            --bg-card: rgba(22, 28, 45, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --color-indigo: #6366f1;
-            --color-indigo-hover: #4f46e5;
-            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
-            --color-error: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
-        }
-
-        /* Header */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-
-        .logo-pulse {
-            width: 12px;
-            height: 12px;
-            background-color: var(--color-indigo);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--color-indigo);
-        }
-
-        h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        /* Language Selector Bar */
-        .lang-selector-bar {
-            display: flex;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            padding: 4px;
-            border-radius: 9999px;
-            flex-wrap: nowrap;
-            max-width: 100%;
-        }
-        .lang-selector-bar::-webkit-scrollbar {
-            display: none;
-        }
-        .lang-pill {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 6px 10px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .lang-pill:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .lang-pill.active {
-            background: var(--color-indigo);
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .lang-selector-select {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 0.75rem;
-                padding: 1rem;
-                align-items: center;
-                text-align: center;
-                position: relative;
-            }
-            .logo-container {
-                margin-bottom: 0.25rem;
-            }
-            .nav-right {
-                display: flex;
-                width: 100%;
-                justify-content: center;
-                align-items: center;
-                gap: 1rem;
-            }
-            .lang-selector-bar {
-                display: none !important;
-            }
-            .lang-selector-select {
-                display: block;
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid var(--border-color);
-                color: var(--text-main);
-                padding: 6px 10px;
-                border-radius: 8px;
-                font-size: 11px;
-                outline: none;
-                cursor: pointer;
-                font-family: inherit;
-                max-width: 110px;
-            }
-            .lang-selector-select option {
-                background: #121216;
-                color: var(--text-main);
-            }
-        }
-
-        /* Login Card */
+        /* Login Card Specific Styles */
         main {
             flex: 1;
             max-width: 440px;
@@ -180,14 +17,18 @@
         }
 
         .login-card {
-            background: var(--bg-card);
+            background: rgba(22, 28, 45, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 2.5rem 2.25rem;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), var(--glow-indigo);
             display: flex;
             flex-direction: column;
             gap: 1.75rem;
+            position: relative;
+            z-index: 2;
         }
 
         .login-header {
@@ -233,28 +74,53 @@
             font-family: 'Noto Sans Devanagari', sans-serif;
         }
 
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
         .form-control {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 8px;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
             font-family: 'Inter', sans-serif;
             font-size: 0.95rem;
-            transition: all 0.2s;
+            transition: all 0.3s;
             width: 100%;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--color-indigo);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .form-control:focus + .input-icon {
+            color: var(--color-indigo);
         }
 
         .form-error {
             color: var(--color-error);
             font-size: 0.85rem;
             font-weight: 600;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
         }
 
         .login-btn {
@@ -275,57 +141,50 @@
         }
 
         .login-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
         }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--border-color);
-            background: rgba(9, 13, 22, 0.5);
+        /* Floating background orbs */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.12;
+            animation: float 20s infinite ease-in-out alternate;
         }
 
-        .loc-hi {
-            display: none !important;
-        }
-        
-        html[lang="hi"] .loc-en {
-            display: none !important;
-        }
-
-        html[lang="hi"] .loc-hi {
-            display: block !important;
+        .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: var(--color-indigo);
+            top: 20%;
+            left: 15%;
+            animation-duration: 22s;
         }
 
-        html[lang="hi"] span.loc-hi,
-        html[lang="hi"] label.loc-hi,
-        html[lang="hi"] button.loc-hi {
-            display: inline-block !important;
+        .orb-2 {
+            width: 450px;
+            height: 450px;
+            background: #14b8a6;
+            bottom: 15%;
+            right: 15%;
+            animation-duration: 28s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 30px) scale(1.08); }
+            100% { transform: translate(-30px, -50px) scale(0.92); }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-    <header>
-        <a href="/" class="logo-container">
-            <div class="logo-pulse"></div>
-            <h1>Prahari</h1>
-        </a>
-        <div class="nav-right">
-            <div class="lang-selector-bar">
-                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            </div>
-            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी</option>
-            </select>
-        </div>
-    </header>
+{% block content %}
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
 
     <main>
         <div class="login-card">
@@ -349,13 +208,23 @@
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label class="form-label loc-en" for="username">Username</label>
                     <label class="form-label loc-hi" lang="hi" for="username">उपयोगकर्ता नाम</label>
-                    <input type="text" name="username" id="username" class="form-control" required placeholder="e.g. coordinator">
+                    <div class="input-wrapper">
+                        <input type="text" name="username" id="username" class="form-control" required placeholder="e.g. coordinator">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.75rem;">
                     <label class="form-label loc-en" for="password">Password</label>
                     <label class="form-label loc-hi" lang="hi" for="password">पासवर्ड</label>
-                    <input type="password" name="password" id="password" class="form-control" required placeholder="••••••••">
+                    <div class="input-wrapper">
+                        <input type="password" name="password" id="password" class="form-control" required placeholder="••••••••">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
                 </div>
 
                 <button type="submit" class="login-btn loc-en">Login</button>
@@ -363,53 +232,4 @@
             </form>
         </div>
     </main>
-
-    <footer>
-        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
-        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
-    </footer>
-
-    <script>
-        function initLanguage() {
-            let selectedLang = localStorage.getItem('prahari_lang');
-            if (!selectedLang) {
-                const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-                if (userLang.startsWith('hi')) {
-                    selectedLang = 'hindi';
-                } else {
-                    selectedLang = 'english';
-                }
-                localStorage.setItem('prahari_lang', selectedLang);
-            }
-            setLanguageTheme(selectedLang);
-        }
-
-        function setLanguageTheme(lang) {
-            document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
-            localStorage.setItem('prahari_lang', lang);
-            
-            // Highlight active lang pill
-            const pills = document.querySelectorAll('.lang-pill');
-            pills.forEach(pill => {
-                if (pill.getAttribute('data-lang') === lang) {
-                    pill.classList.add('active');
-                } else {
-                    pill.classList.remove('active');
-                }
-            });
-
-            // Sync select dropdown
-            const select = document.querySelector('.lang-selector-select');
-            if (select) {
-                select.value = lang;
-            }
-        }
-
-        function changeLanguage(lang) {
-            setLanguageTheme(lang);
-        }
-
-        window.addEventListener('DOMContentLoaded', initLanguage);
-    </script>
-</body>
-</html>
+{% endblock %}

@@ -347,6 +347,12 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
             lang_agent = LanguageAgent()
             
             # Construct unified translation payload containing all user-facing text fields
+            triage_out = agent_outputs.get("triage", {})
+            rights_out = agent_outputs.get("rights", {})
+            
+            nearest_authority_type = (rights_out or {}).get("nearest_authority_type") or (triage_out or {}).get("nearest_authority_type") or "DLSA"
+            authority_to_contact = (rights_out or {}).get("authority_to_contact") or (triage_out or {}).get("authority_to_contact") or "National Legal Services Authority (NALSA)"
+
             translation_payload = {
                 "situation_title": coord_result.get("situation_title", ""),
                 "what_is_happening": coord_result.get("what_is_happening", ""),
@@ -356,15 +362,16 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                 "conflict_resolution": coord_result.get("conflict_resolution"),
                 "escalation_path": coord_result.get("escalation_path", []),
                 "immediate_actions": coord_result.get("immediate_actions", []),
+                "evidence_to_collect": coord_result.get("evidence_to_collect", []),
+                "nearest_authority_type": nearest_authority_type,
+                "authority_to_contact": authority_to_contact,
             }
             
-            triage_out = agent_outputs.get("triage", {})
             if triage_out:
                 translation_payload["golden_window"] = triage_out.get("golden_window", {})
                 translation_payload["emergency_contacts"] = triage_out.get("emergency_contacts", [])
                 translation_payload["primary_concern"] = triage_out.get("primary_concern", "")
                 
-            rights_out = agent_outputs.get("rights", {})
             if rights_out:
                 translation_payload["legal_provisions"] = rights_out.get("legal_provisions", [])
                 translation_payload["legal_timeline"] = rights_out.get("legal_timeline", [])
@@ -458,29 +465,57 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                     except Exception:
                         raise first_err
 
-            try:
-                hindi_brief = lang_agent.run(translation_payload, preferred_lang)
-            except ValueError as ve:
-                err_msg = str(ve)
-                if "Raw content:" in err_msg:
-                    raw_content = err_msg.split("Raw content:", 1)[1].strip()
-                    try:
-                        hindi_brief = extract_json_from_text(raw_content)
-                        logger.info("Successfully extracted JSON translation after parsing failure.")
-                    except Exception as extract_err:
-                        logger.error("Failed to extract JSON translation: %s", extract_err)
+            # Helper to run language agent with extraction fallback
+            def run_translation_safe(lang):
+                try:
+                    return lang_agent.run(translation_payload, lang)
+                except ValueError as ve:
+                    err_msg = str(ve)
+                    if "Raw content:" in err_msg:
+                        raw_content = err_msg.split("Raw content:", 1)[1].strip()
+                        try:
+                            extracted = extract_json_from_text(raw_content)
+                            logger.info("Successfully extracted JSON translation after parsing failure.")
+                            return extracted
+                        except Exception as extract_err:
+                            logger.error("Failed to extract JSON translation: %s", extract_err)
+                            raise ve
+                    else:
                         raise ve
-                else:
-                    raise ve
-            
-            # Store translated brief in agent_outputs
+
+            # Always translate to Hindi so it is available for toggling
+            hindi_brief = None
+            try:
+                hindi_brief = run_translation_safe("hindi")
+            except Exception as he:
+                logger.error("Failed to translate to Hindi: %s", he)
+                hindi_brief = translation_payload
+
+            # Check if preferred language is different from Hindi/English
+            preferred_lang = (signal.preferred_language or 'hindi').lower()
+            pref_brief = None
+            if preferred_lang != 'hindi' and preferred_lang != 'english':
+                try:
+                    pref_brief = run_translation_safe(preferred_lang)
+                except Exception as pe:
+                    logger.error("Failed to translate to preferred %s: %s", preferred_lang, pe)
+                    pref_brief = translation_payload
+
+            # Store translated briefs in agent_outputs
             agent_outputs['language'] = {
-                signal.preferred_language: hindi_brief,
-                'preferred': signal.preferred_language
+                'hindi': hindi_brief,
+                'preferred': preferred_lang
             }
+            if pref_brief:
+                agent_outputs['language'][preferred_lang] = pref_brief
         except Exception as e:
             # Language translation is non-critical — log and continue
             logger.error("Language agent error (non-critical): %s", e)
+            pref_lang = signal.preferred_language or 'hindi'
+            agent_outputs['language'] = {
+                pref_lang: translation_payload,
+                'preferred': pref_lang
+            }
         finally:
             end_time = datetime.now(timezone.utc)
             duration_ms = int((end_time - start_time).total_seconds() * 1000)

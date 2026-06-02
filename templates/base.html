@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Prahari — Real-time Civic Intelligence & Response{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(22, 28, 45, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-indigo: #6366f1;
+            --color-indigo-hover: #4f46e5;
+            --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.2);
+            --color-error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-indigo);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--color-indigo);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .logo-container:hover .logo-pulse {
+            transform: scale(1.4);
+            background-color: #8b5cf6;
+            box-shadow: 0 0 15px #8b5cf6, 0 0 25px var(--color-indigo);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+        
+        .logo-container:hover h1 {
+            opacity: 0.9;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        /* Language Selector Bar */
+        .lang-selector-bar {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 9999px;
+            flex-wrap: nowrap;
+            max-width: 100%;
+        }
+        .lang-selector-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .lang-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lang-pill:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .lang-pill.active {
+            background: var(--color-indigo);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .lang-selector-select {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+                align-items: center;
+                text-align: center;
+                position: relative;
+            }
+            .logo-container {
+                margin-bottom: 0.25rem;
+            }
+            .nav-right {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+            }
+            .lang-selector-bar {
+                display: none !important;
+            }
+            .lang-selector-select {
+                display: block;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 11px;
+                outline: none;
+                cursor: pointer;
+                font-family: inherit;
+                max-width: 110px;
+            }
+            .lang-selector-select option {
+                background: #121216;
+                color: var(--text-main);
+            }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(9, 13, 22, 0.5);
+            margin-top: auto;
+        }
+
+        .loc-hi {
+            display: none !important;
+        }
+        
+        html[lang="hi"] .loc-en {
+            display: none !important;
+        }
+
+        html[lang="hi"] .loc-hi {
+            display: block !important;
+        }
+
+        html[lang="hi"] span.loc-hi,
+        html[lang="hi"] a.loc-hi,
+        html[lang="hi"] label.loc-hi,
+        html[lang="hi"] button.loc-hi,
+        html[lang="hi"] h3.loc-hi,
+        html[lang="hi"] h2.loc-hi,
+        html[lang="hi"] h4.loc-hi,
+        html[lang="hi"] li.loc-hi,
+        html[lang="hi"] div.loc-hi {
+            display: inline-block !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <a href="/" class="logo-container">
+            <div class="logo-pulse"></div>
+            <h1>Prahari</h1>
+        </a>
+        <div class="nav-right">
+            {% block nav_links %}{% endblock %}
+            <div class="lang-selector-bar">
+                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
+                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
+            </div>
+            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
+                <option value="english">English</option>
+                <option value="hindi">हिंदी</option>
+            </select>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
+        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
+    </footer>
+
+    <script>
+        function initLanguage() {
+            let selectedLang = localStorage.getItem('prahari_lang');
+            if (!selectedLang) {
+                const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+                if (userLang.startsWith('hi')) {
+                    selectedLang = 'hindi';
+                } else {
+                    selectedLang = 'english';
+                }
+                localStorage.setItem('prahari_lang', selectedLang);
+            }
+            setLanguageTheme(selectedLang);
+        }
+
+        function setLanguageTheme(lang) {
+            document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
+            localStorage.setItem('prahari_lang', lang);
+            
+            // Highlight active lang pill
+            const pills = document.querySelectorAll('.lang-pill');
+            pills.forEach(pill => {
+                if (pill.getAttribute('data-lang') === lang) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+
+            // Sync select dropdown
+            const select = document.querySelector('.lang-selector-select');
+            if (select) {
+                select.value = lang;
+            }
+        }
+
+        function changeLanguage(lang) {
+            setLanguageTheme(lang);
+        }
+
+        window.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
