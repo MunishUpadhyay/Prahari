@@ -17,15 +17,22 @@ DATABASES = {
     )
 }
 
-# Override with non-GIS backend if GDAL unavailable
+# Set engine to PostGIS if GDAL is available, fallback to plain postgresql
+GDAL_AVAILABLE = True
 try:
     from django.contrib.gis.gdal import HAS_GDAL
-    if not HAS_GDAL:
-        DATABASES['default']['ENGINE'] = \
-            'django.db.backends.postgresql'
+    if HAS_GDAL:
+        DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+    else:
+        DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
+        GDAL_AVAILABLE = False
 except Exception:
-    DATABASES['default']['ENGINE'] = \
-        'django.db.backends.postgresql'
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
+    GDAL_AVAILABLE = False
+
+if not GDAL_AVAILABLE:
+    if "django.contrib.gis" in INSTALLED_APPS:
+        INSTALLED_APPS.remove("django.contrib.gis")
 
 # Redis
 REDIS_URL = os.environ.get(
