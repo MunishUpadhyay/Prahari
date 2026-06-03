@@ -57,3 +57,7 @@ rag/chroma_db/
 
 # Docker
 *.override.yml
+
+# Architecture Report
+prahari_architecture_report.txt
+
