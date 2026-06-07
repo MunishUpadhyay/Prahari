@@ -133,7 +133,7 @@ Prahari/
     <tr>
       <td width="50%">
         <p align="center"><strong>Citizen Portal — Submission Page</strong></p>
-        <p align="center"><em>[Placeholder: Insert citizen_submit.png here]</em></p>
+        <p align="center"><em>[[Placeholder: Insert citizen_submit.png here](https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20040520.png)]</em></p>
       </td>
       <td width="50%">
         <p align="center"><strong>Citizen Portal — Tracking Progress</strong></p>
