@@ -143,7 +143,7 @@ Prahari/
 
 ### Citizen Portal — Tracking Progress
 
-<img src="IMAGE_URL_HERE" alt="Citizen Progress Tracking" width="100%"/>
+<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190358.png" alt="Citizen Progress Tracking" width="100%"/>
 
 </td>
 </tr>
@@ -153,7 +153,7 @@ Prahari/
 
 ### Operations Dashboard — WebSocket Live Feed
 
-<img src="IMAGE_URL_HERE" alt="Coordinator Dashboard" width="100%"/>
+<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190909.png" alt="Coordinator Dashboard" width="100%"/>
 
 </td>
 
@@ -161,7 +161,7 @@ Prahari/
 
 ### Operations Dashboard — Legal RAG Audit
 
-<img src="IMAGE_URL_HERE" alt="Legal Audit Dashboard" width="100%"/>
+<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190753.png" alt="Legal Audit Dashboard" width="100%"/>
 
 </td>
 </tr>
