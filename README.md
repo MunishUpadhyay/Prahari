@@ -127,30 +127,46 @@ Prahari/
 
 ## Application Screenshots (Visual Gallery)
 
-<!-- Space Reserved for Visual Screenshots -->
 <div align="center">
-  <table border="0">
-    <tr>
-      <td width="50%">
-        <p align="center"><strong>Citizen Portal — Submission Page</strong></p>
-        <p align="center"><em>[[https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20040520.png]()]</em></p>
-      </td>
-      <td width="50%">
-        <p align="center"><strong>Citizen Portal — Tracking Progress</strong></p>
-        <p align="center"><em>[Placeholder: Insert citizen_progress.png here]</em></p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%">
-        <p align="center"><strong>Operations Dashboard — WebSocket Live Feed</strong></p>
-        <p align="center"><em>[Placeholder: Insert coordinator_dashboard.png here]</em></p>
-      </td>
-      <td width="50%">
-        <p align="center"><strong>Operations Dashboard — Legal RAG Audit</strong></p>
-        <p align="center"><em>[Placeholder: Insert coordinator_detail.png here]</em></p>
-      </td>
-    </tr>
-  </table>
+
+<table>
+<tr>
+<td width="50%" align="center">
+
+### Citizen Portal — Submission Page
+
+<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20040520.png" alt="Citizen Submission Page" width="100%"/>
+
+</td>
+
+<td width="50%" align="center">
+
+### Citizen Portal — Tracking Progress
+
+<img src="IMAGE_URL_HERE" alt="Citizen Progress Tracking" width="100%"/>
+
+</td>
+</tr>
+
+<tr>
+<td width="50%" align="center">
+
+### Operations Dashboard — WebSocket Live Feed
+
+<img src="IMAGE_URL_HERE" alt="Coordinator Dashboard" width="100%"/>
+
+</td>
+
+<td width="50%" align="center">
+
+### Operations Dashboard — Legal RAG Audit
+
+<img src="IMAGE_URL_HERE" alt="Legal Audit Dashboard" width="100%"/>
+
+</td>
+</tr>
+</table>
+
 </div>
 
 ---
