@@ -51,11 +51,15 @@ try:
 except Exception:
     GDAL_AVAILABLE = False
 
-if not GDAL_AVAILABLE:
-    # Override the PostGIS backend with plain psycopg2 for local dev
-    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
-    if "django.contrib.gis" in INSTALLED_APPS:
-        INSTALLED_APPS.remove("django.contrib.gis")
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+if "django.contrib.gis" in INSTALLED_APPS:
+    INSTALLED_APPS.remove("django.contrib.gis")
 
 # Run Celery tasks asynchronously in development (via worker)
 CELERY_TASK_ALWAYS_EAGER = False

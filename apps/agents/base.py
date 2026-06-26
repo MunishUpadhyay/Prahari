@@ -58,8 +58,8 @@ class BaseAgent(abc.ABC):
         # Model fallback order
         models_to_try = [
             self.model,  # llama-3.3-70b-versatile
-            "openai/gpt-oss-120b",  # fallback 1
-            "openai/gpt-oss-20b",   # fallback 2
+            "openai/gpt-oss-120b",   # fallback 1 (extremely high quality, 120B parameters)
+            "openai/gpt-oss-20b",    # fallback 2
         ]
         
         # Key fallback order

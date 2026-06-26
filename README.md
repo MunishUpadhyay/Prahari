@@ -210,3 +210,12 @@ Prahari/
    ```bash
    daphne -b 0.0.0.0 -p 8000 config.asgi:application
    ```
+
+---
+
+## Recent Updates (June 2026)
+
+- **Browser Tab Switching Fix**: Resolved `ReferenceError: event is not defined` inside `switchTab()` on the coordinator detail page by passing the element context (`this`) to the function.
+- **Private Browsing Protection**: Wrapped all `localStorage` access in safe helper functions (`getSavedLang`, `saveLang`) with `try-catch` blocks to prevent template crashes when cookie/storage policies are restrictive.
+- **Fallback LLM Quality Upgrades**: Reordered LLM fallbacks to prioritize the `openai/gpt-oss-120b` (120B parameter) model over smaller 20B/8B models, and completely removed the decommissioned `llama-3.1-8b-instant` model from the routing list.
+

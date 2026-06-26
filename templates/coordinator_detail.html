@@ -920,19 +920,19 @@
                 <!-- Tabbed Agent Payloads (Left Side) -->
                 <div class="info-left">
                     <div class="tabs-header">
-                        <button class="tab-btn active" onclick="switchTab('tab-sentinel')">
+                        <button class="tab-btn active" onclick="switchTab(this, 'tab-sentinel')">
                             <span class="loc-en">Sentinel</span>
                             <span class="loc-hi">सेंटीनेल</span>
                         </button>
-                        <button class="tab-btn" onclick="switchTab('tab-triage')">
+                        <button class="tab-btn" onclick="switchTab(this, 'tab-triage')">
                             <span class="loc-en">Triage (Medical)</span>
                             <span class="loc-hi">ट्राइएज (चिकित्सा)</span>
                         </button>
-                        <button class="tab-btn" onclick="switchTab('tab-rights')">
+                        <button class="tab-btn" onclick="switchTab(this, 'tab-rights')">
                             <span class="loc-en">Rights (Legal)</span>
                             <span class="loc-hi">अधिकार (कानूनी)</span>
                         </button>
-                        <button class="tab-btn" onclick="switchTab('tab-coordination')">
+                        <button class="tab-btn" onclick="switchTab(this, 'tab-coordination')">
                             <span class="loc-en">Coordination</span>
                             <span class="loc-hi">समन्वय</span>
                         </button>
@@ -1047,11 +1047,34 @@
             </div> <!-- info-grid -->
         </div> <!-- detail-card -->
     </main>
+
+    {{ sentinel|json_script:"sentinel-data" }}
+    {{ triage|json_script:"triage-data" }}
+    {{ rights|json_script:"rights-data" }}
+    {{ coordination|json_script:"coordination-data" }}
+    {{ outputs|json_script:"agent-outputs-data" }}
+    {{ timing|json_script:"timing-data" }}
 {% endblock %}
 
 {% block extra_js %}
     <script>
-// CSRF helper
+        function getSavedLang() {
+            try {
+                return localStorage.getItem('prahari_lang');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveLang(lang) {
+            try {
+                localStorage.setItem('prahari_lang', lang);
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        // CSRF helper
         const csrfToken = "{{ csrf_token }}";
 
         function getJsonData(elementId) {
@@ -1462,7 +1485,7 @@
         }
 
         function renderAgentOutputs() {
-            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const activeLang = getSavedLang() || 'english';
             const isHindi = activeLang === 'hindi';
 
             // Get data from json scripts
@@ -1500,7 +1523,7 @@
         }
 
         function initLanguage() {
-            let selectedLang = localStorage.getItem('prahari_lang');
+            let selectedLang = getSavedLang();
             if (!selectedLang) {
                 const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
                 if (userLang.startsWith('hi')) {
@@ -1508,14 +1531,14 @@
                 } else {
                     selectedLang = 'english';
                 }
-                localStorage.setItem('prahari_lang', selectedLang);
+                saveLang(selectedLang);
             }
             setLanguageTheme(selectedLang);
         }
 
         function setLanguageTheme(lang) {
             document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
-            localStorage.setItem('prahari_lang', lang);
+            saveLang(lang);
             
             // Highlight active lang pill
             const pills = document.querySelectorAll('.lang-pill');
@@ -1553,10 +1576,10 @@
         }
 
         // Tab selection logic
-        function switchTab(tabId) {
+        function switchTab(btn, tabId) {
             // Remove active class from all buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
             });
             // Remove active class from all content panels
             document.querySelectorAll('.tab-content').forEach(panel => {
@@ -1564,7 +1587,11 @@
             });
 
             // Find current trigger button and add active class
-            event.currentTarget.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+            } else if (window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            }
             // Show corresponding tab content
             document.getElementById(tabId).classList.add('active');
         }
@@ -1630,7 +1657,7 @@
             const container = document.getElementById('timing-chart-content');
             if (!container) return;
 
-            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const activeLang = getSavedLang() || 'english';
             const isHindi = activeLang === 'hindi';
 
             if (!timingData || Object.keys(timingData).length === 0) {
@@ -1718,7 +1745,7 @@
             const container = document.getElementById("similar-incidents-container");
             if (!container) return;
 
-            const activeLang = localStorage.getItem('prahari_lang') || 'english';
+            const activeLang = getSavedLang() || 'english';
             const isHindi = activeLang === 'hindi';
 
             try {
