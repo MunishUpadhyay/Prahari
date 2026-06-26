@@ -120,7 +120,7 @@ Prahari/
 - **Vector Embeddings Store**: ChromaDB
 - **Retrieval Sentence Embedder**: `sentence-transformers/all-MiniLM-L6-v2`
 - **Primary LLM**: Groq LLaMA 3.3 70B (`llama-3.3-70b-versatile`)
-- **Fallback LLM**: Groq LLaMA 3.1 8B (`llama-3.1-8b-instant` fallback routing when primary LLM encounters a 429 rate limit)
+- **Fallback LLMs**: Groq `openai/gpt-oss-120b` and `openai/gpt-oss-20b` (fallback routing when primary LLM encounters a 429 rate limit)
 - **Authorization Layer**: JSON Web Tokens (JWT)
 
 ---

@@ -26,11 +26,11 @@ class IncidentsConfig(AppConfig):
                 if is_rate_limit:
                     logger.warning(
                         "[BaseAgent Monkeypatch] Rate limit hit for model %s. "
-                        "Falling back to llama-3.1-8b-instant.",
+                        "Falling back to openai/gpt-oss-20b.",
                         self.model
                     )
                     original_model = self.model
-                    self.model = "llama-3.1-8b-instant"
+                    self.model = "openai/gpt-oss-20b"
                     try:
                         return original_call_groq(self, user_message)
                     finally:
