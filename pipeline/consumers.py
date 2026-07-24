@@ -15,8 +15,14 @@ DashboardConsumer:
 
 import json
 import logging
+from urllib.parse import parse_qs
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import AccessToken
+
+from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -42,39 +48,50 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """
         Accept the WebSocket and subscribe to the tenant's dashboard group.
-
-        TODO: Extract and validate JWT from query string.
-              query_string = self.scope["query_string"].decode()
-              token = parse_qs(query_string).get("token", [None])[0]
-              Validate token → resolve tenant_id.
+        Enforces JWT authentication and stopgap tenant resolution.
         """
-        # Placeholder: use "anonymous" group until JWT wiring is added
-        self.tenant_id = self.scope.get("url_route", {}).get("kwargs", {}).get(
-            "tenant_id", "anonymous"
-        )
+        # Extract query parameters
+        query_string = self.scope["query_string"].decode()
+        query_params = parse_qs(query_string)
+        token = query_params.get("token", [None])[0]
+        client_tenant_id = query_params.get("tenant_id", [None])[0]
+
+        # Token validation
+        if not token:
+            await self.close(code=4001)
+            return
+        try:
+            access = AccessToken(token)
+            user_id = access.get("user_id") or access["user_id"]
+            User = get_user_model()
+            user = await sync_to_async(User.objects.filter(id=user_id, is_active=True).first)()
+            if not user:
+                await self.close(code=4002)
+                return
+        except Exception:
+            await self.close(code=4002)
+            return
+
+        # Resolve tenant server‑side (stopgap single active tenant)
+        tenant = await sync_to_async(lambda: Tenant.objects.filter(is_active=True).order_by('id').first())()
+        if not tenant:
+            await self.close(code=4004)
+            return
+        tenant_id = str(tenant.id)
+
+        # Verify client‑supplied tenant_id if present
+        if client_tenant_id and client_tenant_id != tenant_id:
+            await self.close(code=4003)
+            return
+
+        # Set tenant context and group name
+        self.tenant_id = tenant_id
         self.group_name = f"dashboard_{self.tenant_id}"
         self.extra_group_names = []
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
-
-        # Fallback: subscribe to the first active/existing tenant's group if anonymous
-        if self.tenant_id == "anonymous":
-            from apps.tenants.models import Tenant
-            from asgiref.sync import sync_to_async
-            
-            @sync_to_async
-            def get_first_tenant_id():
-                tenant = Tenant.objects.first()
-                return str(tenant.id) if tenant else None
-            
-            tenant_uuid = await get_first_tenant_id()
-            if tenant_uuid:
-                extra_group = f"dashboard_{tenant_uuid}"
-                await self.channel_layer.group_add(extra_group, self.channel_name)
-                self.extra_group_names.append(extra_group)
-
         await self.accept()
-        logger.info("WS connected: %s → group %s (extra: %s)", self.channel_name, self.group_name, self.extra_group_names)
+        logger.info("WS connected: %s → group %s", self.channel_name, self.group_name)
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)

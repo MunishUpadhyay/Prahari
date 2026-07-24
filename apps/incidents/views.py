@@ -38,11 +38,14 @@ class IncidentListView(ListAPIView):
     serializer_class = IncidentListSerializer
 
     def get_queryset(self):
-        # TODO: filter by tenant once JWT claim wiring is in place
-        # tenant_id = self.request.auth.get("tenant_id")
-        # return Incident.objects.filter(signal__tenant_id=tenant_id).select_related("signal")
-        logger.warning("Tenant filtering not yet wired — returning all incidents.")
-        return Incident.objects.select_related("signal").all()
+        # Stopgap tenant resolution — assumes a single active tenant.
+        # Not real multi-tenant routing; there is no User→Tenant relationship yet.
+        from apps.tenants.models import Tenant
+        tenant = Tenant.objects.filter(is_active=True).order_by('id').first()
+        if not tenant:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("No active tenant configured.")
+        return Incident.objects.filter(signal__tenant=tenant).select_related("signal")
 
 
 class IncidentDetailView(RetrieveUpdateAPIView):

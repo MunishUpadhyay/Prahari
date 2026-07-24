@@ -684,6 +684,7 @@
 // CSRF helper
         const csrfToken = "{{ csrf_token }}";
         const tenantId = "{{ tenant_id }}";
+    const jwtToken = "{{ jwt_token }}";
         
         // Initial data injected from Django
         let incidents = {{ incidents_json|safe }};
@@ -1011,7 +1012,7 @@
 
         // WebSocket Integration
         function setupWebSocket() {
-            const wsUrl = `ws://${window.location.host}/ws/dashboard/`;
+            const wsUrl = `ws://${window.location.host}/ws/dashboard/?token=${jwtToken}&tenant_id=${tenantId}`;
             const ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
