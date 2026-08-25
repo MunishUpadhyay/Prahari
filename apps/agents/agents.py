@@ -15,11 +15,85 @@ Agents:
 """
 
 import logging
+from typing import List, Optional, Literal
+from pydantic import BaseModel, Field, ConfigDict
 
 from .base import BaseAgent
 from rag.retriever import retrieve_legal_provisions, retrieve_medical_protocols
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Pydantic Schemas for Structured Outputs
+# ---------------------------------------------------------------------------
+
+class GoldenWindowSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    time_remaining: str = Field(description="Time critical limit, e.g. '90 minutes', 'immediate'")
+    consequence_of_delay: str = Field(description="Physiological consequence of delay")
+
+class EmergencyContactSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(description="Name of the emergency service/person")
+    number: str = Field(description="Emergency helpline/contact number")
+    when_to_call: str = Field(description="Criteria/condition for calling this number")
+
+class TriageSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    triage_severity: Literal["immediate", "delayed", "minor", "deceased"]
+    primary_concern: str = Field(description="Structured medical handoff note")
+    interventions: List[str] = Field(description="List of interventions in [Action]: [Why needed] — [Consequence if skipped] — [How to perform] format")
+    required_facility: Literal["trauma_center", "general_hospital", "clinic", "mental_health", "obstetric"]
+    response_time: Literal["immediate", "urgent", "semi_urgent", "non_urgent"]
+    hospital_denial_detected: bool
+    confidence: float
+    escalate_to_rights_agent: bool
+    golden_window: GoldenWindowSchema
+    emergency_contacts: List[EmergencyContactSchema]
+
+class ImmediateActionSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    priority: int
+    action: str
+    responsible_party: str
+    time_window: str
+
+class ConflictResolutionSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    primary_priority: str
+    reasoning: str
+    sequence: str
+
+class EscalationStepSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    level: int
+    authority: str
+    trigger: str
+    contact: str
+
+class EvidenceItemSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    item: str
+    why_important: str
+    how_to_collect: str
+    time_sensitive: bool
+
+class CoordinationSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    situation_title: str
+    overall_severity: str
+    overall_severity_score: float
+    what_is_happening: str
+    immediate_actions: List[ImmediateActionSchema]
+    resources_needed: List[str]
+    authorities_to_notify: List[str]
+    situation_brief: str
+    escalation_required: bool
+    estimated_resolution_time: str
+    conflict_resolution: Optional[ConflictResolutionSchema]
+    escalation_path: List[EscalationStepSchema]
+    evidence_to_collect: List[EvidenceItemSchema]
 
 
 # ---------------------------------------------------------------------------
@@ -227,7 +301,7 @@ class TriageAgent(BaseAgent):
         )
 
         # 4. Call Groq LLM
-        raw_response = self.call_groq(user_message)
+        raw_response = self.call_groq(user_message, response_schema=TriageSchema)
         result = self.parse_json_response(raw_response)
 
         # 5. Validate output schema structure and fallback
@@ -353,7 +427,7 @@ class CoordinationAgent(BaseAgent):
         user_message = "\n\n".join(context_parts)
         user_message += "\n\nSynthesize all of the above into a unified coordination brief."
 
-        raw = self.call_groq(user_message)
+        raw = self.call_groq(user_message, response_schema=CoordinationSchema)
         result = self.parse_json_response(raw)
 
         # Fallbacks/Validations for coordination output schema

@@ -216,3 +216,65 @@ def test_triage_agent_max_tokens_limit():
     agent = TriageAgent()
     assert agent.max_tokens == 2000
     assert agent.prompt_name == "triage"
+
+@pytest.mark.django_db
+def test_call_groq_structured_output_payload(settings, mock_groq_custom):
+    settings.GROQ_API_KEY = "key_1"
+    instantiations, completion_calls, exceptions, successes = mock_groq_custom
+    
+    from apps.agents.agents import TriageAgent, CoordinationAgent, TriageSchema, CoordinationSchema
+    
+    agent_triage = TriageAgent()
+    # Mock retrieve_medical_protocols
+    import apps.agents.agents
+    orig_retrieve = apps.agents.agents.retrieve_medical_protocols
+    apps.agents.agents.retrieve_medical_protocols = MagicMock(return_value=[])
+    
+    # We need a mock signal
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "Patient is suffering from heart attack"
+    mock_signal.source_type = "web"
+    
+    successes.append('{"triage_severity": "immediate", "primary_concern": "Cardiac", "interventions": [], "required_facility": "trauma_center", "response_time": "immediate", "hospital_denial_detected": false, "confidence": 0.9, "escalate_to_rights_agent": false, "golden_window": {"time_remaining": "90m", "consequence_of_delay": "tissue damage"}, "emergency_contacts": []}')
+    
+    agent_triage.run(mock_signal)
+    
+    # Check Triage completion call parameters
+    assert len(completion_calls) == 1
+    triage_call = completion_calls[0]
+    assert "response_format" in triage_call
+    rf = triage_call["response_format"]
+    assert rf["type"] == "json_schema"
+    assert rf["json_schema"]["strict"] is True
+    assert rf["json_schema"]["name"] == "triageschema"
+    schema = rf["json_schema"]["schema"]
+    assert "triage_severity" in schema["properties"]
+    assert schema["additionalProperties"] is False
+    
+    # Reset and test CoordinationAgent
+    completion_calls.clear()
+    successes.clear()
+    
+    agent_coord = CoordinationAgent()
+    # Mock other agent outputs
+    sentinel_res = {"domain": "health", "requires_immediate_action": True}
+    agent_outputs = {"triage": {"triage_severity": "immediate"}}
+    
+    successes.append('{"situation_title": "Title", "overall_severity": "immediate", "overall_severity_score": 0.9, "what_is_happening": "x", "immediate_actions": [], "resources_needed": [], "authorities_to_notify": [], "situation_brief": "brief", "escalation_required": false, "estimated_resolution_time": "hours", "conflict_resolution": null, "escalation_path": [], "evidence_to_collect": []}')
+    
+    agent_coord.run(mock_signal, sentinel_res, agent_outputs)
+    
+    # Check Coordination completion call parameters
+    assert len(completion_calls) == 1
+    coord_call = completion_calls[0]
+    assert "response_format" in coord_call
+    rf_coord = coord_call["response_format"]
+    assert rf_coord["type"] == "json_schema"
+    assert rf_coord["json_schema"]["strict"] is True
+    assert rf_coord["json_schema"]["name"] == "coordinationschema"
+    schema_coord = rf_coord["json_schema"]["schema"]
+    assert "situation_title" in schema_coord["properties"]
+    assert schema_coord["additionalProperties"] is False
+    
+    # Restore retriever mock
+    apps.agents.agents.retrieve_medical_protocols = orig_retrieve

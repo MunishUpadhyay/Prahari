@@ -13,6 +13,7 @@ import json
 import logging
 from pathlib import Path
 from django.conf import settings
+from typing import Optional, Any
 from groq import Groq
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class BaseAgent(abc.ABC):
 
         return prompt_path.read_text(encoding="utf-8").strip()
 
-    def call_groq(self, user_message: str) -> str:
+    def call_groq(self, user_message: str, response_schema: Optional[Any] = None) -> str:
         system_prompt = self.load_prompt()
         
         # Model fallback candidates
@@ -81,15 +82,27 @@ class BaseAgent(abc.ABC):
                 
                 try:
                     client = Groq(api_key=api_key, max_retries=0)
-                    response = client.chat.completions.create(
-                        model=model,
-                        messages=[
+                    kwargs = {
+                        "model": model,
+                        "messages": [
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_message},
                         ],
-                        temperature=0.1,
-                        max_tokens=self.max_tokens,
-                    )
+                        "temperature": 0.1,
+                        "max_tokens": self.max_tokens,
+                    }
+                    if response_schema is not None:
+                        schema_name = response_schema.__name__.lower()
+                        schema_dict = response_schema.model_json_schema()
+                        kwargs["response_format"] = {
+                            "type": "json_schema",
+                            "json_schema": {
+                                "name": schema_name,
+                                "strict": True,
+                                "schema": schema_dict
+                            }
+                        }
+                    response = client.chat.completions.create(**kwargs)
                     choice = response.choices[0]
                     finish_reason = getattr(choice, "finish_reason", None)
                     logger.info(
