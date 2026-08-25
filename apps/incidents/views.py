@@ -78,6 +78,14 @@ class IncidentDetailView(RetrieveUpdateAPIView):
                 extra['is_resolved'] = False
                 extra['resolved_at'] = None
             serializer.save(**extra)
+            
+            if new_status == 'resolved':
+                from apps.audit.models import AuditLog
+                AuditLog.log_event(
+                    incident=instance,
+                    action='incident_resolved',
+                    performed_by=self.request.user.username if (self.request.user and self.request.user.is_authenticated) else "unknown"
+                )
         elif notes_changed:
             serializer.save(status_updated_at=timezone.now())
         else:

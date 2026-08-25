@@ -332,6 +332,14 @@ def route_to_agents(self, signal_id: str, sentinel_result: dict = None):
             }
         )
 
+        if created:
+            from apps.audit.models import AuditLog
+            AuditLog.log_event(
+                incident=incident,
+                action='incident_created',
+                performed_by='system/pipeline'
+            )
+
         logger.info("[route_to_agents] Incident %s (created=%s) updated with domain=%s, severity=%s (score=%s). Chaining to coordination_agent.", 
                     incident.id, created, domain_val, severity_label, severity_score)
 
@@ -684,6 +692,15 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
             logger.error("WebSocket push error (non-critical): %s", e)
             incident.signal.status = 'processed'
             incident.signal.save(update_fields=['status'])
+
+        # Log pipeline completion event if not already logged
+        from apps.audit.models import AuditLog
+        if not AuditLog.objects.filter(incident=incident, action='pipeline_completed').exists():
+            AuditLog.log_event(
+                incident=incident,
+                action='pipeline_completed',
+                performed_by='system/pipeline'
+            )
 
         # Trigger SMS notification if contact number is available
         contact_number = incident.signal.contact_number or incident.signal.metadata.get("contact_number")

@@ -59,3 +59,28 @@ class AuditLog(models.Model):
         # Always (re-)compute hash before persisting
         self.hash = self.compute_hash()
         super().save(*args, **kwargs)
+
+    @classmethod
+    def log_event(cls, incident, action, performed_by, payload=None):
+        """
+        Create an audit log entry in a non-blocking, transaction-isolated manner.
+        Any database exceptions during audit logging are intercepted and logged via
+        Django's logging system, ensuring the caller (e.g. AI pipeline) does not crash.
+        """
+        import logging
+        from django.db import transaction
+        logger = logging.getLogger("apps.audit")
+        try:
+            with transaction.atomic():
+                return cls.objects.create(
+                    incident=incident,
+                    action=action,
+                    performed_by=performed_by,
+                    payload=payload or {}
+                )
+        except Exception as e:
+            logger.error(
+                "[AuditLog] Non-blocking failure logging action '%s' for incident %s: %s",
+                action, incident.id if incident else "None", e
+            )
+            return None

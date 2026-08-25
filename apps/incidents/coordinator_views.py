@@ -239,6 +239,13 @@ def coordinator_resolve_incident(request, incident_id):
         incident.status_updated_at = timezone.now()
         incident.save(update_fields=["is_resolved", "resolved_at", "coordinator_status", "status_updated_at"])
         
+        from apps.audit.models import AuditLog
+        AuditLog.log_event(
+            incident=incident,
+            action='incident_resolved',
+            performed_by=request.user.username if (request.user and request.user.is_authenticated) else "unknown"
+        )
+        
         logger.info("Incident %s resolved by coordinator.", incident_id)
         
         return JsonResponse({
