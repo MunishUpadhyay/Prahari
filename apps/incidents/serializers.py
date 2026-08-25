@@ -15,6 +15,7 @@ class IncidentListSerializer(serializers.ModelSerializer):
             "severity_score",
             "severity_label",
             "domain",
+            "agent_outputs",
             "situation_brief",
             "is_resolved",
             "coordinator_status",

@@ -7,37 +7,9 @@ class IncidentsConfig(AppConfig):
     label = "incidents"
 
     def ready(self):
-        from apps.agents.base import BaseAgent
         import logging
 
         logger = logging.getLogger(__name__)
-        original_call_groq = BaseAgent.call_groq
-
-        def fallback_call_groq(self, user_message: str) -> str:
-            try:
-                return original_call_groq(self, user_message)
-            except Exception as exc:
-                is_rate_limit = (
-                    "429" in str(exc)
-                    or "rate_limit" in str(exc).lower()
-                    or "too many requests" in str(exc).lower()
-                    or getattr(getattr(exc, "response", None), "status_code", None) == 429
-                )
-                if is_rate_limit:
-                    logger.warning(
-                        "[BaseAgent Monkeypatch] Rate limit hit for model %s. "
-                        "Falling back to openai/gpt-oss-120b.",
-                        self.model
-                    )
-                    original_model = self.model
-                    self.model = "openai/gpt-oss-120b"
-                    try:
-                        return original_call_groq(self, user_message)
-                    finally:
-                        self.model = original_model
-                raise
-
-        BaseAgent.call_groq = fallback_call_groq
 
         from apps.agents.agents import SentinelAgent
 

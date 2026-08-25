@@ -8,9 +8,7 @@ from apps.incidents.models import Incident, SeverityLevel
 from apps.signals.models import Domain
 from apps.incidents.serializers import IncidentListSerializer
 
-# Dynamically patch IncidentListSerializer to include agent_outputs on the list API
-if "agent_outputs" not in IncidentListSerializer.Meta.fields:
-    IncidentListSerializer.Meta.fields = list(IncidentListSerializer.Meta.fields) + ["agent_outputs"]
+
 
 logger = logging.getLogger(__name__)
 

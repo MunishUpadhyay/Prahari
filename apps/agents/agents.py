@@ -480,124 +480,158 @@ class LanguageAgent(BaseAgent):
     prompt_name = "language"
     max_tokens = 2500
 
-    def run(self, coord_result: dict, target_language: str = "hindi") -> dict:
+    def _translate_payload(self, payload: dict, target_language: str) -> dict:
         import json
-        logger.info("[LanguageAgent] Running on incident coordination result to translate to %s", target_language)
-
-        user_message = f"""Translate the following coordination
-brief fields into {target_language}. Return the complete JSON
-with translated fields. Keep all numeric values, severity labels,
-boolean values, and time values unchanged.
+        if not payload:
+            return payload
+        user_message = f"""Translate all text values in the following JSON object into {target_language} (Devanagari script for Hindi).
+Return a valid JSON object matching the input structure exactly with translated values.
+Translate all texts, descriptions, names of laws/sections, legal provisions, citations, and time values (like "within 24 hours", "immediate", "immediately", "within 10 minutes", etc.) into natural {target_language}.
+Do NOT keep legal references, names of laws, or timeframes in English. Translate them fully.
+Keep only numeric values, severity labels, and boolean values unchanged.
 
 Input JSON:
-{json.dumps(coord_result, indent=2, ensure_ascii=False)}
+{json.dumps(payload, indent=2, ensure_ascii=False)}
 
-Return the complete translated JSON."""
-
-        raw = self.call_groq(user_message)
-        result = self.parse_json_response(raw)
-
-        # General fallbacks: ensure all keys present in the input payload are also in the result
-        for key, val in coord_result.items():
-            if key not in result:
-                result[key] = val
-
+Return only the valid JSON object."""
         try:
-            result["overall_severity_score"] = float(result.get("overall_severity_score", coord_result.get("overall_severity_score", 0.5)))
-        except (ValueError, TypeError):
-            result["overall_severity_score"] = coord_result.get("overall_severity_score", 0.5)
+            raw = self.call_groq(user_message)
+            return self.parse_json_response(raw)
+        except Exception as exc:
+            logger.error("[LanguageAgent] Sub-translation failed: %s", exc)
+            return payload
 
-        result["escalation_required"] = bool(result.get("escalation_required", coord_result.get("escalation_required", False)))
+    def _force_hindi_translation(self, val: str) -> str:
+        import re
+        if not isinstance(val, str):
+            return val
+        replacements = [
+            # Laws/Sections/Citations
+            (r'\b[Ss]ection\s+(\d+)\s+[Cc]r[Pp][Cc]\s*\(\s*now\s+[Ss]ection\s+(\d+)\s+[Bb][Nn][Ss][Ss]\s*\)', r'धारा \1 सीआरपीसी (अब धारा \2 बीएनएसएस)'),
+            (r'\b[Ss]ection\s+(\d+)\s+[Cc]r[Pp][Cc]', r'धारा \1 सीआरपीसी'),
+            (r'\b[Ss]ection\s+(\d+)\s+[Bb][Nn][Ss][Ss]', r'धारा \1 बीएनएसएस'),
+            (r'\b[Aa]rticle\s+(\d+)\s+of\s+[Cc]onstitution', r'संविधान का अनुच्छेद \1'),
+            (r'\b[Aa]rticle\s+(\d+)', r'अनुच्छेद \1'),
+            (r'\b[Dd]\.?[Kk]\.?\s+[Bb]asu\s+[Gg]uidelines\b', 'डी.के. बसु दिशानिर्देश'),
+            (r'\b[Cc]r[Pp][Cc]\b', 'सीआरपीसी'),
+            (r'\b[Bb][Nn][Ss][Ss]\b', 'बीएनएसएस'),
+            
+            # Timeframes
+            (r'\b[Ww]ithin\s+(\d+)\s+hours\b', r'\1 घंटे के भीतर'),
+            (r'\b[Ww]ithin\s+(\d+)\s+hour\b', r'\1 घंटे के भीतर'),
+            (r'\b[Ww]ithin\s+(\d+)\s+minutes\b', r'\1 मिनट के भीतर'),
+            (r'\b[Ww]ithin\s+(\d+)\s+minute\b', r'\1 मिनट के भीतर'),
+            (r'\b[Ww]ithin\s+(\d+)-(\d+)\s+minutes\b', r'\1-\2 मिनट के भीतर'),
+            (r'\b[Ww]ithin\s+(\d+)-(\d+)\s+hours\b', r'\1-\2 घंटे के भीतर'),
+            (r'\b[Ii]mmediately\b', 'तुरंत'),
+            (r'\b[Ii]mmediate\b', 'तुरंत'),
+            (r'\b[Nn]ow\b', 'अब'),
+            (r'\b(\d+)\s+minutes\b', r'\1 मिनट'),
+            (r'\b(\d+)\s+hours\b', r'\1 घंटे'),
+            (r'\b(\d+)\s+days\b', r'\1 दिन'),
+            
+            # Authorities
+            (r'\bDistrict Legal Services Authority\s*\(\s*DLSA\s*\)', 'जिला कानूनी सेवा प्राधिकरण (डीएलएसए)'),
+            (r'\bNational Legal Services Authority\s*\(\s*NALSA\s*\)', 'राष्ट्रीय कानूनी सेवा प्राधिकरण (एनएएलएसए)'),
+            (r'\bChief Medical Officer\s*\(\s*CMO\s*\)', 'मुख्य चिकित्सा अधिकारी (सीएमओ)'),
+            (r'\bSuperintendent of Police\s*\(\s*SP\s*\)', 'पुलिस अधीक्षक (एसपी)'),
+            (r'\bSenior Superintendent of Police\s*\(\s*SSP\s*\)', 'वरिष्ठ पुलिस अधीक्षक (एसएसपी)'),
+            (r'\bDistrict Collector\b', 'जिला कलेक्टर'),
+            (r'\bDLSA\b', 'डीएलएसए'),
+            (r'\bNALSA\b', 'एनएएलएसए'),
+            (r'\bCMO\b', 'सीएमओ'),
+            (r'\bSP\b', 'एसपी'),
+            (r'\bSSP\b', 'एसएसपी'),
+            (r'\bEmergency Response Coordinator\b', 'आपातकालीन प्रतिक्रिया समन्वयक'),
+            (r'\bNational Ambulance\b', 'राष्ट्रीय एम्बुलेंस'),
+            (r'\bFire Brigade\b', 'दमकल केंद्र'),
+            (r'\bPolice\b', 'पुलिस'),
+            (r'\bAmbulance\b', 'एम्बुलेंस'),
+        ]
+        res = val
+        for pattern, repl in replacements:
+            res = re.sub(pattern, repl, res, flags=re.IGNORECASE)
+        return res
 
-        # Validate immediate_actions structure
-        if "immediate_actions" in coord_result:
-            if not isinstance(result.get("immediate_actions"), list):
-                result["immediate_actions"] = coord_result["immediate_actions"]
-            else:
-                validated_actions = []
-                orig_actions = coord_result["immediate_actions"]
-                for i, action in enumerate(result["immediate_actions"]):
-                    if isinstance(action, dict):
-                        orig_action = orig_actions[i] if i < len(orig_actions) else {}
-                        validated_actions.append({
-                            "priority": orig_action.get("priority", action.get("priority", i+1)),
-                            "action": str(action.get("action", orig_action.get("action", ""))),
-                            "responsible_party": str(action.get("responsible_party", orig_action.get("responsible_party", ""))),
-                            "time_window": orig_action.get("time_window", action.get("time_window", ""))
-                        })
-                result["immediate_actions"] = validated_actions
+    def _post_process_translate(self, obj: any, target_language: str) -> any:
+        if target_language != "hindi":
+            return obj
+        if isinstance(obj, dict):
+            return {k: self._post_process_translate(v, target_language) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._post_process_translate(x, target_language) for x in obj]
+        elif isinstance(obj, str):
+            return self._force_hindi_translation(obj)
+        else:
+            return obj
 
-        # Validate legal_provisions structure
+    def run(self, coord_result: dict, target_language: str = "hindi") -> dict:
+        logger.info("[LanguageAgent] Running translation in separate sub-payloads to prevent truncation and ensure 100%% translation")
+
+        translated_result = {}
+
+        # 1. Overview
+        overview_payload = {
+            "situation_title": coord_result.get("situation_title", ""),
+            "what_is_happening": coord_result.get("what_is_happening", ""),
+            "situation_brief": coord_result.get("situation_brief", ""),
+            "primary_concern": coord_result.get("primary_concern", ""),
+            "nearest_authority_type": coord_result.get("nearest_authority_type", ""),
+            "authority_to_contact": coord_result.get("authority_to_contact", ""),
+            "golden_window": coord_result.get("golden_window", {}),
+            "conflict_resolution": coord_result.get("conflict_resolution", {})
+        }
+        overview_translated = self._translate_payload(overview_payload, target_language)
+        translated_result.update(overview_translated)
+
+        # 2. Basic lists
+        lists_payload = {
+            "resources_needed": coord_result.get("resources_needed", []),
+            "authorities_to_notify": coord_result.get("authorities_to_notify", []),
+            "emergency_contacts": coord_result.get("emergency_contacts", [])
+        }
+        lists_translated = self._translate_payload(lists_payload, target_language)
+        translated_result.update(lists_translated)
+
+        # 3. legal_provisions
         if "legal_provisions" in coord_result:
-            if not isinstance(result.get("legal_provisions"), list):
-                result["legal_provisions"] = coord_result["legal_provisions"]
-            else:
-                validated_provisions = []
-                orig_provisions = coord_result["legal_provisions"]
-                for i, prov in enumerate(result["legal_provisions"]):
-                    if isinstance(prov, dict):
-                        orig_prov = orig_provisions[i] if i < len(orig_provisions) else {}
-                        validated_provisions.append({
-                            "provision": str(prov.get("provision", orig_prov.get("provision", ""))),
-                            "description": str(prov.get("description", orig_prov.get("description", ""))),
-                            "relevance": str(prov.get("relevance", orig_prov.get("relevance", "")))
-                        })
-                result["legal_provisions"] = validated_provisions
+            provs_payload = {"legal_provisions": coord_result["legal_provisions"]}
+            provs_translated = self._translate_payload(provs_payload, target_language)
+            translated_result.update(provs_translated)
 
-        # Validate legal_timeline structure
+        # 4. legal_timeline
         if "legal_timeline" in coord_result:
-            if not isinstance(result.get("legal_timeline"), list):
-                result["legal_timeline"] = coord_result["legal_timeline"]
-            else:
-                validated_timeline = []
-                orig_timeline = coord_result["legal_timeline"]
-                for i, item in enumerate(result["legal_timeline"]):
-                    if isinstance(item, dict):
-                        orig_item = orig_timeline[i] if i < len(orig_timeline) else {}
-                        validated_timeline.append({
-                            "step": orig_item.get("step", item.get("step", i+1)),
-                            "action": str(item.get("action", orig_item.get("action", ""))),
-                            "timeframe": orig_item.get("timeframe", item.get("timeframe", "")),
-                            "why_urgent": str(item.get("why_urgent", orig_item.get("why_urgent", "")))
-                        })
-                result["legal_timeline"] = validated_timeline
+            timeline_payload = {"legal_timeline": coord_result["legal_timeline"]}
+            timeline_translated = self._translate_payload(timeline_payload, target_language)
+            translated_result.update(timeline_translated)
 
-        # Validate escalation_path structure
+        # 5. immediate_actions
+        if "immediate_actions" in coord_result:
+            actions_payload = {"immediate_actions": coord_result["immediate_actions"]}
+            actions_translated = self._translate_payload(actions_payload, target_language)
+            translated_result.update(actions_translated)
+
+        # 6. evidence_to_collect
+        if "evidence_to_collect" in coord_result:
+            evidence_payload = {"evidence_to_collect": coord_result["evidence_to_collect"]}
+            evidence_translated = self._translate_payload(evidence_payload, target_language)
+            translated_result.update(evidence_translated)
+
+        # 7. escalation_path
         if "escalation_path" in coord_result:
-            if not isinstance(result.get("escalation_path"), list):
-                result["escalation_path"] = coord_result["escalation_path"]
-            else:
-                validated_path = []
-                orig_path = coord_result["escalation_path"]
-                for i, item in enumerate(result["escalation_path"]):
-                    if isinstance(item, dict):
-                        orig_item = orig_path[i] if i < len(orig_path) else {}
-                        validated_path.append({
-                            "level": orig_item.get("level", item.get("level", i+1)),
-                            "authority": str(item.get("authority", orig_item.get("authority", ""))),
-                            "trigger": str(item.get("trigger", orig_item.get("trigger", ""))),
-                            "contact": str(item.get("contact", orig_item.get("contact", "")))
-                        })
-                result["escalation_path"] = validated_path
+            escalation_payload = {"escalation_path": coord_result["escalation_path"]}
+            escalation_translated = self._translate_payload(escalation_payload, target_language)
+            translated_result.update(escalation_translated)
 
-        # Validate emergency_contacts structure
-        if "emergency_contacts" in coord_result:
-            if not isinstance(result.get("emergency_contacts"), list):
-                result["emergency_contacts"] = coord_result["emergency_contacts"]
-            else:
-                validated_contacts = []
-                orig_contacts = coord_result["emergency_contacts"]
-                for i, item in enumerate(result["emergency_contacts"]):
-                    if isinstance(item, dict):
-                        orig_item = orig_contacts[i] if i < len(orig_contacts) else {}
-                        validated_contacts.append({
-                            "name": str(item.get("name", orig_item.get("name", ""))),
-                            "number": orig_item.get("number", item.get("number", "")),
-                            "when_to_call": str(item.get("when_to_call", orig_item.get("when_to_call", "")))
-                        })
-                result["emergency_contacts"] = validated_contacts
+        # General fallbacks for any other keys
+        for key, val in coord_result.items():
+            if key not in translated_result:
+                translated_result[key] = val
 
-        return result
+        # Apply recursive post-processing to force Hindi translation for legal & time terms
+        translated_result = self._post_process_translate(translated_result, target_language)
+
+        return translated_result
 
 
 class LegalNoticeAgent(BaseAgent):

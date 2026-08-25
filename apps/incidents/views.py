@@ -89,7 +89,7 @@ class SimilarIncidentsView(APIView):
     GET /api/incidents/<uuid:id>/similar/
     Returns the top similar past incidents and their outcome statistics.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
         incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
@@ -193,7 +193,7 @@ class LegalNoticeView(APIView):
     GET /api/incidents/<uuid:id>/legal-notice/
     Generates a formal legal notice draft for the incident.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
         incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)

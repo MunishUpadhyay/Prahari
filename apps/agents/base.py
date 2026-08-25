@@ -55,14 +55,14 @@ class BaseAgent(abc.ABC):
     def call_groq(self, user_message: str) -> str:
         system_prompt = self.load_prompt()
         
-        # Model fallback order
+        # Model fallback candidates
         models_to_try = [
             self.model,  # llama-3.3-70b-versatile
-            "openai/gpt-oss-120b",   # fallback 1 (extremely high quality, 120B parameters)
-            "openai/gpt-oss-20b",    # fallback 2
+            "openai/gpt-oss-120b",  # fallback 1
+            "openai/gpt-oss-20b",   # fallback 2
         ]
         
-        # Key fallback order
+        # Key fallback candidates
         api_keys = [k for k in [
             getattr(settings, "GROQ_API_KEY", ""),
             getattr(settings, "GROQ_API_KEY_2", ""),
@@ -73,45 +73,97 @@ class BaseAgent(abc.ABC):
         
         last_exc = None
         
-        # Try each key, then fall back to smaller model
         for model in models_to_try:
+            logger.info("[BaseAgent] Attempting LLM call with model=%s", model)
+            
             for idx, api_key in enumerate(api_keys, 1):
+                masked_key = api_key[:6] + "..." if len(api_key) > 6 else "..."
+                logger.info("[BaseAgent] Using API key index %d (%s)", idx, masked_key)
+                
                 try:
                     client = Groq(api_key=api_key, max_retries=0)
                     response = client.chat.completions.create(
                         model=model,
                         messages=[
-                            {"role": "system",
-                             "content": system_prompt},
-                            {"role": "user",
-                             "content": user_message},
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_message},
                         ],
                         temperature=0.1,
                         max_tokens=self.max_tokens,
                     )
                     if model != self.model:
                         logger.warning(
-                            "[BaseAgent] Using fallback"
-                            " model: %s", model)
+                            "[BaseAgent] Fallback model %s succeeded on key index %d",
+                            model, idx
+                        )
                     return response.choices[0].message.content
                 except Exception as exc:
-                    is_rate_limit = (
-                        "429" in str(exc) or
-                        "rate_limit" in str(exc).lower() or
-                        "400" in str(exc) or
-                        "decommissioned" in str(exc).lower()
+                    last_exc = exc
+                    status_code = getattr(exc, "status_code", None)
+                    exc_str = str(exc).lower()
+                    
+                    # 1. Authentication / Authorization Failure (401/403)
+                    is_auth_error = (
+                        status_code in (401, 403)
+                        or "401" in str(exc)
+                        or "403" in str(exc)
+                        or "unauthorized" in exc_str
+                        or "forbidden" in exc_str
+                        or "api key" in exc_str
                     )
-                    if is_rate_limit:
-                        logger.warning(
-                            "[BaseAgent] Key %d rate"
-                            " limited or decommissioned on model %s",
-                            idx, model)
-                        last_exc = exc
+                    if is_auth_error:
+                        logger.error(
+                            "[BaseAgent] Authentication failure on API Key index %d for model %s: %s",
+                            idx, model, exc
+                        )
+                        # Try next key
                         continue
-                    raise
+                    
+                    # 2. Model decommissioned / unavailable
+                    is_model_unavailable = (
+                        status_code == 404
+                        or "decommissioned" in exc_str
+                        or "not found" in exc_str
+                        or "unknown model" in exc_str
+                    )
+                    if is_model_unavailable:
+                        logger.warning(
+                            "[BaseAgent] Model %s is unavailable/decommissioned. Skipping to next model.",
+                            model
+                        )
+                        # Skip this model immediately: break key loop to proceed to next model
+                        break
+                    
+                    # 3. Rate Limit (429) or Server/Network errors (5xx/timeouts)
+                    is_retryable = (
+                        status_code == 429
+                        or status_code >= 500
+                        or "429" in str(exc)
+                        or "rate_limit" in exc_str
+                        or "too many requests" in exc_str
+                        or "timeout" in exc_str
+                        or "connection" in exc_str
+                        or "500" in str(exc)
+                        or "502" in str(exc)
+                        or "503" in str(exc)
+                        or "504" in str(exc)
+                    )
+                    if is_retryable:
+                        logger.warning(
+                            "[BaseAgent] Retryable failure (status=%s) with Key %d on model %s: %s",
+                            status_code, idx, model, exc
+                        )
+                        # Try next key
+                        continue
+                    
+                    # 4. Standard 400 Bad Request or Programming/Application Error
+                    logger.error(
+                        "[BaseAgent] Non-retryable error (status=%s) for model %s: %s. Aborting fallback.",
+                        status_code, model, exc
+                    )
+                    raise exc
         
-        raise last_exc or ValueError(
-            "All Groq keys and models exhausted")
+        raise last_exc or ValueError("All Groq keys and models exhausted")
 
     def parse_json_response(self, raw: str) -> dict:
         """
