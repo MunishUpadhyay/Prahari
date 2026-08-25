@@ -90,12 +90,18 @@ class BaseAgent(abc.ABC):
                         temperature=0.1,
                         max_tokens=self.max_tokens,
                     )
+                    choice = response.choices[0]
+                    finish_reason = getattr(choice, "finish_reason", None)
+                    logger.info(
+                        "[BaseAgent] Groq response received for model %s. finish_reason: %s",
+                        model, finish_reason
+                    )
                     if model != self.model:
                         logger.warning(
                             "[BaseAgent] Fallback model %s succeeded on key index %d",
                             model, idx
                         )
-                    return response.choices[0].message.content
+                    return choice.message.content
                 except Exception as exc:
                     last_exc = exc
                     status_code = getattr(exc, "status_code", None)

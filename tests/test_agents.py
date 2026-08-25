@@ -210,3 +210,9 @@ def test_language_agent_translation_logic(settings, mock_groq_custom):
     assert result["legal_timeline"][0]["action"] == "FIR"
     # Authorities to notify contains "DLSA" -> "डीएलएसए"
     assert result["authorities_to_notify"] == ["डीएलएसए"]
+
+def test_triage_agent_max_tokens_limit():
+    from apps.agents.agents import TriageAgent
+    agent = TriageAgent()
+    assert agent.max_tokens == 2000
+    assert agent.prompt_name == "triage"

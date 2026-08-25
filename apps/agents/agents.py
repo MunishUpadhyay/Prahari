@@ -203,6 +203,7 @@ class TriageAgent(BaseAgent):
     """
 
     prompt_name = "triage"
+    max_tokens = 2000
 
     def run(self, signal, sentinel_result=None) -> dict:
         logger.info("[TriageAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
