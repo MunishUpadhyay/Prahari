@@ -68,7 +68,7 @@ def test_call_groq_success(settings, mock_groq_custom):
     res = agent.call_groq("Hello")
     assert "success" in res
     assert instantiations == ["key_1"]
-    assert completion_calls[0]["model"] == "llama-3.3-70b-versatile"
+    assert completion_calls[0]["model"] == "openai/gpt-oss-120b"
 
 @pytest.mark.django_db
 def test_call_groq_rate_limit_key_rotation(settings, mock_groq_custom):
@@ -85,8 +85,8 @@ def test_call_groq_rate_limit_key_rotation(settings, mock_groq_custom):
     assert "success" in res
     # Should try key_1 (fail), then key_2 (succeed) for primary model
     assert instantiations == ["key_1", "key_2"]
-    assert completion_calls[0]["model"] == "llama-3.3-70b-versatile"
-    assert completion_calls[1]["model"] == "llama-3.3-70b-versatile"
+    assert completion_calls[0]["model"] == "openai/gpt-oss-120b"
+    assert completion_calls[1]["model"] == "openai/gpt-oss-120b"
 
 @pytest.mark.django_db
 def test_call_groq_model_decommissioned_skips_keys(settings, mock_groq_custom):
@@ -103,8 +103,8 @@ def test_call_groq_model_decommissioned_skips_keys(settings, mock_groq_custom):
     assert "success" in res
     # Should immediately skip to next model without trying key_2 on first model
     assert instantiations == ["key_1", "key_1"]
-    assert completion_calls[0]["model"] == "llama-3.3-70b-versatile"
-    assert completion_calls[1]["model"] == "openai/gpt-oss-120b"
+    assert completion_calls[0]["model"] == "openai/gpt-oss-120b"
+    assert completion_calls[1]["model"] == "openai/gpt-oss-20b"
 
 @pytest.mark.django_db
 def test_call_groq_400_bad_request_aborts(settings, mock_groq_custom):
@@ -146,8 +146,8 @@ def test_call_groq_all_exhausted_raises(settings, mock_groq_custom):
     settings.GROQ_API_KEY = "key_1"
     settings.GROQ_API_KEY_2 = "key_2"
     instantiations, completion_calls, exceptions, successes = mock_groq_custom
-    # Make all attempts (3 models * 2 keys = 6 attempts) raise 429 rate limit
-    for _ in range(6):
+    # Make all attempts (2 models * 2 keys = 4 attempts) raise 429 rate limit
+    for _ in range(4):
         exc = Exception("Rate Limit 429")
         exc.status_code = 429
         exceptions.append(exc)
@@ -157,7 +157,7 @@ def test_call_groq_all_exhausted_raises(settings, mock_groq_custom):
         agent.call_groq("Hello")
         
     assert "Rate Limit 429" in str(excinfo.value)
-    assert len(instantiations) == 6
+    assert len(instantiations) == 4
 
 # 3. SentinelAgent domain normalization test (preserving functional requirement)
 @pytest.mark.django_db

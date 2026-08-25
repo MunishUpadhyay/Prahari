@@ -119,8 +119,8 @@ Prahari/
 - **Database Engine**: PostgreSQL 16 + PostGIS 3.4 (Geospatial lookup and GIS distance metrics support)
 - **Vector Embeddings Store**: ChromaDB
 - **Retrieval Sentence Embedder**: `sentence-transformers/all-MiniLM-L6-v2`
-- **Primary LLM**: Groq LLaMA 3.3 70B (`llama-3.3-70b-versatile`)
-- **Fallback LLMs**: Groq `openai/gpt-oss-120b` and `openai/gpt-oss-20b` (fallback routing when primary LLM encounters a 429 rate limit)
+- **Primary LLM**: Groq `openai/gpt-oss-120b`
+- **Fallback LLM**: Groq `openai/gpt-oss-20b` (fallback routing when primary LLM encounters a 429 rate limit or model-unavailable exception)
 - **Authorization Layer**: JSON Web Tokens (JWT)
 
 ---

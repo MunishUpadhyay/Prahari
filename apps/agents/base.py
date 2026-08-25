@@ -33,7 +33,7 @@ class BaseAgent(abc.ABC):
     """
 
     prompt_name: str = ""
-    model: str = "llama-3.3-70b-versatile"
+    model: str = "openai/gpt-oss-120b"
     max_tokens: int = 1024
 
     def load_prompt(self) -> str:
@@ -57,9 +57,8 @@ class BaseAgent(abc.ABC):
         
         # Model fallback candidates
         models_to_try = [
-            self.model,  # llama-3.3-70b-versatile
-            "openai/gpt-oss-120b",  # fallback 1
-            "openai/gpt-oss-20b",   # fallback 2
+            self.model,             # openai/gpt-oss-120b
+            "openai/gpt-oss-20b",   # fallback 1
         ]
         
         # Key fallback candidates
