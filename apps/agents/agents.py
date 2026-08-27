@@ -19,6 +19,7 @@ from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict
 
 from .base import BaseAgent
+from .directory import sanitize_contact_number
 from rag.retriever import retrieve_legal_provisions, retrieve_medical_protocols
 
 logger = logging.getLogger(__name__)
@@ -177,11 +178,14 @@ class RightsAgent(BaseAgent):
         provisions = retrieve_legal_provisions(signal.raw_text, n_results=3)
         
         # 2. Format provisions context
-        provisions_text = ""
-        for i, prov in enumerate(provisions, 1):
-            provisions_text += f"\nProvision {i}:\n"
-            provisions_text += f"Text: {prov['text']}\n"
-            provisions_text += f"Metadata: {prov['metadata']}\n"
+        if not provisions:
+            provisions_text = "No sufficiently relevant knowledge-base material was retrieved."
+        else:
+            provisions_text = ""
+            for i, prov in enumerate(provisions, 1):
+                provisions_text += f"\nProvision {i}:\n"
+                provisions_text += f"Text: {prov['text']}\n"
+                provisions_text += f"Metadata: {prov['metadata']}\n"
 
         # 3. Construct user message
         sentinel_domain = sentinel_result.get("domain") if sentinel_result else "legal"
@@ -286,11 +290,14 @@ class TriageAgent(BaseAgent):
         protocols = retrieve_medical_protocols(signal.raw_text, n_results=3)
         
         # 2. Format protocols context
-        protocols_text = ""
-        for i, prot in enumerate(protocols, 1):
-            protocols_text += f"\nProtocol {i}:\n"
-            protocols_text += f"Text: {prot['text']}\n"
-            protocols_text += f"Metadata: {prot['metadata']}\n"
+        if not protocols:
+            protocols_text = "No sufficiently relevant knowledge-base material was retrieved."
+        else:
+            protocols_text = ""
+            for i, prot in enumerate(protocols, 1):
+                protocols_text += f"\nProtocol {i}:\n"
+                protocols_text += f"Text: {prot['text']}\n"
+                protocols_text += f"Metadata: {prot['metadata']}\n"
 
         # 3. Construct user message
         sentinel_domain = sentinel_result.get("domain") if sentinel_result else "health"
@@ -350,9 +357,11 @@ class TriageAgent(BaseAgent):
             validated_contacts = []
             for item in contacts:
                 if isinstance(item, dict):
+                    raw_num = str(item.get("number", "108"))
+                    sanitized_num = sanitize_contact_number(raw_num)
                     validated_contacts.append({
                         "name": str(item.get("name", "Emergency Service")),
-                        "number": str(item.get("number", "108")),
+                        "number": sanitized_num,
                         "when_to_call": str(item.get("when_to_call", "Immediately"))
                     })
             result["emergency_contacts"] = validated_contacts
@@ -363,6 +372,47 @@ class TriageAgent(BaseAgent):
 # ---------------------------------------------------------------------------
 # Coordination Agent
 # ---------------------------------------------------------------------------
+
+def reorder_actions_by_safety(actions: list, raw_text: str) -> list:
+    """
+    Obvious emergency actions must not be displaced by administrative/legal follow-up.
+    """
+    raw_lower = raw_text.lower()
+    is_emergency = any(kw in raw_lower for kw in [
+        "shoot", "fire", "bleed", "unconscious", "heart", "gun",
+        "stab", "hospital", "ambulance", "medical", "accident", "trauma", "attack"
+    ])
+    if not is_emergency:
+        return actions
+        
+    emergency_actions = []
+    other_actions = []
+    
+    for act in actions:
+        action_text = act.get("action", "").lower()
+        is_life_saving = any(kw in action_text for kw in [
+            "ambulance", "hospital", "cpr", "first aid", "stabilize",
+            "medical", "admit", "doctor", "airway", "hemorrhage", "tourniquet",
+            "evacuate", "treat", "wound"
+        ])
+        if is_life_saving:
+            emergency_actions.append(act)
+        else:
+            other_actions.append(act)
+            
+    if not emergency_actions:
+        return actions
+        
+    sorted_actions = []
+    for idx, act in enumerate(emergency_actions, 1):
+        act["priority"] = idx
+        sorted_actions.append(act)
+    for idx, act in enumerate(other_actions, len(emergency_actions) + 1):
+        act["priority"] = idx
+        sorted_actions.append(act)
+        
+    return sorted_actions
+
 
 class CoordinationAgent(BaseAgent):
     """
@@ -458,6 +508,7 @@ class CoordinationAgent(BaseAgent):
                         "responsible_party": str(action.get("responsible_party", "")),
                         "time_window": str(action.get("time_window", ""))
                     })
+            validated_actions = reorder_actions_by_safety(validated_actions, signal.raw_text)
             validated_actions.sort(key=lambda x: x["priority"])
             result["immediate_actions"] = validated_actions[:5]
 
@@ -512,11 +563,13 @@ class CoordinationAgent(BaseAgent):
                         level_num = int(item.get("level", len(validated_ep) + 1))
                     except (ValueError, TypeError):
                         level_num = len(validated_ep) + 1
+                    raw_contact = str(item.get("contact", "Call 15100 DLSA / National helpline"))
+                    sanitized_contact = sanitize_contact_number(raw_contact)
                     validated_ep.append({
                         "level": level_num,
                         "authority": str(item.get("authority", "District Authority")),
                         "trigger": str(item.get("trigger", "Immediate if no response")),
-                        "contact": str(item.get("contact", "Call 15100 DLSA / National helpline"))
+                        "contact": sanitized_contact
                     })
             result["escalation_path"] = validated_ep[:3]
 
@@ -535,6 +588,21 @@ class CoordinationAgent(BaseAgent):
                         "time_sensitive": bool(item.get("time_sensitive", False))
                     })
             result["evidence_to_collect"] = validated_etc[:5]
+
+        # Protect Sentinel severity score from LLM downgrades
+        sentinel_severity_score = sentinel_result.get("severity_score", 0.5) if sentinel_result else 0.5
+        if result["overall_severity_score"] < sentinel_severity_score:
+            result["overall_severity_score"] = sentinel_severity_score
+            
+        # Keep overall_severity mapping correct if score is overridden
+        if result["overall_severity_score"] >= 0.8:
+            result["overall_severity"] = "critical"
+        elif result["overall_severity_score"] >= 0.6:
+            result["overall_severity"] = "high"
+        elif result["overall_severity_score"] >= 0.4:
+            result["overall_severity"] = "medium"
+        else:
+            result["overall_severity"] = "low"
 
         return result
 

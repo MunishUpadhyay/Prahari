@@ -5,6 +5,7 @@ Ingests Indian legal provisions into a ChromaDB vector store.
 
 import logging
 import chromadb
+from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,10 @@ def ingest_legal_documents():
     Prints confirmation for each document ingested.
     """
     # 1. Initialize local persistent client
-    client = chromadb.PersistentClient(path="rag/chroma_db")
+    client = chromadb.PersistentClient(
+        path="rag/chroma_db",
+        settings=Settings(anonymized_telemetry=False)
+    )
     
     # 2. Use local sentence-transformers model
     emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -531,7 +535,10 @@ def ingest_medical_protocols():
     Prints confirmation for each document ingested.
     """
     # 1. Initialize local persistent client
-    client = chromadb.PersistentClient(path="rag/chroma_db")
+    client = chromadb.PersistentClient(
+        path="rag/chroma_db",
+        settings=Settings(anonymized_telemetry=False)
+    )
     
     # 2. Use local sentence-transformers model
     emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -853,7 +860,10 @@ def ingest_incident_to_history(incident_id: str, situation_brief: str,
     logger.info("[ingest_incident_to_history] Ingesting incident_id=%s to incident_history", incident_id)
     try:
         # 1. Initialize persistent client
-        client = chromadb.PersistentClient(path="rag/chroma_db")
+        client = chromadb.PersistentClient(
+            path="rag/chroma_db",
+            settings=Settings(anonymized_telemetry=False)
+        )
         
         # 2. Use local sentence-transformers model
         emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(

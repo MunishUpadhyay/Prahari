@@ -218,3 +218,9 @@ CORS_ALLOW_ALL_ORIGINS = False
 # ---------------------------------------------------------------------------
 CITIZEN_API_KEY = env("CITIZEN_API_KEY", default="prahari_citizen_key_2026")
 
+# ---------------------------------------------------------------------------
+# RAG Relevance Thresholds (L2 Distance limits)
+# ---------------------------------------------------------------------------
+RAG_LEGAL_DISTANCE_THRESHOLD = 1.1
+RAG_MEDICAL_DISTANCE_THRESHOLD = 1.1
+

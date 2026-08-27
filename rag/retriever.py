@@ -1,6 +1,8 @@
 import logging
 import chromadb
+from chromadb.config import Settings
 from chromadb.utils import embedding_functions
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,10 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     """
     logger.info("Retrieving legal provisions for query: %r", query)
     try:
-        client = chromadb.PersistentClient(path="rag/chroma_db")
+        client = chromadb.PersistentClient(
+            path="rag/chroma_db",
+            settings=Settings(anonymized_telemetry=False)
+        )
         emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name="all-MiniLM-L6-v2"
         )
@@ -32,14 +37,23 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
             n_results=n_results
         )
         
+        # Centralized configurable threshold
+        max_dist = getattr(settings, "RAG_LEGAL_DISTANCE_THRESHOLD", 1.1)
+        
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
             return formatted_results
             
         for i in range(len(results["documents"][0])):
+            distance = results["distances"][0][i] if results["distances"] else 0.0
+            if distance > max_dist:
+                logger.info(
+                    "[retrieve_legal_provisions] Discarding result distance=%s > max_dist=%s",
+                    distance, max_dist
+                )
+                continue
             text = results["documents"][0][i]
             metadata = results["metadatas"][0][i] if results["metadatas"] else {}
-            distance = results["distances"][0][i] if results["distances"] else 0.0
             formatted_results.append({
                 "text": text,
                 "metadata": metadata,
@@ -65,7 +79,10 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
     """
     logger.info("Retrieving medical protocols for query: %r", query)
     try:
-        client = chromadb.PersistentClient(path="rag/chroma_db")
+        client = chromadb.PersistentClient(
+            path="rag/chroma_db",
+            settings=Settings(anonymized_telemetry=False)
+        )
         emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name="all-MiniLM-L6-v2"
         )
@@ -79,14 +96,23 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
             n_results=n_results
         )
         
+        # Centralized configurable threshold
+        max_dist = getattr(settings, "RAG_MEDICAL_DISTANCE_THRESHOLD", 1.1)
+        
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
             return formatted_results
             
         for i in range(len(results["documents"][0])):
+            distance = results["distances"][0][i] if results["distances"] else 0.0
+            if distance > max_dist:
+                logger.info(
+                    "[retrieve_medical_protocols] Discarding result distance=%s > max_dist=%s",
+                    distance, max_dist
+                )
+                continue
             text = results["documents"][0][i]
             metadata = results["metadatas"][0][i] if results["metadatas"] else {}
-            distance = results["distances"][0][i] if results["distances"] else 0.0
             formatted_results.append({
                 "text": text,
                 "metadata": metadata,
@@ -109,7 +135,10 @@ def retrieve_similar_incidents(query: str,
     """
     logger.info("Retrieving similar incidents for query: %r (exclude_id: %s)", query, exclude_id)
     try:
-        client = chromadb.PersistentClient(path="rag/chroma_db")
+        client = chromadb.PersistentClient(
+            path="rag/chroma_db",
+            settings=Settings(anonymized_telemetry=False)
+        )
         emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name="all-MiniLM-L6-v2"
         )

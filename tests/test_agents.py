@@ -278,3 +278,137 @@ def test_call_groq_structured_output_payload(settings, mock_groq_custom):
     
     # Restore retriever mock
     apps.agents.agents.retrieve_medical_protocols = orig_retrieve
+
+
+# ---------------------------------------------------------------------------
+# Phase 2B Reliability & Safety Tests
+# ---------------------------------------------------------------------------
+
+def test_rag_threshold_filtering(settings, monkeypatch):
+    from rag.retriever import retrieve_legal_provisions
+    settings.RAG_LEGAL_DISTANCE_THRESHOLD = 0.5
+    settings.RAG_MEDICAL_DISTANCE_THRESHOLD = 0.5
+    
+    mock_collection = MagicMock()
+    mock_collection.query.return_value = {
+        "documents": [["Relevant provision", "Irrelevant provision"]],
+        "metadatas": [[{"category": "test", "act": "test_act", "section": "1"}, {"category": "test", "act": "test_act", "section": "2"}]],
+        "distances": [[0.2, 0.8]]
+    }
+    mock_client = MagicMock()
+    mock_client.get_collection.return_value = mock_collection
+    monkeypatch.setattr("chromadb.PersistentClient", lambda *args, **kwargs: mock_client)
+    
+    results = retrieve_legal_provisions("test query")
+    assert len(results) == 1
+    assert results[0]["distance"] == 0.2
+    assert results[0]["text"] == "Relevant provision"
+
+
+def test_rag_empty_retrieval_behavior(monkeypatch):
+    from rag.retriever import retrieve_legal_provisions
+    mock_collection = MagicMock()
+    mock_collection.query.return_value = {
+        "documents": [[]],
+        "metadatas": [[]],
+        "distances": [[]]
+    }
+    mock_client = MagicMock()
+    mock_client.get_collection.return_value = mock_collection
+    monkeypatch.setattr("chromadb.PersistentClient", lambda *args, **kwargs: mock_client)
+    
+    legal_results = retrieve_legal_provisions("test query")
+    assert legal_results == []
+    
+    from apps.agents.agents import RightsAgent
+    agent = RightsAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "emergency"
+    
+    completion_called = False
+    def mock_call_groq(user_msg, **kwargs):
+        nonlocal completion_called
+        completion_called = True
+        assert "No sufficiently relevant knowledge-base material was retrieved." in user_msg
+        return "{}"
+    monkeypatch.setattr(agent, "call_groq", mock_call_groq)
+    agent.run(mock_signal)
+    assert completion_called is True
+
+
+def test_authority_contact_sanitization():
+    from apps.agents.directory import sanitize_contact_number
+    
+    assert sanitize_contact_number("01234-567890") == "Verified contact unavailable"
+    assert sanitize_contact_number("1800-HOME-SEC") == "Verified contact unavailable"
+    assert sanitize_contact_number("please call 9876543210") == "Verified contact unavailable"
+    assert sanitize_contact_number("") == "Verified contact unavailable"
+    
+    assert sanitize_contact_number("108") == "108"
+    assert sanitize_contact_number("100") == "100"
+
+
+def test_evidence_checklist_cases():
+    def bringChecklist_python(domain, nearest_authority_type, title, brief):
+        domainL = (domain or '').lower()
+        auth = (nearest_authority_type or '').strip()
+        textToMatch = ((title or '') + ' ' + (brief or '')).lower()
+        isTenantDispute = any(k in textToMatch for k in ['evict', 'tenant', 'rent', 'landlord', 'lease'])
+        
+        if auth == 'Police Complaint Authority' or 'fir refusal' in textToMatch or 'police refused' in textToMatch:
+            return 'fir_refusal'
+        elif isTenantDispute:
+            return 'eviction'
+        elif auth == 'Labour Court' or domainL == 'labour':
+            return 'wage_theft'
+        return 'general'
+        
+    assert bringChecklist_python("cross_domain", "DLSA", "Mass Shooting", "Emergency active shooter situation") == "general"
+    assert bringChecklist_python("legal", "DLSA", "Eviction notice", "Landlord threatened to lock me out of my apartment") == "eviction"
+
+
+def test_coordination_agent_emergency_priority():
+    from apps.agents.agents import reorder_actions_by_safety
+    
+    actions = [
+        {"priority": 1, "action": "File a civil lawsuit against landlord", "responsible_party": "Citizen", "time_window": "3 days"},
+        {"priority": 2, "action": "Call 108 ambulance immediately", "responsible_party": "Citizen", "time_window": "1 minute"}
+    ]
+    reordered = reorder_actions_by_safety(actions, "Active shooter incident, patient bleeding and needs hospital")
+    assert reordered[0]["priority"] == 1
+    assert "ambulance" in reordered[0]["action"]
+    assert reordered[1]["priority"] == 2
+    assert "lawsuit" in reordered[1]["action"]
+
+
+def test_coordination_agent_severity_protection():
+    from apps.agents.agents import CoordinationAgent
+    agent = CoordinationAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "Mass casualty event"
+    
+    sentinel_res = {"domain": "health", "requires_immediate_action": True, "severity_score": 0.9}
+    agent_outputs = {"triage": {"triage_severity": "immediate"}}
+    
+    import json
+    def mock_call_groq(*args, **kwargs):
+        return json.dumps({
+            "situation_title": "Title",
+            "overall_severity": "low",
+            "overall_severity_score": 0.2,
+            "what_is_happening": "x",
+            "immediate_actions": [],
+            "resources_needed": [],
+            "authorities_to_notify": [],
+            "situation_brief": "brief",
+            "escalation_required": False,
+            "estimated_resolution_time": "hours",
+            "conflict_resolution": None,
+            "escalation_path": [],
+            "evidence_to_collect": []
+        })
+        
+    agent.call_groq = mock_call_groq
+    result = agent.run(mock_signal, sentinel_res, agent_outputs)
+    assert result["overall_severity_score"] == 0.9
+    assert result["overall_severity"] == "critical"

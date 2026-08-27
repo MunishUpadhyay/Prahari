@@ -1210,7 +1210,7 @@ function bringChecklist(domain, nearest_authority_type, title, brief, lang = 'en
     
     if (auth === 'Police Complaint Authority' || textToMatch.includes('fir refusal') || textToMatch.includes('refusing to register') || textToMatch.includes('police refused')) {
         key = 'fir_refusal';
-    } else if (isTenantDispute || auth === 'DLSA' || auth === 'Magistrate Court') {
+    } else if (isTenantDispute) {
         key = 'eviction';
     } else if (auth === 'Labour Court' || domainL === 'labour' || textToMatch.includes('wage') || textToMatch.includes('salary') || textToMatch.includes('unpaid')) {
         key = 'wage_theft';
