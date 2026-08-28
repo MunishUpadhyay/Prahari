@@ -105,6 +105,7 @@ def citizen_submit(request):
             
             # Pass code to redirect page via session
             request.session[f"anon_code_{signal.id}"] = code
+            request.session[f"verified_{signal.id}"] = True
 
         logger.info("[Citizen Portal] Created signal %s, enqueuing Celery task", signal.id)
         
@@ -157,6 +158,15 @@ def citizen_signal_status_api(request, signal_id):
     Unauthenticated API endpoint for AJAX polling of pipeline status.
     """
     signal = resolve_signal(signal_id)
+    
+    # Enforce access code verification backend check for anonymous signals
+    stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
+    if stored_hash:
+        if not request.session.get(f"verified_{signal.id}"):
+            return JsonResponse({
+                "status": "unauthorized",
+                "message": "Anonymous access code verification required."
+            }, status=403)
     
     # Stuck pipeline check: if signal.status == 'processing' and is more than 5 minutes old
     from django.utils import timezone

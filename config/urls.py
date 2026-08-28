@@ -25,6 +25,7 @@ from apps.incidents.coordinator_views import (
     coordinator_incident_detail,
     coordinator_resolve_incident,
 )
+from apps.signals.utils import rate_limit_ip
 
 urlpatterns = [
     # Citizen Portal
@@ -49,8 +50,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # JWT auth
-    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/auth/token/", rate_limit_ip(limit=5, period=60, key_prefix="token")(TokenObtainPairView.as_view()), name="token_obtain_pair"),
+    path("api/auth/token/refresh/", rate_limit_ip(limit=10, period=60, key_prefix="token_refresh")(TokenRefreshView.as_view()), name="token_refresh"),
 
     # Domain APIs
     path("api/signals/", include("apps.signals.urls", namespace="signals")),

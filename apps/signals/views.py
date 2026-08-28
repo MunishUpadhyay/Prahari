@@ -64,6 +64,7 @@ from .models import Signal
 
 from .citizen_views import resolve_signal
 
+@method_decorator(rate_limit_ip(limit=5, period=60, key_prefix="verify"), name="dispatch")
 class SignalVerifyCodeView(APIView):
     """
     POST /api/signals/<signal_id>/verify-code/
@@ -85,6 +86,7 @@ class SignalVerifyCodeView(APIView):
         entered_hash = hashlib.sha256(code.encode()).hexdigest()
         
         if entered_hash == stored_hash:
+            request.session[f"verified_{signal.id}"] = True
             return Response({"valid": True}, status=status.HTTP_200_OK)
         else:
             return Response({"valid": False}, status=status.HTTP_200_OK)

@@ -27,6 +27,13 @@ def configure_settings(settings):
     # Exclude django.contrib.gis to prevent test database initialization errors on SQLite
     if "django.contrib.gis" in settings.INSTALLED_APPS:
         settings.INSTALLED_APPS.remove("django.contrib.gis")
+        
+    # Use LocMemCache for unit tests to prevent connecting to external Redis cache
+    settings.CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
 @pytest.fixture
 def mock_groq(monkeypatch):

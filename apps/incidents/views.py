@@ -38,13 +38,8 @@ class IncidentListView(ListAPIView):
     serializer_class = IncidentListSerializer
 
     def get_queryset(self):
-        # Stopgap tenant resolution — assumes a single active tenant.
-        # Not real multi-tenant routing; there is no User→Tenant relationship yet.
-        from apps.tenants.models import Tenant
-        tenant = Tenant.objects.filter(is_active=True).order_by('id').first()
-        if not tenant:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("No active tenant configured.")
+        from apps.tenants.utils import get_authorized_tenant
+        tenant = get_authorized_tenant(self.request)
         return Incident.objects.filter(signal__tenant=tenant).select_related("signal")
 
 
@@ -61,7 +56,9 @@ class IncidentDetailView(RetrieveUpdateAPIView):
     lookup_field = "id"
 
     def get_queryset(self):
-        return Incident.objects.select_related("signal").all()
+        from apps.tenants.utils import get_authorized_tenant
+        tenant = get_authorized_tenant(self.request)
+        return Incident.objects.filter(signal__tenant=tenant).select_related("signal")
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -100,7 +97,9 @@ class SimilarIncidentsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
+        from apps.tenants.utils import get_authorized_tenant
+        tenant = get_authorized_tenant(request)
+        incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant).select_related("signal"), id=id)
         query_text = incident.situation_brief or ""
         if not query_text:
             query_text = incident.signal.raw_text
@@ -204,7 +203,9 @@ class LegalNoticeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        incident = get_object_or_404(Incident.objects.select_related("signal"), id=id)
+        from apps.tenants.utils import get_authorized_tenant
+        tenant = get_authorized_tenant(request)
+        incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant).select_related("signal"), id=id)
         signal = incident.signal
         
         # Check domain

@@ -7,7 +7,7 @@ from django.http import JsonResponse
 logger = logging.getLogger(__name__)
 
 
-def rate_limit_ip(limit=10, period=3600):
+def rate_limit_ip(limit=10, period=3600, key_prefix="ingest"):
     """
     Decorator that rate-limits unauthenticated requests based on client IP.
     Authenticated API requests (containing Authorization headers) bypass this limit.
@@ -27,7 +27,7 @@ def rate_limit_ip(limit=10, period=3600):
                 ip = request.META.get("REMOTE_ADDR")
 
             # Check request timestamps in Cache
-            key = f"rate_limit_ingest_{ip}"
+            key = f"rate_limit_{key_prefix}_{ip}"
             request_timestamps = cache.get(key, [])
             
             now = time.time()

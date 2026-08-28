@@ -52,18 +52,20 @@ def coordinator_dashboard(request):
     GET /coordinator/dashboard/
     Renders the live incidents dashboard (login protected).
     """
+    from apps.tenants.utils import get_authorized_tenant
+    tenant = get_authorized_tenant(request)
     today = timezone.now().date()
     
     # Calculate stats for today
     stats = {
-        "total": Incident.objects.filter(created_at__date=today).count(),
-        "critical": Incident.objects.filter(created_at__date=today, severity_label=SeverityLevel.CRITICAL).count(),
-        "resolved": Incident.objects.filter(created_at__date=today, is_resolved=True).count(),
-        "pending": Incident.objects.filter(created_at__date=today, is_resolved=False).count(),
+        "total": Incident.objects.filter(signal__tenant=tenant, created_at__date=today).count(),
+        "critical": Incident.objects.filter(signal__tenant=tenant, created_at__date=today, severity_label=SeverityLevel.CRITICAL).count(),
+        "resolved": Incident.objects.filter(signal__tenant=tenant, created_at__date=today, is_resolved=True).count(),
+        "pending": Incident.objects.filter(signal__tenant=tenant, created_at__date=today, is_resolved=False).count(),
     }
 
     # Fetch last 50 incidents to populate the list on load
-    incidents = Incident.objects.select_related("signal").order_by("-created_at")[:50]
+    incidents = Incident.objects.filter(signal__tenant=tenant).select_related("signal").order_by("-created_at")[:50]
 
     # Convert incidents to list of dicts for JSON representation in JS
     incidents_data = []
@@ -110,8 +112,6 @@ def coordinator_dashboard(request):
         })
 
     # Pass tenant_id to connect to correct websocket group (first active tenant is default fallback)
-    from apps.tenants.models import Tenant
-    tenant = Tenant.objects.filter(is_active=True).first()
     tenant_id = str(tenant.id) if tenant else "default"
 
     # Generate last 7 days daily counts for trend visualization
@@ -119,7 +119,7 @@ def coordinator_dashboard(request):
     daily_counts = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
-        daily_counts.append(Incident.objects.filter(created_at__date=day).count())
+        daily_counts.append(Incident.objects.filter(signal__tenant=tenant, created_at__date=day).count())
 
     # Generate JWT token for API auth on page load
     from rest_framework_simplejwt.tokens import RefreshToken
@@ -143,7 +143,9 @@ def coordinator_incident_detail(request, incident_id):
     GET /coordinator/incident/<id>/
     Renders detailed tabbed view of a single incident.
     """
-    incident = get_object_or_404(Incident.objects.select_related("signal"), id=incident_id)
+    from apps.tenants.utils import get_authorized_tenant
+    tenant = get_authorized_tenant(request)
+    incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant).select_related("signal"), id=incident_id)
     outputs = incident.agent_outputs or {}
     import json
     # Ensure they are dicts if stored as strings
@@ -232,7 +234,9 @@ def coordinator_resolve_incident(request, incident_id):
     Marks the incident as resolved.
     """
     if request.method == "POST":
-        incident = get_object_or_404(Incident, id=incident_id)
+        from apps.tenants.utils import get_authorized_tenant
+        tenant = get_authorized_tenant(request)
+        incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant), id=incident_id)
         incident.is_resolved = True
         incident.resolved_at = timezone.now()
         incident.coordinator_status = 'resolved'
