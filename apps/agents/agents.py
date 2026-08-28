@@ -384,13 +384,60 @@ class TriageAgent(BaseAgent):
     prompt_name = "triage"
     max_tokens = 2000
 
+    def extract_symptoms_and_keywords(self, raw_text: str) -> str:
+        """
+        Extract clean medical symptoms, injuries, or emergency keywords from raw text.
+        Uses Groq with fallbacks.
+        """
+        from groq import Groq
+        from django.conf import settings
+        
+        api_keys = [k for k in [
+            getattr(settings, "GROQ_API_KEY", ""),
+            getattr(settings, "GROQ_API_KEY_2", ""),
+        ] if k]
+        if not api_keys:
+            return raw_text
+            
+        models = [self.model, "openai/gpt-oss-20b"]
+        system_prompt = (
+            "You are a medical triage assistant. Your task is to analyze the user's citizen report and extract the core physical symptoms, injuries, or medical crisis keywords. "
+            "Provide a space-separated list of 3-7 symptoms or medical/emergency terms (e.g. 'bleeding cut thigh wound' or 'chest pain pressure radiation sweat' or 'face droop arm weakness slurred speech'). "
+            "Do NOT include any conversational text, explanations, or quotes. Output ONLY the keywords."
+        )
+        
+        for model in models:
+            for api_key in api_keys:
+                try:
+                    client = Groq(api_key=api_key, max_retries=0)
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": f"Citizen report:\n\n{raw_text}"},
+                        ],
+                        temperature=0.1,
+                        max_tokens=64
+                    )
+                    keywords = response.choices[0].message.content.strip()
+                    if keywords:
+                        logger.info("[TriageAgent] Extracted symptoms and keywords: '%s'", keywords)
+                        return keywords
+                except Exception as e:
+                    logger.warning("[TriageAgent] Symptoms extraction fallback triggered for model %s: %s", model, e)
+                    continue
+        return raw_text
+
     def run(self, signal, sentinel_result=None) -> dict:
         logger.info("[TriageAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
 
-        # 1. Retrieve relevant medical protocols from local ChromaDB vector store
-        protocols = retrieve_medical_protocols(signal.raw_text, n_results=3)
+        # 1. Extract clean medical keywords/symptoms
+        search_query = self.extract_symptoms_and_keywords(signal.raw_text)
+
+        # 2. Retrieve relevant medical protocols from local ChromaDB vector store
+        protocols = retrieve_medical_protocols(search_query, n_results=3)
         
-        # 2. Format protocols context
+        # 3. Format protocols context
         if not protocols:
             protocols_text = "No sufficiently relevant knowledge-base material was retrieved."
         else:
@@ -400,7 +447,7 @@ class TriageAgent(BaseAgent):
                 protocols_text += f"Text: {prot['text']}\n"
                 protocols_text += f"Metadata: {prot['metadata']}\n"
 
-        # 3. Construct user message
+        # 4. Construct user message
         sentinel_domain = sentinel_result.get("domain") if sentinel_result else "health"
         user_message = (
             f"Signal text: {signal.raw_text}\n"
@@ -408,11 +455,11 @@ class TriageAgent(BaseAgent):
             f"Retrieved relevant medical protocols context:\n{protocols_text}"
         )
 
-        # 4. Call Groq LLM
+        # 5. Call Groq LLM
         raw_response = self.call_groq(user_message, response_schema=TriageSchema)
         result = self.parse_json_response(raw_response)
 
-        # 5. Validate output schema structure and fallback
+        # 6. Validate output schema structure and fallback
         if "triage_severity" not in result:
             result["triage_severity"] = "minor"
         if "primary_concern" not in result:
@@ -466,6 +513,64 @@ class TriageAgent(BaseAgent):
                         "when_to_call": str(item.get("when_to_call", "Immediately"))
                     })
             result["emergency_contacts"] = validated_contacts
+
+        # 7. Explicit Self-Harm Verification Check to prevent false positives
+        raw_text_lower = signal.raw_text.lower()
+        self_harm_terms = ["suicide", "end my life", "kill myself", "harm myself", "cut myself", "hang myself", "jump off", "want to die", "poison myself"]
+        has_explicit_self_harm = any(term in raw_text_lower for term in self_harm_terms)
+        
+        if result.get("required_facility") == "mental_health" and not has_explicit_self_harm:
+            logger.warning("[TriageAgent] False mental_health facility classification downgraded due to lack of explicit self-harm indicators.")
+            result["required_facility"] = "clinic" if result.get("triage_severity") == "minor" else "general_hospital"
+
+        # 8. Deterministic Medical Grounding and Safety Override
+        grounded_interventions = []
+        for intervention in result.get("interventions", []):
+            inter_lower = intervention.lower()
+            
+            # Burns Protocol
+            if "burn" in inter_lower or "scald" in inter_lower or "toothpaste" in inter_lower or "butter" in inter_lower:
+                action = "Apply cool running water for 20 minutes"
+                why = "cooling stops tissue damage and relieves pain"
+                skipped = "trapped heat worsens tissue destruction and increases infection risk"
+                how = "Apply cool, gently running water over the burn area for a minimum of 20 minutes immediately. Do NOT apply ice, butter, toothpaste, oil, or home remedies."
+                intervention = f"{action}: {why} — {skipped} — {how}"
+                
+            # Snake Bite Protocol
+            elif "snake" in inter_lower or "bite" in inter_lower or "venom" in inter_lower:
+                action = "Immobilize limb and seek anti-venom"
+                why = "slowing venom spread is vital before hospital arrival"
+                skipped = "increased circulation spreads venom rapidly throughout the body"
+                how = "Keep the affected limb completely immobilized and at or below heart level. Do NOT cut the wound, do NOT attempt to suck venom out, and do NOT apply a tight arterial tourniquet. Reach hospital with ASV within 2 hours."
+                intervention = f"{action}: {why} — {skipped} — {how}"
+                
+            # Spinal Injury Protocol
+            elif "spinal" in inter_lower or "spine" in inter_lower or "neck" in inter_lower or "immobil" in inter_lower:
+                action = "Strict spinal immobilization"
+                why = "prevents secondary permanent neurological damage"
+                skipped = "improper movement can cause permanent spinal cord transection and irreversible paralysis"
+                how = "Do NOT move the patient without proper spinal precautions. Apply a hard cervical collar immediately. Use the 'log roll' technique only, requiring at least three trained responders."
+                intervention = f"{action}: {why} — {skipped} — {how}"
+                
+            # STEMI Heart Attack
+            elif "stemi" in inter_lower or "heart attack" in inter_lower or "chest pain" in inter_lower or "aspirin" in inter_lower:
+                action = "Administer Aspirin 325mg to chew"
+                why = "Aspirin prevents further platelet aggregation and arterial clotting"
+                skipped = "blocked coronary artery continues to starve cardiac muscle leading to permanent necrosis"
+                how = "Administer Aspirin 325mg orally (to be chewed immediately, not swallowed whole)."
+                intervention = f"{action}: {why} — {skipped} — {how}"
+
+            # Hospital Denial Treatment
+            elif result.get("hospital_denial_detected") and ("deny" in inter_lower or "refuse" in inter_lower or "admission" in inter_lower):
+                action = "Escalate denial and seek immediate treatment"
+                why = "emergency aid is an absolute obligation under Supreme Court Parmanand Katara ruling"
+                skipped = "withholding life-saving care causes irreversible damage or death"
+                how = "Document the denial, escalate to Chief Medical Officer (CMO), request immediate transfer details, and contact DLSA for intervention."
+                intervention = f"{action}: {why} — {skipped} — {how}"
+                
+            grounded_interventions.append(intervention)
+            
+        result["interventions"] = grounded_interventions
 
         return result
 

@@ -2,18 +2,73 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Master directory database (currently empty, ready for future expansion)
+# Master directory database containing official national helplines and verified authorities
 # Key format: (authority_name, jurisdiction)
 VERIFIED_DIRECTORY = {
-    # Example structure:
-    # ("National Ambulance", "National"): {
-    #     "authority": "National Ambulance",
-    #     "jurisdiction": "National",
-    #     "contact": "108",
-    #     "source": "Official Gov Helpline",
-    #     "verified": True,
-    #     "last_verified": "2026-08-28"
-    # }
+    ("National Ambulance", "National"): {
+        "authority": "National Ambulance",
+        "jurisdiction": "National",
+        "contact": "108",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Janani Shishu Suraksha Karyakram / Pregnancy Ambulance", "National"): {
+        "authority": "Janani Shishu Suraksha Karyakram / Pregnancy Ambulance",
+        "jurisdiction": "National",
+        "contact": "102",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("National Emergency Helpline", "National"): {
+        "authority": "National Emergency Helpline",
+        "jurisdiction": "National",
+        "contact": "112",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Tele-MANAS Mental Health Helpline", "National"): {
+        "authority": "Tele-MANAS Mental Health Helpline",
+        "jurisdiction": "National",
+        "contact": "14416",
+        "source": "Ministry of Health & Family Welfare Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Kiran Mental Health Helpline", "National"): {
+        "authority": "Kiran Mental Health Helpline",
+        "jurisdiction": "National",
+        "contact": "1800-599-0019",
+        "source": "Ministry of Social Justice Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Childline", "National"): {
+        "authority": "Childline",
+        "jurisdiction": "National",
+        "contact": "1098",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Women Helpline", "National"): {
+        "authority": "Women Helpline",
+        "jurisdiction": "National",
+        "contact": "1091",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    },
+    ("Police", "National"): {
+        "authority": "Police",
+        "jurisdiction": "National",
+        "contact": "100",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-08-28"
+    }
 }
 
 def get_verified_contact(authority_name: str, jurisdiction: str = "National") -> dict:
@@ -62,8 +117,11 @@ def sanitize_contact_number(number: str) -> str:
         if p in num_clean:
             return "Verified contact unavailable"
             
-    # Known official national emergency lines are allowed
-    known_emergency = {"108", "100", "101", "102", "1091", "112"}
+    # Known official national emergency/support lines are allowed
+    known_emergency = {
+        "108", "100", "101", "102", "1091", "112", "1098", "14416",
+        "1800-599-0019", "18005990019"
+    }
     if num_clean in known_emergency:
         return num_clean
         

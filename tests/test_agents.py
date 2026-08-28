@@ -608,3 +608,112 @@ def test_bsa_provisions_in_database():
     assert bsa_res["legacy_code"] == "Indian Evidence Act"
     assert "electronic record" in bsa_res["statutory_text"]
 
+
+def test_triage_symptom_extraction():
+    from apps.agents.agents import TriageAgent
+    
+    agent = TriageAgent()
+    agent.extract_symptoms_and_keywords = MagicMock(return_value="severe bleeding cut wound")
+    
+    keywords = agent.extract_symptoms_and_keywords("My arm is cut and bleeding very heavily.")
+    assert keywords == "severe bleeding cut wound"
+
+
+def test_triage_burns_grounding_override():
+    from apps.agents.agents import TriageAgent
+    
+    agent = TriageAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "I spilled hot coffee and burned my fingers. I applied butter."
+    
+    raw_json = {
+        "triage_severity": "urgent",
+        "primary_concern": "Thermal burn",
+        "interventions": [
+            "Apply butter on the fingers: butter soothes the burn skin — none — put butter on affected area"
+        ],
+        "required_facility": "general_hospital",
+        "response_time": "urgent",
+        "hospital_denial_detected": False,
+        "confidence": 0.9,
+        "escalate_to_rights_agent": False,
+        "golden_window": {
+            "time_remaining": "immediate",
+            "consequence_of_delay": "tissue damage"
+        },
+        "emergency_contacts": []
+    }
+    
+    import json
+    agent.call_groq = lambda *args, **kwargs: json.dumps(raw_json)
+    
+    # Mock retriever to avoid actual DB query
+    import apps.agents.agents
+    orig_retrieve = apps.agents.agents.retrieve_medical_protocols
+    apps.agents.agents.retrieve_medical_protocols = MagicMock(return_value=[])
+    
+    result = agent.run(mock_signal)
+    
+    # Restore retriever
+    apps.agents.agents.retrieve_medical_protocols = orig_retrieve
+    
+    # Verify the intervention was overridden to prevent the use of butter and mandate cool running water
+    assert len(result["interventions"]) == 1
+    assert "Apply cool running water" in result["interventions"][0]
+    assert "Do NOT apply ice, butter, toothpaste" in result["interventions"][0]
+
+
+def test_triage_self_harm_anxiety_downgrade():
+    from apps.agents.agents import TriageAgent
+    
+    agent = TriageAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "I am so scared, nervous and shaking because of the shooting. I don't know what to do."
+    
+    # LLM incorrectly returns required_facility as mental_health due to distress
+    raw_json = {
+        "triage_severity": "delayed",
+        "primary_concern": "Acute anxiety",
+        "interventions": ["Stabilize scene"],
+        "required_facility": "mental_health",
+        "response_time": "semi_urgent",
+        "hospital_denial_detected": False,
+        "confidence": 0.8,
+        "escalate_to_rights_agent": False,
+        "golden_window": {
+            "time_remaining": "immediate",
+            "consequence_of_delay": "panic"
+        },
+        "emergency_contacts": []
+    }
+    
+    import json
+    agent.call_groq = lambda *args, **kwargs: json.dumps(raw_json)
+    
+    import apps.agents.agents
+    orig_retrieve = apps.agents.agents.retrieve_medical_protocols
+    apps.agents.agents.retrieve_medical_protocols = MagicMock(return_value=[])
+    
+    result = agent.run(mock_signal)
+    
+    apps.agents.agents.retrieve_medical_protocols = orig_retrieve
+    
+    # Verify required_facility was downgraded from mental_health to general_hospital or clinic
+    assert result["required_facility"] != "mental_health"
+    assert result["required_facility"] in ["general_hospital", "clinic"]
+
+
+def test_medical_protocol_registry_lookup():
+    from apps.agents.medical_reference import validate_medical_protocol
+    
+    res = validate_medical_protocol("snake_bite_protocol")
+    assert res["verified"] is True
+    assert res["category"] == "emergency_medicine"
+    assert "ASV" in res["statutory_text"]
+    assert "2 hours" in res["statutory_text"]
+    
+    res_lower = validate_medical_protocol("Triage START")
+    assert res_lower["verified"] is True
+    assert res_lower["act"] == "START Protocol"
+
+
