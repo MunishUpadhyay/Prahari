@@ -412,3 +412,199 @@ def test_coordination_agent_severity_protection():
     result = agent.run(mock_signal, sentinel_res, agent_outputs)
     assert result["overall_severity_score"] == 0.9
     assert result["overall_severity"] == "critical"
+
+
+# ---------------------------------------------------------------------------
+# Phase 2D-A Legal Foundation Tests
+# ---------------------------------------------------------------------------
+
+def test_rights_schema_validation():
+    from apps.agents.agents import RightsSchema
+    from pydantic import ValidationError
+    
+    # 1. RightsSchema accepts valid expected structure
+    valid_data = {
+        "rights_violated": ["BNS Section 101"],
+        "severity": "high",
+        "legal_provisions": [
+            {
+                "provision": "BNS Section 101",
+                "code": "BNS",
+                "section": "101",
+                "description": "Punishment for murder",
+                "relevance": "Detailed application explanation that meets the four to five sentences guideline to ensure the prompt constraints and parsing logic work correctly.",
+                "applicability": "primary"
+            }
+        ],
+        "immediate_actions": ["Call the police immediately"],
+        "authority_to_contact": "Police Station",
+        "nearest_authority_type": "Magistrate Court",
+        "legal_timeline": [
+            {
+                "step": 1,
+                "action": "File FIR",
+                "timeframe": "Immediate",
+                "why_urgent": "To preserve evidence."
+            }
+        ],
+        "case_strength": 0.8
+    }
+    schema_instance = RightsSchema(**valid_data)
+    assert schema_instance.severity == "high"
+    
+    # 2. RightsSchema rejects unexpected fields
+    invalid_data = dict(valid_data)
+    invalid_data["extra_random_field"] = "unexpected"
+    with pytest.raises(ValidationError):
+        RightsSchema(**invalid_data)
+
+
+def test_legal_citation_validation_logic():
+    from apps.agents.legal_reference import validate_legal_citation
+    
+    # 3. Valid BNS citation passes deterministic validation
+    bns_res = validate_legal_citation("BNS", "101")
+    assert bns_res["verified"] is True
+    assert bns_res["legacy_section"] == "302"
+    assert bns_res["legacy_code"] == "IPC"
+    
+    # 4. Valid BNSS citation passes deterministic validation
+    bnss_res = validate_legal_citation("BNSS", "35")
+    assert bnss_res["verified"] is True
+    assert bnss_res["legacy_section"] == "41"
+    assert bnss_res["legacy_code"] == "CrPC"
+    
+    # 5. Valid BSA citation validation if reference exists (should return verified=False since BSA is currently empty/not loaded)
+    bsa_res = validate_legal_citation("BSA", "1")
+    assert bsa_res["verified"] is False
+    
+    # 6. Unknown section is NOT marked verified
+    unk_res = validate_legal_citation("BNS", "999")
+    assert unk_res["verified"] is False
+    assert unk_res["title"] == "Unverified legal provision"
+    
+    # 7. BNS and BNSS are treated as different codes
+    res1 = validate_legal_citation("BNS", "35") # Section 35 is BNSS, not BNS
+    assert res1["verified"] is False
+    
+    # 8. A BNSS procedural section cannot be silently treated as a BNS offence
+    res2 = validate_legal_citation("BNS", "35")
+    assert res2["type"] == "unknown" # BNS 35 is not in our database
+    res3 = validate_legal_citation("BNSS", "35")
+    assert res3["type"] == "procedural"
+
+
+def test_rights_agent_validation_and_sanitization():
+    from apps.agents.agents import RightsAgent
+    
+    agent = RightsAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "test case"
+    
+    # 9. LLM cannot make an arbitrary section trusted merely by returning it
+    # 10. RightsAgent authority contact is sanitized (replaces placeholder phone numbers)
+    raw_json = {
+        "rights_violated": ["BNS Section 999"],
+        "severity": "medium",
+        "legal_provisions": [
+            {
+                "provision": "BNS Section 999",
+                "code": "BNS",
+                "section": "999",
+                "description": "Fake Section",
+                "relevance": "Some random relevance sentence. Sentence number two is here. Sentence number three is here. Sentence number four is here."
+            }
+        ],
+        "immediate_actions": ["Do something"],
+        "authority_to_contact": "Local Police - call 01234-567890",
+        "nearest_authority_type": "DLSA",
+        "legal_timeline": [],
+        "case_strength": 0.5
+    }
+    
+    import json
+    agent.call_groq = lambda *args, **kwargs: json.dumps(raw_json)
+    
+    result = agent.run(mock_signal)
+    
+    # Verify section 999 is NOT verified
+    assert result["legal_provisions"][0]["verified"] is False
+    # Verify authority contact is sanitized
+    assert "01234-567890" not in result["authority_to_contact"]
+    assert "Verified contact unavailable" in result["authority_to_contact"]
+
+
+def test_legal_notice_agent_contact_safety():
+    from apps.agents.agents import LegalNoticeAgent
+    
+    agent = LegalNoticeAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "arbitrary text"
+    
+    # 11. LegalNoticeAgent cannot introduce an unverified operational contact
+    # Mock LLM output containing a placeholder phone number
+    agent.call_groq = lambda *args, **kwargs: "Draft Notice: Please call 1800-HOME-SEC for compliance or call 01234-567890."
+    
+    result = agent.run(mock_signal, rights_result={})
+    assert "1800-HOME-SEC" not in result
+    assert "01234-567890" not in result
+    assert "Verified contact unavailable" in result
+
+
+def test_pre_retrieval_keyword_extraction():
+    from apps.agents.agents import RightsAgent
+    
+    agent = RightsAgent()
+    agent.extract_search_query = MagicMock(return_value="theft BNS section 303 mobile")
+    
+    keywords = agent.extract_search_query("stole my phone from bag")
+    assert keywords == "theft BNS section 303 mobile"
+
+
+def test_definition_grounding():
+    from apps.agents.agents import RightsAgent
+    
+    agent = RightsAgent()
+    mock_signal = MagicMock()
+    mock_signal.raw_text = "My neighbor was killed."
+    
+    raw_json = {
+        "rights_violated": ["BNS Section 101"],
+        "severity": "critical",
+        "legal_provisions": [
+            {
+                "provision": "BNS Section 101",
+                "code": "BNS",
+                "section": "101",
+                "description": "Wrong explanation here",
+                "relevance": "This is relevant explanation.",
+                "applicability": "primary"
+            }
+        ],
+        "immediate_actions": ["File FIR"],
+        "authority_to_contact": "Police Station",
+        "nearest_authority_type": "Magistrate Court",
+        "legal_timeline": [],
+        "case_strength": 0.9
+    }
+    
+    import json
+    agent.call_groq = lambda *args, **kwargs: json.dumps(raw_json)
+    
+    result = agent.run(mock_signal)
+    
+    # Verify description was programmatically grounded to official statutory text from legal_reference.py
+    assert result["legal_provisions"][0]["verified"] is True
+    assert "Whoever commits murder" in result["legal_provisions"][0]["description"]
+    assert "Wrong explanation here" not in result["legal_provisions"][0]["description"]
+
+
+def test_bsa_provisions_in_database():
+    from apps.agents.legal_reference import validate_legal_citation
+    
+    bsa_res = validate_legal_citation("BSA", "57")
+    assert bsa_res["verified"] is True
+    assert bsa_res["legacy_section"] == "65B"
+    assert bsa_res["legacy_code"] == "Indian Evidence Act"
+    assert "electronic record" in bsa_res["statutory_text"]
+

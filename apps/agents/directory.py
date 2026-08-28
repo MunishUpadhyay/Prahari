@@ -70,3 +70,31 @@ def sanitize_contact_number(number: str) -> str:
     # Since they are not verified in our master database/structure,
     # return the explicit unavailable string to prevent fake phone numbers.
     return "Verified contact unavailable"
+
+
+def sanitize_text_contacts(text: str) -> str:
+    """
+    Scans a text string for phone numbers/placeholders and sanitizes them
+    without corrupting section numbers, case numbers, or dates.
+    """
+    if not text:
+        return text
+    
+    import re
+    
+    # Explicitly catch and replace the known placeholder number patterns case-insensitively
+    placeholders = [
+        r"\b01234[- ]\d{5,6}\b",
+        r"\b1800[- ][a-zA-Z0-9_-]{7,10}\b",
+        r"\b1800[- ]home[- ]sec\b",
+        r"\b01234[- ]567890\b",
+        r"\b98765[- ]43210\b",
+        r"\b9876543210\b"
+    ]
+    
+    res = text
+    for pattern in placeholders:
+        res = re.sub(pattern, "Verified contact unavailable", res, flags=re.IGNORECASE)
+        
+    return res
+

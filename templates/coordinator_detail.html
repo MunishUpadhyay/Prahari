@@ -1303,15 +1303,35 @@
             `;
 
             // Legal Provisions
-            let provisionsHtml = provisions.map(p => `
+            let provisionsHtml = provisions.map(p => {
+                const isVer = p.verified === true;
+                const badgeText = isVer 
+                    ? (isHindi ? '✓ सत्यापित' : '✓ Verified')
+                    : (isHindi ? '⚠ असत्यापित' : '⚠ Unverified');
+                const badgeColor = isVer ? '#22c55e' : '#eab308';
+                const badgeBg = isVer ? 'rgba(34,197,94,0.1)' : 'rgba(234,179,8,0.1)';
+                
+                const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
+                const legacyHtml = hasLegacy 
+                    ? `<div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;"><strong>${isHindi ? 'पुराना संदर्भ' : 'Legacy Reference'}:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>`
+                    : '';
+
+                const appVal = p.applicability || 'primary';
+                const appLabel = isHindi ? (appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित') : appVal;
+                const appBadge = `<span style="font-size: 0.7rem; text-transform: uppercase; padding: 0.1rem 0.3rem; border-radius: 3px; background: rgba(56,189,248,0.1); color: #38bdf8; font-weight: bold; margin-left: 0.5rem;">${appLabel}</span>`;
+
+                return `
                 <li class="tech-list-item">
-                    <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
-                        <strong style="color: #fff;">${p.provision}</strong>
+                    <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem;">
+                        <strong style="color: #fff;">${p.provision} ${appBadge}</strong>
+                        <span style="font-size: 0.75rem; font-weight: bold; padding: 0.15rem 0.35rem; border-radius: 4px; color: ${badgeColor}; background: ${badgeBg};">${badgeText}</span>
                     </div>
-                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.35rem;">${p.relevance}</div>
+                    ${legacyHtml}
+                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0.35rem; margin-bottom: 0.35rem;">${p.relevance}</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">${p.description || ''}</div>
                 </li>
-            `).join('');
+                `;
+            }).join('');
             html += `
                 <div class="tech-card full-width">
                     <div class="tech-card-label">${isHindi ? 'कानूनी प्रावधान' : 'Legal Provisions'}</div>

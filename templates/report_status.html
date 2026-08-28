@@ -1693,10 +1693,29 @@ function renderResult(result) {
             const relevanceHi = pHi.relevance || p.relevance;
             const remedyHi = extractRemedy(relevanceHi);
             
+            const isVer = p.verified === true;
+            const badgeEn = isVer 
+                ? `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#dcfce7;color:#15803d;">✓ Verified legal source</div>`
+                : `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#fef3c7;color:#b45309;">⚠ Provision could not be verified</div>`;
+            const badgeHi = isVer
+                ? `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#dcfce7;color:#15803d;">✓ सत्यापित कानूनी स्रोत</div>`
+                : `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#fef3c7;color:#b45309;">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
+
+            const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
+            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:#9ca3af;margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
+            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:#9ca3af;margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
+
+            const appVal = p.applicability || 'primary';
+            const appLabelHi = appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित';
+            const appBadgeEn = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .3rem;border-radius:3px;margin-left:.5rem;background:#e0f2fe;color:#0369a1;font-weight:bold;">${appVal}</span>`;
+            const appBadgeHi = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .3rem;border-radius:3px;margin-left:.5rem;background:#e0f2fe;color:#0369a1;font-weight:bold;">${appLabelHi}</span>`;
+
             return `
             <div class="right-card">
-                <div class="right-card-title loc-en">${p.provision || ''}</div>
-                <div class="right-card-title loc-hi" lang="hi">${pHi.provision || p.provision || ''}</div>
+                <div class="right-card-title loc-en">${p.provision || ''} ${appBadgeEn}</div>
+                <div class="right-card-title loc-hi" lang="hi">${pHi.provision || p.provision || ''} ${appBadgeHi}</div>
+                <div class="loc-en">${badgeEn} ${legacyEn}</div>
+                <div class="loc-hi" lang="hi">${badgeHi} ${legacyHi}</div>
                 <div class="right-card-desc loc-en">${p.description || ''}</div>
                 <div class="right-card-desc loc-hi" lang="hi">${pHi.description || p.description || ''}</div>
                 <div class="right-card-body">

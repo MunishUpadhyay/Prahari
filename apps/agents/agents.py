@@ -19,7 +19,8 @@ from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict
 
 from .base import BaseAgent
-from .directory import sanitize_contact_number
+from .directory import sanitize_contact_number, sanitize_text_contacts
+from .legal_reference import validate_legal_citation
 from rag.retriever import retrieve_legal_provisions, retrieve_medical_protocols
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,34 @@ class CoordinationSchema(BaseModel):
     evidence_to_collect: List[EvidenceItemSchema]
 
 
+class LegalTimelineStepSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    step: int
+    action: str = Field(description="Specific legal action")
+    timeframe: str = Field(description="Timeframe for the action")
+    why_urgent: str = Field(description="Reason for urgency")
+
+class LegalProvisionItemSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    provision: str = Field(description="Dual citation name or section name, e.g. 'BNS Section 101'")
+    code: str = Field(description="The code name: 'BNS', 'BNSS', 'BSA', 'Constitution', 'Specific Relief Act', etc.")
+    section: str = Field(description="Section number or identifier only, e.g. '101', '115(2)', 'Article 21'")
+    description: str = Field(description="Brief summary of the provision")
+    relevance: str = Field(description="Detailed explanation. What this provision says, the facts triggering it, what the violating party is doing wrong, and available remedies (4-5 sentences)")
+    applicability: Literal["primary", "secondary", "uncertain"] = Field(description="Applicability level of this provision to the incident")
+
+class RightsSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    rights_violated: List[str] = Field(description="Names of articles or sections violated (dual citation format where applicable)")
+    severity: Literal["critical", "high", "medium", "low"]
+    legal_provisions: List[LegalProvisionItemSchema]
+    immediate_actions: List[str] = Field(description="Concrete steps the citizen should take immediately")
+    authority_to_contact: str = Field(description="Target authority name to contact")
+    nearest_authority_type: Literal["DLSA", "High Court", "Consumer Forum", "Labour Court", "Police Complaint Authority", "Magistrate Court"]
+    legal_timeline: List[LegalTimelineStepSchema] = Field(description="Timeline of legal actions (max 4 steps)")
+    case_strength: float = Field(description="Case strength score between 0.0 and 1.0")
+
+
 # ---------------------------------------------------------------------------
 # Sentinel Agent
 # ---------------------------------------------------------------------------
@@ -159,7 +188,8 @@ class RightsAgent(BaseAgent):
                 {
                     "provision": str,
                     "description": str,
-                    "relevance": str
+                    "relevance": str,
+                    "applicability": str
                 }
             ],
             "immediate_actions": [str],
@@ -171,13 +201,60 @@ class RightsAgent(BaseAgent):
     prompt_name = "rights"
     max_tokens = 2000
 
+    def extract_search_query(self, raw_text: str) -> str:
+        """
+        Extract key search terms and legal keywords from raw citizen text.
+        Uses Groq with fallbacks.
+        """
+        from groq import Groq
+        from django.conf import settings
+        
+        api_keys = [k for k in [
+            getattr(settings, "GROQ_API_KEY", ""),
+            getattr(settings, "GROQ_API_KEY_2", ""),
+        ] if k]
+        if not api_keys:
+            return raw_text
+            
+        models = [self.model, "openai/gpt-oss-20b"]
+        system_prompt = (
+            "You are a legal assistant. Your task is to analyze the user's citizen report and extract the core legal facts and keywords. "
+            "Provide a space-separated list of 3-7 search terms and legal keywords (e.g. 'theft robbery knife threat' or 'eviction lockout landlord lease' or 'police arrest custody detention'). "
+            "Do NOT include any conversational text, explanations, or quotes. Output ONLY the keywords."
+        )
+        
+        for model in models:
+            for api_key in api_keys:
+                try:
+                    client = Groq(api_key=api_key, max_retries=0)
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": f"Citizen report:\n\n{raw_text}"},
+                        ],
+                        temperature=0.1,
+                        max_tokens=64
+                    )
+                    keywords = response.choices[0].message.content.strip()
+                    if keywords:
+                        logger.info("[RightsAgent] Extracted search keywords: '%s'", keywords)
+                        return keywords
+                except Exception as e:
+                    logger.warning("[RightsAgent] Keyword extraction fallback triggered for model %s: %s", model, e)
+                    continue
+        return raw_text
+
     def run(self, signal, sentinel_result=None) -> dict:
         logger.info("[RightsAgent] Running on signal %s", getattr(signal, 'id', 'mock_id'))
 
-        # 1. Retrieve relevant legal provisions from local ChromaDB vector store
-        provisions = retrieve_legal_provisions(signal.raw_text, n_results=3)
+        # 1. Extract clean legal keywords from the raw citizen report
+        search_query = self.extract_search_query(signal.raw_text)
+
+        # 2. Retrieve relevant legal provisions from local ChromaDB vector store
+        provisions = retrieve_legal_provisions(search_query, n_results=5)
         
-        # 2. Format provisions context
+        # 3. Format provisions context
         if not provisions:
             provisions_text = "No sufficiently relevant knowledge-base material was retrieved."
         else:
@@ -187,7 +264,7 @@ class RightsAgent(BaseAgent):
                 provisions_text += f"Text: {prov['text']}\n"
                 provisions_text += f"Metadata: {prov['metadata']}\n"
 
-        # 3. Construct user message
+        # 4. Construct user message
         sentinel_domain = sentinel_result.get("domain") if sentinel_result else "legal"
         user_message = (
             f"Signal text: {signal.raw_text}\n"
@@ -195,11 +272,11 @@ class RightsAgent(BaseAgent):
             f"Retrieved relevant Indian legal provisions context:\n{provisions_text}"
         )
 
-        # 4. Call Groq LLM
-        raw_response = self.call_groq(user_message)
+        # 5. Call Groq LLM with strict RightsSchema structured output
+        raw_response = self.call_groq(user_message, response_schema=RightsSchema)
         result = self.parse_json_response(raw_response)
 
-        # 5. Validate output schema structure
+        # 6. Validate output schema structure and sanitize
         if not isinstance(result.get("rights_violated"), list):
             result["rights_violated"] = []
         if not isinstance(result.get("legal_provisions"), list):
@@ -208,8 +285,11 @@ class RightsAgent(BaseAgent):
             result["immediate_actions"] = []
         if "severity" not in result:
             result["severity"] = "medium"
-        if "authority_to_contact" not in result:
-            result["authority_to_contact"] = "Local Legal Services Authority"
+            
+        # Sanitize authority_to_contact
+        raw_auth = result.get("authority_to_contact") or "Local Legal Services Authority"
+        result["authority_to_contact"] = sanitize_text_contacts(raw_auth)
+        
         try:
             result["case_strength"] = float(result.get("case_strength", 0.5))
         except (ValueError, TypeError):
@@ -250,6 +330,27 @@ class RightsAgent(BaseAgent):
                     })
             timeline = validated_timeline[:4]
         result["legal_timeline"] = timeline
+
+        # 7. Apply deterministic citation validation and statutory grounding
+        validated_provisions = []
+        for item in result.get("legal_provisions", []):
+            if isinstance(item, dict):
+                code = item.get("code")
+                sec = item.get("section")
+                
+                # Perform lookup in controlled database
+                cit = validate_legal_citation(code, sec)
+                
+                item_copy = dict(item)
+                item_copy["verified"] = cit["verified"]
+                item_copy["legacy_code"] = cit["legacy_code"]
+                item_copy["legacy_section"] = cit["legacy_section"]
+                item_copy["provision_type"] = cit["type"]
+                # Programmatically overwrite description with official statutory text if verified
+                if cit["verified"]:
+                    item_copy["description"] = cit["statutory_text"]
+                validated_provisions.append(item_copy)
+        result["legal_provisions"] = validated_provisions
 
         return result
 
@@ -813,6 +914,6 @@ class LegalNoticeAgent(BaseAgent):
         )
 
         raw_response = self.call_groq(user_message)
-        # We do NOT parse it as JSON, just return the raw string response
-        return raw_response.strip()
+        # We do NOT parse it as JSON, just return the raw string response after contact sanitizing
+        return sanitize_text_contacts(raw_response.strip())
 
