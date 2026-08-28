@@ -1,0 +1,342 @@
+{
+	"info": {
+		"_postman_id": "c6204cbb-5ef7-47b2-921a-289d02c89fbf",
+		"name": "Prahari",
+		"description": "API requests for Prahari - Incident Response and Decision Support System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Obtain Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username_placeholder}}\",\n    \"password\": \"{{password_placeholder}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/token/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"token",
+								""
+							]
+						},
+						"description": "Obtain simple JWT token pair for Coordinator"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/token/refresh/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"token",
+								"refresh",
+								""
+							]
+						},
+						"description": "Refresh access JWT token using rotated refresh token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Citizen",
+			"item": [
+				{
+					"name": "Submit Signal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"raw_text\": \"Emergency: Patient requires immediate medical aid.\",\n    \"source_type\": \"text\",\n    \"location\": \"28.6139, 77.2090\",\n    \"metadata\": {\n        \"contact_number\": \"+91-9876543210\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/signals/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"signals",
+								""
+							]
+						},
+						"description": "Citizen submits an incident signal"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Tracking Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"{{tracking_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/signals/{{signal_id}}/verify-code/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"signals",
+								"{{signal_id}}",
+								"verify-code",
+								""
+							]
+						},
+						"description": "Verifies citizen anonymous signal tracking code to authorize session status requests"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Signal Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/report/{{signal_id}}/status/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"report",
+								"{{signal_id}}",
+								"status",
+								""
+							]
+						},
+						"description": "Get polling status and processed result for a citizen signal"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Coordinator",
+			"item": [
+				{
+					"name": "List Incidents",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/incidents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"incidents",
+								""
+							]
+						},
+						"description": "List incidents belonging to the authorized tenant (Coordinator JWT required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Incident",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/incidents/{{incident_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"incidents",
+								"{{incident_id}}",
+								""
+							]
+						},
+						"description": "Retrieve full incident details (Coordinator JWT required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Incident",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"coordinator_status\": \"under_review\",\n    \"coordinator_notes\": \"Investigating medical first-aid overrides.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/incidents/{{incident_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"incidents",
+								"{{incident_id}}",
+								""
+							]
+						},
+						"description": "Update coordinator status or notes for an incident (Coordinator JWT required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Similar Incidents",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/incidents/{{incident_id}}/similar/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"incidents",
+								"{{incident_id}}",
+								"similar",
+								""
+							]
+						},
+						"description": "Retrieve top similar past incidents and resolution rates (Coordinator JWT required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Legal Notice",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/incidents/{{incident_id}}/legal-notice/?lang=english",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"incidents",
+								"{{incident_id}}",
+								"legal-notice",
+								""
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "english"
+								}
+							]
+						},
+						"description": "Generates a formal legal notice letter based on statutory text violations (Coordinator JWT required)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
