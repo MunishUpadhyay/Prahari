@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}Prahari — Report an Incident{% endblock %}
 
 {% block extra_css %}
     <style>
-        /* Form Specific Styles */
         main {
             flex: 1;
             max-width: 680px;
@@ -13,27 +12,7 @@
             padding: 3rem 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-        }
-
-        .login-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.25s ease;
-            padding: 8px 16px;
-            border-radius: 9999px;
-            border: 1px solid var(--border-color);
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(4px);
-        }
-
-        .login-link:hover {
-            color: var(--text-main);
-            background: rgba(99, 102, 241, 0.1);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+            gap: 1.5rem;
         }
 
         .form-card {
@@ -75,41 +54,6 @@
             font-family: 'Noto Sans Devanagari', sans-serif;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-
-        .form-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .form-label[lang="hi"] {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
-
-        .form-control {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            border-radius: 10px;
-            padding: 0.85rem 1rem;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            width: 100%;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--color-indigo);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
         textarea.form-control {
             resize: vertical;
             min-height: 140px;
@@ -122,78 +66,6 @@
             margin-top: 0.25rem;
         }
 
-        .submit-btn {
-            background: linear-gradient(135deg, var(--color-indigo), #8b5cf6);
-            color: white;
-            padding: 1rem 2rem;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
-            transition: all 0.3s;
-            width: 100%;
-            text-align: center;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        /* Anonymous Toggle Switch (Upgrade 6) */
-        .switch-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-        }
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .4s;
-            border-radius: 24px;
-            border: 1px solid var(--border-color);
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--color-indigo);
-            border-color: var(--color-indigo);
-        }
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
-
-        /* Responsive Improvements */
         @media (max-width: 768px) {
             main {
                 padding: 1.5rem 1rem;
@@ -205,10 +77,6 @@
             .form-title {
                 font-size: 1.5rem;
             }
-            .submit-btn {
-                padding: 0.85rem 1.5rem;
-                font-size: 1rem;
-            }
         }
     </style>
 {% endblock %}
@@ -216,6 +84,25 @@
 
 {% block content %}
     <main>
+        <!-- Citizen Journey Stepper -->
+        <div class="stepper" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
+            <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
+                <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
+                <span class="loc-en">Submit Report</span>
+                <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+            </div>
+            <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
+                <span class="loc-en">Get Code</span>
+                <span class="loc-hi" lang="hi">कोड प्राप्त करें</span>
+            </div>
+            <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">3</span>
+                <span class="loc-en">Verify & Poll</span>
+                <span class="loc-hi" lang="hi">सत्यापन और ट्रैकिंग</span>
+            </div>
+        </div>
+
         <div class="form-card">
             <div class="form-header">
                 <h2 class="form-title loc-en">Report an Incident</h2>
