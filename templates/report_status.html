@@ -1,1196 +1,207 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Prahari — Report Status{% endblock %}
 
 {% block nav_links %}
-    <a href="/login/" class="login-link">
+    <a href="/login/" class="btn-secondary">
         <span class="loc-en">Coordinator Login</span>
         <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
     </a>
 {% endblock %}
 
-{% load static %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/prahari.css' %}">
-    <style>
-        /* Page specific styling overrides */
-        main {
-            max-width: 880px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 2.5rem 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.75rem;
-        }
-
-        .loading-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            padding: 2.5rem 2rem;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .loading-card-header {
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: .25rem;
-        }
-
-        .loading-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .uuid-label {
-            font-family: monospace;
-            font-size: .82rem;
-            color: var(--text-muted);
-            margin-top: .25rem;
-        }
-
-        .progress-bar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 9999px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            background: var(--color-indigo);
-            height: 100%;
-            width: 20%;
-            transition: width .4s ease;
-            border-radius: 9999px;
-        }
-
-        .progress-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1.1rem;
-            margin: .5rem 0;
-        }
-
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 1.1rem;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            transition: color .3s;
-        }
-
-        .progress-step.active {
-            color: var(--text-main);
-        }
-
-        .progress-step.done {
-            color: var(--color-low);
-        }
-
-        .step-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .75rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .progress-step.active .step-icon {
-            border-color: var(--prahari-yellow);
-            color: var(--prahari-yellow);
-            box-shadow: 0 0 8px rgba(255, 204, 51, 0.25);
-            animation: pulseBorder 1.5s infinite;
-        }
-
-        .progress-step.done .step-icon {
-            border-color: var(--color-low);
-            background: rgba(34, 197, 94, 0.12);
-            color: var(--color-low);
-        }
-
-        @keyframes pulseBorder {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        #result-section {
-            display: none;
-            flex-direction: column;
-            gap: 1.75rem;
-            animation: fadeInUp .5s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .rs-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            padding: 2rem 1.75rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .rs-section.muted {
-            background: rgba(15, 23, 42, .5);
-            border-color: rgba(255, 255, 255, 0.05);
-            box-shadow: none;
-        }
-
-        .brief-text {
-            font-size: 1.05rem;
-            line-height: 1.7;
-            color: var(--text-sub);
-        }
-
-        .brief-text-hi {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--text-sub);
-        }
-
-        .golden-window-alert {
-            background: rgba(239, 68, 68, 0.06);
-            border: 2px solid rgba(239, 68, 68, 0.4);
-            border-radius: var(--radius-card);
-            padding: 1.75rem 1.75rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            text-align: center;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.1);
-        }
-
-        .gw-label {
-            font-size: .72rem;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #f87171;
-            font-weight: 700;
-        }
-
-        .gw-time {
-            font-family: 'Outfit', sans-serif;
-            font-size: 2.4rem;
-            font-weight: 800;
-            color: var(--color-critical);
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-
-        .gw-consequence {
-            font-size: .92rem;
-            color: #fca5a5;
-            line-height: 1.5;
-            max-width: 540px;
-        }
-
-        .call-btn-large {
-            display: inline-flex;
-            align-items: center;
-            gap: .6rem;
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            color: #fff;
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-            transition: transform .2s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .call-btn-large:hover {
-            transform: scale(1.03);
-        }
-
-        .priority-notice {
-            background: rgba(249, 115, 22, 0.05);
-            border: 1px solid rgba(249, 115, 22, 0.2);
-            border-radius: var(--radius-inner);
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: .6rem;
-        }
-
-        .priority-notice-label {
-            font-size: .72rem;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            color: #fb923c;
-            font-weight: 700;
-        }
-
-        .priority-notice-text {
-            font-size: .95rem;
-            line-height: 1.55;
-            color: #fed7aa;
-        }
-
-        .rights-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1.1rem;
-        }
-
-        .right-card {
-            background: rgba(99, 102, 241, 0.05);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: var(--radius-inner);
-            padding: 1.4rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: .85rem;
-        }
-
-        .right-card-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #a5b4fc;
-        }
-
-        .right-card-desc {
-            font-size: .88rem;
-            color: var(--text-muted);
-            font-style: italic;
-            line-height: 1.5;
-        }
-
-        .right-card-body {
-            display: flex;
-            flex-direction: column;
-            gap: .65rem;
-        }
-
-        .right-para {
-            font-size: .93rem;
-            line-height: 1.55;
-            color: var(--text-sub);
-        }
-
-        .right-para-label {
-            font-weight: 700;
-            margin-right: .4rem;
-        }
-
-        .right-para-label.means { color: #c4b5fd; }
-        .right-para-label.applies { color: #7dd3fc; }
-        .right-para-label.remedy { color: #6ee7b7; }
-
-        .action-plan-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .action-step-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-inner);
-            padding: 1.25rem 1.4rem;
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: .75rem 1.25rem;
-            align-items: start;
-        }
-
-        .step-num-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 800;
-            flex-shrink: 0;
-            margin-top: .1rem;
-        }
-
-        .step-num-circle.urgent { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 2px solid rgba(239, 68, 68, 0.4); }
-        .step-num-circle.amber { background: rgba(255, 204, 51, 0.12); color: var(--prahari-yellow); border: 2px solid rgba(255, 204, 51, 0.25); }
-        .step-num-circle.blue { background: rgba(255, 255, 255, 0.03); color: var(--text-sub); border: 2px solid var(--border-color); }
-        .step-num-circle.grey { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 2px solid var(--border-color); }
-
-        .step-body {
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-        }
-
-        .step-tf-badge {
-            font-size: .7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            padding: .25rem .65rem;
-            border-radius: 5px;
-            display: inline-block;
-            width: fit-content;
-        }
-
-        .step-tf-badge.urgent { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .step-tf-badge.amber { background: var(--prahari-yellow); color: #050608; border: 1px solid var(--prahari-yellow); }
-        .step-tf-badge.blue { background: rgba(255, 255, 255, 0.03); color: var(--text-sub); border: 1px solid var(--border-color); }
-        .step-tf-badge.grey { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 1px solid var(--border-color); }
-
-        .step-action-text {
-            font-size: .97rem;
-            font-weight: 600;
-            color: var(--text-main);
-            line-height: 1.45;
-        }
-
-        .step-why {
-            font-size: .82rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-            margin-top: .1rem;
-        }
-
-        .step-why-label {
-            color: #f97316;
-            font-weight: 600;
-            margin-right: .35rem;
-        }
-
-        .step-forum {
-            font-size: .78rem;
-            color: #7dd3fc;
-            font-weight: 600;
-            margin-top: .15rem;
-        }
-
-        .step-forum-label {
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-right: .3rem;
-        }
-
-        .contact-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .primary-contact-card {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-inner);
-            padding: 1.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.1rem;
-        }
-
-        .contact-authority-name {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--prahari-yellow);
-        }
-
-        .contact-authority-desc {
-            font-size: .88rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .nalsa-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: .6rem;
-            background: var(--prahari-yellow);
-            color: #050608;
-            text-decoration: none;
-            padding: .9rem 1.75rem;
-            border-radius: 10px;
-            font-size: 1.25rem;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(255, 204, 51, 0.12);
-            transition: transform .2s, background .2s;
-            width: fit-content;
-        }
-
-        .nalsa-btn:hover {
-            transform: scale(1.02);
-            background: var(--prahari-yellow-strong);
-        }
-
-        .nalsa-btn-sublabel {
-            font-size: .72rem;
-            font-weight: 500;
-            color: #1e293b;
-            display: block;
-            margin-top: .15rem;
-            letter-spacing: .01em;
-        }
-
-        .contact-what-to-tell {
-            font-size: .88rem;
-            color: var(--text-sub);
-            line-height: 1.55;
-        }
-
-        .contact-what-label {
-            font-weight: 700;
-            color: var(--prahari-yellow);
-        }
-
-        .bring-checklist {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: .4rem;
-            margin-top: .25rem;
-        }
-
-        .bring-checklist li {
-            font-size: .85rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: baseline;
-            gap: .5rem;
-        }
-
-        .bring-checklist li::before {
-            content: "✓";
-            color: var(--color-low);
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .emergency-contacts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: .85rem;
-        }
-
-        .emergency-card {
-            text-decoration: none;
-            color: #fff;
-            border-radius: 10px;
-            padding: 1.1rem 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: .3rem;
-            text-align: center;
-            transition: transform .2s;
-        }
-
-        .emergency-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .emergency-card.e-108 {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            box-shadow: 0 0 18px rgba(239, 68, 68, 0.35);
-        }
-
-        .emergency-card.e-100 {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-color);
-        }
-
-        .emergency-card.e-1091 {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-color);
-        }
-
-        .emergency-card.e-other {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-color);
-        }
-
-        .ec-name {
-            font-size: .7rem;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            opacity: .85;
-        }
-
-        .ec-number {
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-
-        .ec-when {
-            font-size: .7rem;
-            font-weight: 400;
-            opacity: .8;
-            line-height: 1.3;
-            max-width: 140px;
-        }
-
-        .accordion-list {
-            display: flex;
-            flex-direction: column;
-            gap: .6rem;
-        }
-
-        .accordion-item {
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 10px;
-            overflow: hidden;
-            background: rgba(15, 23, 42, 0.4);
-        }
-
-        .accordion-trigger {
-            width: 100%;
-            text-align: left;
-            padding: 1rem 1.25rem;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            color: var(--text-main);
-            transition: background .2s;
-        }
-
-        .accordion-trigger:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .accordion-trigger-left {
-            display: flex;
-            flex-direction: column;
-            gap: .25rem;
-        }
-
-        .acc-provision {
-            font-size: .95rem;
-            font-weight: 600;
-            color: #cbd5e1;
-        }
-
-        .acc-desc {
-            font-size: .8rem;
-            color: #94a3b8;
-            font-style: italic;
-            line-height: 1.4;
-        }
-
-        .acc-chevron {
-            font-size: .8rem;
-            color: #cbd5e1;
-            flex-shrink: 0;
-        }
-
-        .accordion-content {
-            display: none;
-            padding: 1rem 1.25rem 1.25rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: .9rem;
-            line-height: 1.55;
-            color: #94a3b8;
-        }
-
-        .escalation-list {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: .35rem;
-        }
-
-        .esc-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-inner);
-            padding: 1.25rem 1.4rem;
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-        }
-
-        .esc-level-badge {
-            font-size: .7rem;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #fb923c;
-            font-weight: 700;
-        }
-
-        .esc-authority {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .esc-trigger {
-            font-size: .85rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
-
-        .esc-trigger-label {
-            color: #fbbf24;
-            font-weight: 600;
-        }
-
-        .esc-contact {
-            font-size: .82rem;
-            color: #7dd3fc;
-        }
-
-        .esc-arrow {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: .9rem;
-            padding: .1rem 0;
-        }
-
-        .timing-block {
-            border-top: 1px solid var(--border-subtle);
-            padding-top: 1.25rem;
-            margin-top: .5rem;
-            font-size: .78rem;
-            color: var(--text-muted);
-        }
-
-        .timing-label {
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: .06em;
-            margin-bottom: .6rem;
-        }
-
-        .timing-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .65rem;
-        }
-
-        .timing-chip {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            padding: .3rem .65rem;
-            font-size: .75rem;
-            color: var(--text-muted);
-        }
-
-        .timing-chip span {
-            color: var(--text-sub);
-            font-weight: 600;
-        }
-
-        .brief-text-hi { display: none; }
-        html[lang="hi"] .brief-text-hi { display: block !important; }
-        html[lang="hi"] .brief-text-en { display: none !important; }
-
-        @media print {
-            body { background: #fff !important; color: #000 !important; background-image: none !important; }
-            header, .toolbar, #loading-card, .timing-block, .lang-btn, .lang-selector-bar { display: none !important; }
-            main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-            .rs-section { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; color: #000 !important; break-inside: avoid; }
-            .right-card, .action-step-card, .esc-card, .accordion-item, .primary-contact-card, .golden-window-alert, .priority-notice { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
-            * { color: #000 !important; }
-            a { text-decoration: underline !important; }
-        }
-
-        .top-contact-bar {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            padding: 1.25rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            margin-bottom: 0.5rem;
-        }
-
-        .top-contact-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        .top-contact-buttons {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .top-contact-btn {
-            flex: 1;
-            min-width: 140px;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0.85rem 1.25rem;
-            border-radius: var(--radius-inner);
-            text-decoration: none;
-            font-weight: 700;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-align: center;
-        }
-
-        .top-contact-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .top-contact-btn.red-btn {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
-        }
-
-        .top-contact-btn.indigo-btn {
-            background: var(--prahari-yellow);
-            color: #050608;
-            box-shadow: 0 4px 15px rgba(255, 204, 51, 0.15);
-        }
-
-        .top-contact-btn.indigo-btn:hover {
-            background: var(--prahari-yellow-strong);
-        }
-
-        .top-contact-btn.amber-btn {
-            background: rgba(249, 115, 22, 0.15);
-            border: 1px solid rgba(249, 115, 22, 0.35);
-            color: #fb923c;
-        }
-
-        .top-contact-btn.subtle-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-        }
-
-        .top-contact-num {
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-
-        .top-contact-label {
-            font-size: 0.75rem;
-            opacity: 0.9;
-            font-weight: 500;
-            margin-top: 0.1rem;
-        }
-
-        /* Modal styling */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(9, 13, 22, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .modal-container {
-            background: var(--bg-card-solid);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            max-width: 720px;
-            width: 100%;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: modalSlideUp 0.3s ease-out forwards;
-        }
-
-        @keyframes modalSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            padding: 1.5rem 1.75rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .modal-body {
-            padding: 1.75rem;
-            overflow-y: auto;
-            flex: 1;
-            font-size: 0.98rem;
-            line-height: 1.6;
-            color: var(--text-sub);
-            white-space: pre-wrap;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .modal-footer {
-            padding: 1.5rem 1.75rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .modal-btn {
-            padding: 0.65rem 1.25rem;
-            border-radius: 9px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid var(--border-color);
-        }
-
-        .modal-btn.primary {
-            background: var(--color-indigo);
-            color: #fff;
-            border-color: var(--color-indigo);
-        }
-
-        .modal-btn.primary:hover {
-            background: #4f46e5;
-        }
-
-        .modal-btn.secondary {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-main);
-        }
-
-        .modal-btn.secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .modal-disclaimer {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
-
-        .modal-disclaimer a {
-            color: var(--color-indigo);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .modal-disclaimer a:hover {
-            text-decoration: underline;
-        }
-
-        .generate-notice-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-        }
-
-        @media(max-width:600px) {
-            main { padding: 1.5rem .9rem; }
-            .rs-section { padding: 1.5rem 1.1rem; }
-            .gw-time { font-size: 1.8rem; }
-        }
-
-        @media (max-width: 480px) {
-            .top-contact-buttons {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .top-contact-btn {
-                width: 100% !important;
-                min-width: 0 !important;
-                padding: 0.75rem 1rem;
-            }
-            .top-contact-num {
-                font-size: 1.25rem;
-            }
-            .action-step-card {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-                padding: 1rem;
-            }
-            .step-num-circle {
-                margin-top: 0;
-                margin-bottom: 0.25rem;
-            }
-            .evidence-item-card {
-                grid-template-columns: 1fr !important;
-                gap: 0.5rem !important;
-                padding: 1rem !important;
-            }
-            .emergency-contacts-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 {% endblock %}
 
-
 {% block content %}
-<main>
-{% if is_anonymous %}
-    <!-- Verification Card (shown when sessionStorage key is not set) -->
-    <div id="verification-wrapper" style="display: none; justify-content: center; align-items: center; min-height: 50vh; padding: 2rem 0; animation: fadeInUp 0.4s ease-out; width: 100%;">
-        <div class="rs-section" style="max-width: 450px; width: 100%; text-align: center; background: var(--bg-card); border-color: var(--color-primary); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);">
-            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
-            <h3 class="loc-en" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Secure Report Access</h3>
-            <h3 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">सुरक्षित रिपोर्ट एक्सेस</h3>
-            
-            <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">Enter your Report ID and Private Return Key to view this report.</p>
-            <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">इस रिपोर्ट को देखने के लिए अपनी रिपोर्ट आईडी और निजी रिटर्न कुंजी दर्ज करें।</p>
-            
-            <form id="verification-form" onsubmit="verifyAccessCode(event)" style="display: flex; flex-direction: column; gap: 1rem;">
-                <label for="access-code-input" class="visually-hidden" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
-                    <span class="loc-en">Private Return Key</span>
-                    <span class="loc-hi" lang="hi">निजी रिटर्न कुंजी</span>
-                </label>
-                <input 
-                    type="text" 
-                    id="access-code-input" 
-                    maxlength="6" 
-                    placeholder="E.g., XK7P2M" 
-                    style="text-transform: uppercase; text-align: center; font-size: 1.5rem; letter-spacing: 0.2em; font-family: monospace; font-weight: bold; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; padding: 0.85rem 1rem; width: 100%; transition: all 0.2s;"
-                    oninput="this.value = this.value.toUpperCase()"
-                    required
-                >
-                <div id="verification-error" style="display: none; color: var(--color-critical); font-size: 0.88rem; font-weight: 600; text-align: center;">
-                    <span class="loc-en">Incorrect Return Key. Please try again.</span>
-                    <span class="loc-hi" lang="hi">गलत रिटर्न कुंजी। कृपया पुनः प्रयास करें।</span>
-                </div>
-                
-                <button type="submit" class="submit-btn" style="padding: 0.85rem 1.5rem; font-size: 1rem; background: linear-gradient(135deg, var(--color-primary), #d97706); border: none; border-radius: 10px; color: var(--bg-primary); cursor: pointer; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); width: 100%;">
-                    <span class="loc-en">View Report</span>
-                    <span class="loc-hi">रिपोर्ट देखें</span>
+<main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
+    <!-- Private Key banner if anonymous (Improvement A) -->
+    {% if anonymous_access_code %}
+    <div class="surface-card" style="border-color: rgba(255, 204, 51, 0.2); padding: var(--space-4) var(--space-5); margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+            <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                <span class="loc-en" style="font-size: 0.72rem; text-transform: uppercase; color: var(--yellow); font-weight: 700; display: block;">Private Return Key (Confidential)</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.72rem; text-transform: uppercase; color: var(--yellow); font-weight: 700; display: block;">निजी रिटर्न कुंजी (गोपनीय)</span>
+                <code id="raw-access-code" style="font-family: monospace; font-size: 1.25rem; font-weight: bold; color: var(--yellow); letter-spacing: 0.05em;">{{ anonymous_access_code }}</code>
+            </div>
+            <div>
+                <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-secondary" style="font-size: 0.9rem; font-weight: 700;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                    <span class="loc-en">Copy Return Key</span>
+                    <span class="loc-hi">रिटर्न कुंजी कॉपी करें</span>
                 </button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
-    <div id="report-content-wrapper" style="display: {% if is_anonymous %}none{% else %}block{% endif %}; width: 100%;">
-        <!-- Access Code generated on confirmation page -->
-        {% if anonymous_access_code %}
-        <div id="anonymous-code-box" class="rs-section" style="border-color: var(--color-primary); background: rgba(250, 204, 21, 0.08); margin-bottom: 0.5rem; animation: fadeInUp 0.4s ease-out; text-align: left; padding: 1.5rem;">
-            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                <div>
-                    <h4 class="loc-en" style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">⚠️ Private Return Key / निजी रिटर्न कुंजी</h4>
-                    <h4 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">⚠️ निजी रिटर्न कुंजी</h4>
-                    
-                    <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">Save this key — it will not be shown again. You need this private credential to view your report later.</p>
-                    <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">इस कुंजी को सहेजें — यह दोबारा नहीं दिखाई जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको इस निजी क्रेडेंशियल की आवश्यकता होगी।</p>
-                </div>
-
-                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); padding: 1rem 1.25rem; border-radius: var(--radius-inner);">
-                    <div style="flex: 1; min-width: 150px;">
-                        <span class="loc-en" style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.25rem;">Report ID (Public)</span>
-                        <span class="loc-hi" lang="hi" style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.25rem;">रिपोर्ट आईडी (सार्वजनिक)</span>
-                        <code style="font-family: monospace; font-size: 1.2rem; font-weight: bold; color: var(--text-main);">${trackingId}</code>
-                    </div>
-                    <div style="flex: 1; min-width: 150px; border-left: 1px solid rgba(255, 255, 255, 0.05); padding-left: 1.5rem;">
-                        <span class="loc-en" style="font-size: 0.8rem; text-transform: uppercase; color: var(--color-primary); font-weight: 700; display: block; margin-bottom: 0.25rem;">Private Return Key (Secret)</span>
-                        <span class="loc-hi" lang="hi" style="font-size: 0.8rem; text-transform: uppercase; color: var(--color-primary); font-weight: 700; display: block; margin-bottom: 0.25rem;">निजी रिटर्न कुंजी (गोपनीय)</span>
-                        <code id="raw-access-code" style="font-family: monospace; font-size: 1.3rem; font-weight: bold; color: var(--color-primary); letter-spacing: 0.1em;">{{ anonymous_access_code }}</code>
-                    </div>
-                </div>
-
-                <div>
-                    <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="toolbar-btn" style="background: var(--color-primary); border-color: var(--color-primary); color: var(--bg-primary); padding: 0.75rem 1.75rem; font-size: 0.95rem; font-weight: 700; border-radius: 9px; box-shadow: var(--glow-indigo); cursor: pointer; transition: all 0.2s;">
-                        <span class="loc-en">📋 Copy Return Key</span>
-                        <span class="loc-hi">📋 रिटर्न कुंजी कॉपी करें</span>
-                    </button>
-                </div>
             </div>
         </div>
-        <script>
-        function copyAccessCode(code) {
-            navigator.clipboard.writeText(code);
-            alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'निजी रिटर्न कुंजी क्लिपबोर्ड पर कॉपी हो गई है!' : 'Private Return Key copied to clipboard!');
-        }
-        </script>
-        {% endif %}
+    </div>
+    <script>
+    function copyAccessCode(code) {
+        navigator.clipboard.writeText(code);
+        alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'निजी रिटर्न कुंजी क्लिपबोर्ड पर कॉपी हो गई है!' : 'Private Return Key copied to clipboard!');
+    }
+    </script>
+    {% endif %}
 
-        <!-- Incident tracking number (Improvement D) -->
-    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.1rem 1.4rem; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.5rem;">
-        <div style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
-            <span class="loc-en">Your Report ID: {{ tracking_id }}</span>
-            <span class="loc-hi" lang="hi">आपकी रिपोर्ट ID: {{ tracking_id }}</span>
+    <!-- Report Tracker Header Row -->
+    <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-inner); padding: var(--space-4) var(--space-5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: 0.5rem; text-align: left;">
+        <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Report ID</div>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">
+                {{ tracking_id }}
+            </div>
         </div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
-            <span class="loc-en">Use this ID when contacting any authority for follow-up on your case.</span>
-            <span class="loc-hi" lang="hi">अपने मामले पर किसी भी प्राधिकरण से संपर्क करते समय यह ID बताएं।</span>
+        <div style="display: flex; gap: var(--space-3); align-items: center;">
+            <button onclick="navigator.clipboard.writeText('{{ tracking_id }}'); alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट आईडी कॉपी हो गई है!' : 'Report ID copied!');" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                </svg>
+                <span class="loc-en">Copy ID</span>
+                <span class="loc-hi">आईडी कॉपी करें</span>
+            </button>
         </div>
     </div>
 
-    <!-- Case Status Container (Improvement F) -->
+    <!-- Case Status Container (dynamic updates) -->
     <div id="case-status-container" style="display: none; margin-bottom: 0.5rem;"></div>
 
     <!-- Loading Card -->
-    <div id="loading-card" class="loading-card">
-        <div class="loading-card-header">
-            <h2 class="loading-title loc-en">Pipeline Progress</h2>
-            <h2 class="loading-title loc-hi" lang="hi">प्रक्रिया की प्रगति</h2>
-            <div class="uuid-label">Signal ID: {{ signal_id }}</div>
+    <div id="loading-card" class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px; text-align: left;">
+            <span class="section-eyebrow">Signal ID: {{ signal_id }}</span>
+            <h2 class="section-title loc-en">Pipeline Progress</h2>
+            <h2 class="section-title loc-hi" lang="hi">प्रक्रिया की प्रगति</h2>
         </div>
         <!-- Progress Bar -->
         <div class="progress-bar-track">
             <div id="progress-bar-fill" class="progress-bar-fill"></div>
         </div>
-        <ul class="progress-list">
+        <ul class="progress-list" style="text-align: left;">
             <li id="step-received" class="progress-step done">
                 <span class="step-icon">✓</span>
-                <span class="loc-en">Report received</span>
-                <span class="loc-hi" lang="hi">रिपोर्ट प्राप्त हुई</span>
+                <div>
+                    <span class="loc-en">Report received</span>
+                    <span class="loc-hi" lang="hi">रिपोर्ट प्राप्त हुई</span>
+                </div>
             </li>
             <li id="step-classified" class="progress-step">
                 <span class="step-icon">⟳</span>
-                <span class="loc-en">Analyzing...</span>
-                <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                <div>
+                    <span class="loc-en">Analyzing...</span>
+                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                </div>
             </li>
             <li id="step-analyzed" class="progress-step">
                 <span class="step-icon">⟳</span>
-                <span class="loc-en">Analyzing...</span>
-                <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                <div>
+                    <span class="loc-en">Analyzing...</span>
+                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                </div>
             </li>
             <li id="step-coordinated" class="progress-step">
                 <span class="step-icon">⟳</span>
-                <span class="loc-en">Analyzing...</span>
-                <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                <div>
+                    <span class="loc-en">Analyzing...</span>
+                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                </div>
             </li>
             <li id="step-translated" class="progress-step">
                 <span class="step-icon">⟳</span>
-                <span class="loc-en">Analyzing...</span>
-                <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                <div>
+                    <span class="loc-en">Analyzing...</span>
+                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                </div>
             </li>
         </ul>
-        <div style="text-align:center;color:var(--text-muted);font-size:.88rem;margin-top:1.5rem;">
+        <div style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-top:var(--space-4);">
             <!-- Pulsing Progress Indicator -->
-            <div id="pulsing-progress" class="pulsing-indicator">
+            <div id="pulsing-progress" style="font-weight: 500;">
                 <span class="loc-en">⟳ Analyzing your report... (this takes 30-60 seconds)</span>
                 <span class="loc-hi" lang="hi">⟳ आपकी रिपोर्ट का विश्लेषण हो रहा है... (इसमें 30-60 सेकंड लगते हैं)</span>
             </div>
-            <!-- Attempt Counter -->
-            <div id="attempt-counter" class="attempt-counter">
-                <span class="loc-en">Checking status... (attempt 0 of 30)</span>
-                <span class="loc-hi" lang="hi">स्थिति की जांच की जा रही है... (प्रयास 0/30)</span>
-            </div>
-            <!-- Stuck pipeline / Timeout Message Box -->
-            <div id="timeout-message" class="timeout-message-box">
-                <span class="loc-en">Analysis is taking longer than expected. Please refresh the page in a few minutes or check back later using your Report ID.</span>
-                <span class="loc-hi" lang="hi">विश्लेषण में अपेक्षा से अधिक समय लग रहा है। कृपया कुछ मिनट बाद पेज रिफ्रेश करें या अपनी Report ID से दोबारा जांचें।</span>
+            <!-- Attempt Counter hidden from normal citizens, but kept silently for legacy verification -->
+            <div id="attempt-counter" style="display: none;"></div>
+            <!-- Timeout Message Box -->
+            <div id="timeout-message" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); margin-top: var(--space-4); color: var(--yellow);">
+                <span class="loc-en">Analysis is taking longer than expected. Please return back later using your Report ID: <strong>{{ tracking_id }}</strong>.</span>
+                <span class="loc-hi" lang="hi">विश्लेषण में समय लग रहा है। कृपया अपनी रिपोर्ट आईडी <strong>{{ tracking_id }}</strong> का उपयोग करके बाद में दोबारा जांचें।</span>
             </div>
         </div>
     </div>
 
     <!-- Result section (hidden until analysis complete) -->
-    <div id="result-section" style="display: none;">
-
+    <div id="result-section" style="display: none; flex-direction: column; gap: var(--space-5);">
         <!-- Toolbar Row -->
-        <div class="result-meta">
-            <div class="toolbar">
-                <a id="whatsapp-share-btn" href="#" target="_blank" class="toolbar-btn whatsapp-btn" style="background:#25D366;border-color:#25D366;color:#fff;display:none;align-items:center;gap:.4rem;text-decoration:none;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="flex-shrink:0;">
-                        <path d="M12.012 1.985c-5.523 0-10.002 4.48-10.002 10.002 0 1.763.456 3.483 1.323 5.013L2.012 22l5.176-1.357c1.47.8 3.125 1.22 4.82 1.22 5.525 0 10.002-4.48 10.002-10.002 0-5.522-4.477-10.002-10.002-10.002zm0 1.636c4.612 0 8.366 3.754 8.366 8.366 0 4.612-3.754 8.366-8.366 8.366-1.564 0-3.093-.44-4.425-1.272l-.317-.189-3.292.863.878-3.2-.207-.33c-.912-1.454-1.393-3.136-1.393-4.862a8.367 8.367 0 0 1 8.366-8.366zm-3.567 4.72c-.195 0-.39.06-.554.175-.24.167-.478.435-.55.727-.247 1.01.2 2.083.56 2.585.34.476 2.056 3.238 5.068 4.417.8.314 1.43.518 1.92.673.804.256 1.536.22 2.115.134.646-.096 1.99-.813 2.274-1.597.283-.783.283-1.458.2-1.598-.083-.14-.306-.222-.647-.393-.34-.171-1.99-.982-2.298-1.094-.306-.113-.53-.17-.754.17-.223.342-.865 1.094-1.06 1.32-.195.228-.39.256-.732.085-.34-.17-1.43-.526-2.727-1.685-1.008-.9-1.69-2.014-1.888-2.355-.197-.34-.02-.524.15-.694.153-.153.34-.397.51-.595.17-.198.228-.34.34-.567.114-.227.057-.425-.028-.596-.085-.17-.754-1.82-.103-2.127.3-.144.59-.22.885-.22z"/>
+        <div style="display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: 0.5rem;">
+            <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+                <a id="whatsapp-share-btn" href="#" target="_blank" class="btn-secondary" style="background:#25D366; border-color:#25D366; color:#fff; display:none; align-items:center; gap:.4rem; text-decoration:none;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                        <path d="M12.012 1.985c-5.523 0-10.002 4.48-10.002 10.002 0 1.763.456 3.483 1.323 5.013L2.012 22l5.176-1.357c1.47.8 3.125 1.22 4.82 1.22 5.525 0 10.002-4.48 10.002-10.002 0-5.522-4.477-10.002-10.002-10.002zm0 1.636c4.612 0 8.366 3.754 8.366 8.366 0 4.612-3.754 8.366-8.366 8.366-1.564 0-3.093-.44-4.425-1.272l-.317-.189-3.292.863.878-3.2-.207-.33c-.912-1.454-1.393-3.136-1.393-4.862a8.367 8.367 0 0 1 8.366-8.366z"/>
                     </svg>
                     <span class="loc-en">Share on WhatsApp</span>
                     <span class="loc-hi">WhatsApp पर साझा करें</span>
                 </a>
-                <button id="clipboard-share-btn" class="toolbar-btn share-btn" onclick="shareReport()">
-                    <span class="loc-en">🔗 Share Report</span>
-                    <span class="loc-hi">🔗 रिपोर्ट साझा करें</span>
+                <button id="clipboard-share-btn" class="btn-secondary" onclick="shareReport()">
+                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.8 2.04.8 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.3 2.04-.8l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/>
+                    </svg>
+                    <span class="loc-en">Share Report</span>
+                    <span class="loc-hi">रिपोर्ट साझा करें</span>
                 </button>
-                <button class="toolbar-btn" onclick="window.print()">
-                    <span class="loc-en">🖨️ Print / Save PDF</span>
-                    <span class="loc-hi">🖨️ प्रिंट / PDF सेव करें</span>
+                <button class="btn-secondary" onclick="window.print()">
+                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+                    </svg>
+                    <span class="loc-en">Print / Save PDF</span>
+                    <span class="loc-hi">प्रिंट / PDF सेव करें</span>
                 </button>
             </div>
         </div>
 
-        <!-- Dynamically injected sections go here -->
-        <div id="dynamic-sections"></div>
+        <!-- Dynamically injected report sections -->
+        <div id="dynamic-sections" style="display: flex; flex-direction: column; gap: var(--space-6);"></div>
 
         <!-- Legal Notice Modal Overlay -->
-        <div id="legal-notice-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-id">
-            <div class="modal-container">
+        <div id="legal-notice-modal" class="modal" role="dialog" aria-modal="true" style="display: none;">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <h3 id="modal-title-id" class="modal-title">
+                    <h3 class="modal-title">
                         <span class="loc-en">Your Legal Notice</span>
                         <span class="loc-hi">आपका कानूनी नोटिस</span>
                     </h3>
                 </div>
-                <div id="legal-notice-content" class="modal-body"></div>
+                <div id="legal-notice-content" class="modal-body" style="font-family: inherit; background: transparent; color: var(--text-primary); white-space: pre-wrap;"></div>
                 <div class="modal-footer">
-                    <div class="modal-buttons">
-                        <button class="modal-btn primary" onclick="copyLegalNotice()">
-                            <span class="loc-en">📋 Copy Notice</span>
-                            <span class="loc-hi">📋 कॉपी करें</span>
+                    <div style="display: flex; gap: var(--space-2); flex-wrap: wrap; width: 100%; justify-content: flex-end; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: var(--space-2);">
+                        <button class="btn-primary" onclick="copyLegalNotice()">
+                            <span class="loc-en">Copy Notice</span>
+                            <span class="loc-hi">कॉपी करें</span>
                         </button>
-                        <button class="modal-btn secondary" onclick="printLegalNotice()">
-                            <span class="loc-en">🖨️ Print Notice</span>
-                            <span class="loc-hi">🖨️ प्रिंट करें</span>
+                        <button class="btn-secondary" onclick="printLegalNotice()">
+                            <span class="loc-en">Print Notice</span>
+                            <span class="loc-hi">प्रिंट करें</span>
                         </button>
-                        <button class="modal-btn secondary" onclick="closeLegalNoticeModal()">
+                        <button class="btn-secondary" onclick="closeLegalNoticeModal()">
                             <span class="loc-en">Close</span>
                             <span class="loc-hi">बंद करें</span>
                         </button>
                     </div>
-                    <div class="modal-disclaimer">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; text-align: left; width: 100%;">
                         <span class="loc-en"><strong>Disclaimer:</strong> This is a draft generated by AI based on your report. Review it carefully before sending. For free formal legal aid and representation, dial the <strong>NALSA Helpline 15100</strong>.</span>
-                        <span class="loc-hi" lang="hi"><strong>अस्वीकरण:</strong> यह आपकी रिपोर्ट के आधार पर AI द्वारा उत्पन्न एक प्रारूप है। भेजने से पहले इसे ध्यान से जांच लें। मुफ्त औपचारिक कानूनी सहायता और प्रतिनिधित्व के लिए, <strong>NALSA हेल्पलाइन 15100</strong> पर डायल करें।</span>
+                        <span class="loc-hi" lang="hi"><strong>अस्वीकरण:</strong> यह आपकी रिपोर्ट के आधार पर AI द्वारा उत्पन्न एक प्रारूप है। भेजने से पहले इसे ध्यान से जांच लें। मुफ्त कानूनी सहायता और प्रतिनिधित्व के लिए, <strong>NALSA हेल्पलाइन 15100</strong> पर डायल करें।</span>
                     </div>
                 </div>
             </div>
         </div>
 
-    
         <!-- Close Access Button -->
-        <div class="close-session-container" style="display:flex; justify-content:center; margin-top:2rem; margin-bottom:1rem;">
-            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="background: var(--prahari-yellow); border: none; color: #050608; padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; transition: transform 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                <span class="loc-en">🔒 Close Report Access</span>
-                <span class="loc-hi" lang="hi">🔒 रिपोर्ट एक्सेस बंद करें</span>
+        <div style="display:flex; justify-content:center; margin-top:var(--space-6); margin-bottom:var(--space-4);">
+            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="padding: 1rem 3rem;">
+                <span class="loc-en">Close Report Access</span>
+                <span class="loc-hi" lang="hi">रिपोर्ट एक्सेस बंद करें</span>
             </button>
         </div>
-</div>
     </div>
 </main>
 {% endblock %}
@@ -1210,74 +221,16 @@ const preferredLanguageFromContext = "{{ preferred_language }}";
 let pollAttempts = 0;
 const maxPollAttempts = 30;
 
-// ── Language ──────────────────────────────────────────────
-function initLanguage() {
-    let lang = preferredLanguageFromContext;
-    if (!lang || lang === 'undefined') {
-        lang = localStorage.getItem('prahari_lang');
-    }
-    if (!lang || lang === 'undefined') {
-        const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-        if (userLang.startsWith('hi')) {
-            lang = 'hindi';
-        } else {
-            lang = 'english';
-        }
-    }
-    setLanguageTheme(lang);
-}
-
-function setLanguageTheme(lang) {
-    document.documentElement.setAttribute('lang', lang === 'hindi' ? 'hi' : 'en');
-    localStorage.setItem('prahari_lang', lang);
-    
-    // Highlight active lang pill
-    const pills = document.querySelectorAll('.lang-pill');
-    pills.forEach(pill => {
-        if (pill.getAttribute('data-lang') === lang) {
-            pill.classList.add('active');
-        } else {
-            pill.classList.remove('active');
-        }
-    });
-
-    // Sync select dropdown
-    const select = document.querySelector('.lang-selector-select');
-    if (select) {
-        select.value = lang;
-    }
-
-    // If result is already loaded, re-render to apply active language translations
-    if (pipelineCompleted && currentResult) {
-        renderResult(currentResult);
-    }
-}
-
-function changeLanguage(lang) {
-    setLanguageTheme(lang);
-}
-
-function toggleMobileMenu() {
-    const nav = document.querySelector('.nav-links');
-    const burger = document.querySelector('.hamburger-menu');
-    if (nav && burger) {
-        nav.classList.toggle('active');
-        burger.classList.toggle('active');
-    }
-}
-function shareReport() {
-    const base = siteUrl && siteUrl.trim() !== '' ? siteUrl : window.location.origin;
-    const fullUrl = base + window.location.pathname;
-    navigator.clipboard.writeText(fullUrl);
-    alert(localStorage.getItem('prahari_lang') === 'hi' ? 'रिपोर्ट लिंक क्लिपबोर्ड पर कॉपी हो गया!' : 'Report link copied to clipboard!');
-}
-
-// ── Accordion ─────────────────────────────────────────────
 function toggleAccordion(btn) {
     const expanded = btn.getAttribute('aria-expanded') === 'true';
     const nextState = !expanded;
     btn.setAttribute('aria-expanded', nextState);
-    btn.nextElementSibling.style.display = expanded ? 'none' : 'block';
+    
+    const content = btn.nextElementSibling;
+    if (content) {
+        content.style.display = nextState ? 'block' : 'none';
+    }
+    
     const chevron = btn.querySelector('.acc-chevron');
     if (chevron) {
         chevron.innerHTML = nextState ? `
@@ -1290,7 +243,54 @@ function toggleAccordion(btn) {
     }
 }
 
-// ── Progress Bar ──────────────────────────────────────────
+// Local Checklist state persistence
+function saveChecklistState() {
+    const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
+    const checkedStates = [];
+    checkboxes.forEach(cb => {
+        checkedStates.push({
+            id: cb.id,
+            checked: cb.checked
+        });
+    });
+    localStorage.setItem(`prahari_checklist_${trackingId}`, JSON.stringify(checkedStates));
+}
+
+function restoreChecklistState() {
+    const rawData = localStorage.getItem(`prahari_checklist_${trackingId}`);
+    if (!rawData) return;
+    try {
+        const checkedStates = JSON.parse(rawData);
+        checkedStates.forEach(item => {
+            const cb = document.getElementById(item.id);
+            if (cb) cb.checked = item.checked;
+        });
+    } catch (e) {
+        console.error('Failed to restore checklist state', e);
+    }
+}
+
+function clearChecklistState() {
+    localStorage.removeItem(`prahari_checklist_${trackingId}`);
+    const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'चेकलिस्ट साफ कर दी गई है!' : 'Checklist cleared!');
+}
+
+function registerChecklistListeners() {
+    const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', saveChecklistState);
+    });
+}
+
+function shareReport() {
+    const base = siteUrl && siteUrl.trim() !== '' ? siteUrl : window.location.origin;
+    const fullUrl = base + window.location.pathname;
+    navigator.clipboard.writeText(fullUrl);
+    alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट लिंक क्लिपबोर्ड पर कॉपी हो गया!' : 'Report link copied to clipboard!');
+}
+
 function updateChecklistUI(steps) {
     const set = (id, done, active, enLabel, hiLabel) => {
         const el = document.getElementById(id);
@@ -1326,7 +326,6 @@ function updateChecklistUI(steps) {
     if (bar) bar.style.width = pct + '%';
 }
 
-// ── Case Outcome Predictor Stats (Upgrade 5) ─────────────
 async function loadOutcomeStats(incidentId) {
     const card = document.getElementById('outcome-stats-card');
     if (!card) return;
@@ -1359,20 +358,15 @@ async function loadOutcomeStats(incidentId) {
         }
         
         card.innerHTML = `
-            <div class="loc-en" style="font-size: 0.9rem; line-height: 1.5; color: var(--text-sub);">
-                Based on <strong>${stats.total_similar}</strong> similar past cases: 
-                <strong>✅ ${stats.resolved_count}</strong> out of <strong>${stats.total_similar}</strong> resolved (<strong>${stats.resolution_rate}</strong>) 
-                <br/>
-                <span style="font-size: 0.85rem; color: var(--text-muted);">📋 Typical resolution: <strong>${resolutionEn}</strong> (Average severity: <strong>${severityEn}</strong>)</span>
+            <div class="loc-en" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
+                <div style="margin-bottom: 0.5rem;"><strong>Typical severity for this domain:</strong> <span class="badge ${severityEn}">${severityEn}</span></div>
+                <div><strong>Resolution forum in databases:</strong> <span>${resolutionEn}</span></div>
             </div>
-            <div class="loc-hi" lang="hi" style="font-family:'Noto Sans Devanagari',sans-serif; font-size: 0.95rem; line-height: 1.6; color: var(--text-sub);">
-                <strong>${stats.total_similar}</strong> समान मामलों के आधार पर: 
-                <strong>✅ ${stats.total_similar}</strong> में से <strong>${stats.resolved_count}</strong> सुलझाए गए (<strong>${stats.resolution_rate}</strong>) 
-                <br/>
-                <span style="font-size: 0.9rem; color: var(--text-muted);">📋 सामान्य समाधान: <strong>${resolutionHi}</strong> (औसत गंभीरता: <strong>${severityHi}</strong>)</span>
+            <div class="loc-hi" lang="hi" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">
+                <div style="margin-bottom: 0.5rem;"><strong>इस डोमेन के लिए सामान्य गंभीरता:</strong> <span class="badge ${severityEn}">${severityHi}</span></div>
+                <div><strong>डेटाबेस में समाधान मंच:</strong> <span>${resolutionHi}</span></div>
             </div>
         `;
-        card.style.display = 'block';
     };
 
     if (outcomeStatsData) {
@@ -1381,87 +375,42 @@ async function loadOutcomeStats(incidentId) {
     }
 
     try {
-        const response = await fetch(`/api/incidents/${incidentId}/similar/`);
-        if (!response.ok) throw new Error("Failed to fetch similar stats");
-        const data = await response.json();
-        const stats = data.outcome_stats;
-        if (stats && stats.total_similar >= 2 && stats.resolved_count > 0) {
-            outcomeStatsData = stats;
-            renderStats(stats);
-        } else {
-            card.style.display = 'none';
+        const response = await fetch(`/api/incidents/${incidentId}/stats/`);
+        if (response.ok) {
+            const data = await response.json();
+            outcomeStatsData = data;
+            renderStats(data);
         }
-    } catch (err) {
-        console.error("Error loading outcome stats:", err);
-        card.style.display = 'none';
+    } catch (e) {
+        console.error('Failed to load outcome stats', e);
     }
 }
 
-// ── Polling ───────────────────────────────────────────────
-async function checkPipelineStatus() {
-    if (!pipelineCompleted) {
-        pollAttempts++;
-        const attemptEn = document.querySelector('#attempt-counter .loc-en');
-        const attemptHi = document.querySelector('#attempt-counter .loc-hi');
-        if (attemptEn) attemptEn.textContent = `Checking status... (attempt ${pollAttempts} of 30)`;
-        if (attemptHi) attemptHi.textContent = `स्थिति की जांच की जा रही है... (प्रयास ${pollAttempts}/30)`;
-        
-        if (pollAttempts > maxPollAttempts) {
-            clearInterval(pollTimer);
-            const pulsing = document.getElementById('pulsing-progress');
-            if (pulsing) pulsing.style.display = 'none';
-            const timeoutBox = document.getElementById('timeout-message');
-            if (timeoutBox) timeoutBox.style.display = 'block';
-            return;
-        }
-    }
-
-    try {
-        const res = await fetch(`/report/${signalId}/status/`);
-        if (!res.ok) throw new Error('HTTP error polling status');
-        const data = await res.json();
-        
-        if (data.status === 'pipeline_error') {
-            clearInterval(pollTimer);
-            const pulsing = document.getElementById('pulsing-progress');
-            if (pulsing) pulsing.style.display = 'none';
-            const timeoutBox = document.getElementById('timeout-message');
-            if (timeoutBox) timeoutBox.style.display = 'block';
-            return;
-        }
-
-        updateChecklistUI(data.steps);
-        if (data.status === 'processed' && data.result) {
-            currentResult = data.result;
-            if (!pipelineCompleted) {
-                pipelineCompleted = true;
-                clearInterval(pollTimer);
-                renderResult(data.result);
-                pollTimer = setInterval(checkPipelineStatus, 10000);
-            }
-            renderCaseStatus(data.result.coordinator_status, data.result.coordinator_notes, data.result.contact_number);
-        } else if (data.status === 'failed') {
-            clearInterval(pollTimer);
-            showError();
-        }
-    } catch(e) {
-        console.error('Polling error:', e);
-    }
+// Dynamic page title translation
+const originalSetLanguageTheme = setLanguageTheme;
+setLanguageTheme = function(lang) {
+    originalSetLanguageTheme(lang);
+    
+    // Update browser tab title dynamically
+    const tabTitles = {
+        english: 'Prahari — Report Status',
+        hindi: 'प्रहरी — रिपोर्ट की स्थिति'
+    };
+    document.title = tabTitles[lang] || 'Prahari';
 }
 
-// ── Helpers ───────────────────────────────────────────────
 function tfClass(tf) {
     const t = (tf || '').toLowerCase();
     if (t.includes('immediately') || t.includes('immediate') || t.includes('24') || t.includes('hour') || t.includes('1 day') || t.includes('2 day') || t.includes('3 day') || t === 'now') return 'urgent';
-    if (t.includes('7') || t.includes('week')) return 'amber';
-    if (t.includes('30') || t.includes('month') || t.includes('year')) return 'blue';
-    return 'grey';
+    return 'amber';
 }
+
 function tfLabel(tf) {
     const t = (tf || '').toLowerCase();
     if (t.includes('immediately') || t.includes('immediate') || t === 'now') return 'IMMEDIATELY';
     return tf;
 }
+
 function extractForum(actionText) {
     const forums = [
         ['Civil Court', 'Civil Court'],
@@ -1479,19 +428,17 @@ function extractForum(actionText) {
     }
     return null;
 }
+
 function bringChecklist(domain, nearest_authority_type, title, brief, lang = 'en') {
     const domainL = (domain || '').toLowerCase();
     const auth = (nearest_authority_type || '').trim();
     const textToMatch = ((title || '') + ' ' + (brief || '')).toLowerCase();
-    
-    // Check if it's an illegal eviction/tenant dispute
-    const isTenantDispute = textToMatch.includes('evict') || textToMatch.includes('tenant') || textToMatch.includes('rent') || textToMatch.includes('landlord') || textToMatch.includes('lease');
+    const isEvict = textToMatch.includes('evict') || textToMatch.includes('tenant') || textToMatch.includes('rent') || textToMatch.includes('landlord') || textToMatch.includes('lease');
     
     let key = 'general';
-    
     if (auth === 'Police Complaint Authority' || textToMatch.includes('fir refusal') || textToMatch.includes('refusing to register') || textToMatch.includes('police refused')) {
         key = 'fir_refusal';
-    } else if (isTenantDispute) {
+    } else if (isEvict) {
         key = 'eviction';
     } else if (auth === 'Labour Court' || domainL === 'labour' || textToMatch.includes('wage') || textToMatch.includes('salary') || textToMatch.includes('unpaid')) {
         key = 'wage_theft';
@@ -1504,427 +451,240 @@ function bringChecklist(domain, nearest_authority_type, title, brief, lang = 'en
     const listsEn = {
         fir_refusal: [
             'ID and Address Proof',
-            'Written complaint addressed to the Superintendent of Police (SP) / Senior Superintendent of Police (SSP)',
-            'Copy of the refused complaint submitted to the Station House Officer (SHO)',
-            'Shop lease agreement or proof of ownership',
-            'Detailed inventory of stolen goods with estimated value',
-            'Shop photographs and any available CCTV footage'
+            'Written SP/SSP complaint draft copy',
+            'Copy of refused SHO complaint',
+            'Shop lease or possession certificate',
+            'Inventory list of goods with prices',
+            'CCTV recordings or photographs'
         ],
         eviction: [
-            'Original rent agreement or lease deed',
-            'Rent payment receipts (last 6 months)',
-            'Photographs of locked door or cut utilities',
-            'Written record of threats with dates and times',
-            'Witness names and contact numbers'
+            'Original lease agreement',
+            'Last 6 months rent receipt records',
+            'Proof of cut utility or lock-outs',
+            'Threat history with dates and hours',
+            'Names of local witnesses'
         ],
         wage_theft: [
-            'Proof of employment (any document, ID card, photo)',
-            'Record of days worked (diary, phone notes)',
-            'Any written contract or verbal agreement proof',
-            'Names of co-workers who can verify',
-            'Bank account details for wage payment order'
+            'Employment letter or badge',
+            'Worked shifts logbook',
+            'Text messages of wage promises',
+            'Witness contact listings',
+            'Bank details for recovery orders'
         ],
         hospital_denial: [
-            'Photograph of hospital entrance with timestamp',
-            'Written refusal from hospital (request in writing)',
-            'Names of staff who refused treatment',
-            'Medical records if available',
-            'Any payment receipt or deposit demand in writing'
+            'Refusal slip or treatment memo',
+            'Photographs with timestamp details',
+            'Refusing official personnel names',
+            'Existing prescription details',
+            'Written billing or advance demands'
         ],
         consumer_fraud: [
-            'Original purchase receipt or invoice',
-            'Product or service proof',
-            'Written complaint sent to company (keep copy)',
-            'Bank statement showing payment',
-            'Any warranty card or guarantee document'
+            'Invoice or payment receipt',
+            'Defective item photographs',
+            'Merchant letter or email updates',
+            'Bank credit card statements',
+            'Guarantee cards or manuals'
         ],
         general: [
-            'Any document related to the incident',
-            'Written complaint draft',
-            'Witness details',
-            'Photographs if relevant'
+            'Any incident proof material',
+            'Written case representation draft',
+            'Witness name/address directory',
+            'Scene photographs if available'
         ]
     };
     
     const listsHi = {
         fir_refusal: [
             'पहचान और पते का प्रमाण',
-            'पुलिस अधीक्षक (SP) / वरिष्ठ पुलिस अधीक्षक (SSP) को संबोधित लिखित शिकायत',
-            'थाना प्रभारी (SHO) को सौंपी गई अस्वीकृत शिकायत की प्रति',
-            'दुकान का किराया समझौता या स्वामित्व का प्रमाण',
-            'अनुमानित मूल्य के साथ चोरी हुए सामान की विस्तृत सूची',
+            'एसपी/एसएसपी शिकायत पत्र की प्रति',
+            'एसएचओ द्वारा खारिज शिकायत पत्र',
+            'दुकान का किरायानामा या स्वामित्व दस्तावेज',
+            'चोरी हुए सामान की सूची और अनुमानित मूल्य',
             'दुकान की तस्वीरें और उपलब्ध सीसीटीवी फुटेज'
         ],
         eviction: [
-            'मूल किराया समझौता या लीज डीड',
-            'किराया भुगतान की रसीदें (पिछले 6 महीने)',
-            'बंद दरवाजे या कटी हुई उपयोगिताओं (बिजली/पानी) की तस्वीरें',
-            'तारीख और समय के साथ धमकियों का लिखित विवरण',
-            'गवाहों के नाम और संपर्क नंबर'
+            'मूल किराया समझौता या पट्टा विलेख',
+            'पिछले 6 महीनों के किराए के भुगतान की रसीदें',
+            'ताला लगाने या बिजली/पानी काटने के फोटो',
+            'धमकियों का तारीख और समय के साथ लिखित रिकॉर्ड',
+            'गवाहों के नाम और उनके मोबाइल नंबर'
         ],
         wage_theft: [
-            'रोजगार का प्रमाण (कोई भी दस्तावेज, आईडी कार्ड, फोटो)',
+            'रोजगार का प्रमाण (आईडी कार्ड, फोटो, नियुक्ति पत्र)',
             'काम किए गए दिनों का रिकॉर्ड (डायरी, फोन नोट्स)',
-            'कोई भी लिखित अनुबंध या मौखिक समझौते का प्रमाण',
-            'सत्यापित कर सकने वाले सहकर्मियों के नाम',
-            'वेतन भुगतान आदेश के लिए बैंक खाते का विवरण'
+            'कोई लिखित अनुबंध या मौखिक समझौते का प्रमाण',
+            'सहकर्मियों के नाम जो पुष्टि कर सकें',
+            'मजदूरी भुगतान आदेश के लिए बैंक विवरण'
         ],
         hospital_denial: [
-            'टाइमस्टैम्प के साथ अस्पताल के प्रवेश द्वार की तस्वीर',
-            'अस्पताल से लिखित इनकार (लिखित में अनुरोध करें)',
+            'अस्पताल के मुख्य द्वार की समय के साथ तस्वीर',
+            'अस्पताल से लिखित इनकार (लिखित में मांगें)',
             'इलाज से इनकार करने वाले कर्मचारियों के नाम',
-            'चिकित्सा रिकॉर्ड (यदि उपलब्ध हो)',
-            'लिखित में कोई भी भुगतान रसीद या जमा मांग'
+            'उपलब्ध होने पर पिछले मेडिकल रिकॉर्ड',
+            'रसीद या अग्रिम जमा की लिखित मांग'
         ],
         consumer_fraud: [
             'मूल खरीद रसीद या चालान',
-            'उत्पाद या सेवा का प्रमाण',
-            'कंपनी को भेजी गई लिखित शिकायत (प्रति अपने पास रखें)',
-            'भुगतान दर्शाने वाला बैंक विवरण',
-            'कोई भी वारंटी कार्ड या गारंटी दस्तावेज'
+            'दोषपूर्ण उत्पाद या सेवा का प्रमाण',
+            'कंपनी को भेजी गई लिखित शिकायत (कॉपी रखें)',
+            'भुगतान दर्शाने वाला बैंक स्टेटमेंट',
+            'कोई वारंटी कार्ड या गारंटी दस्तावेज'
         ],
         general: [
             'घटना से संबंधित कोई भी दस्तावेज',
             'लिखित शिकायत का मसौदा',
             'गवाहों का विवरण',
-            'तस्वीरें यदि प्रासंगिक हों'
+            'प्रासंगिक होने पर तस्वीरें'
         ]
     };
+
+    const targetList = lang === 'hi' ? listsHi[key] : listsEn[key];
+    return targetList.map(item => `<li>${item}</li>`).join('');
+}
+
+function showResult(result) {
+    if (!result) return;
+    currentResult = result;
     
-    const items = (lang === 'hi' ? listsHi : listsEn)[key] || (lang === 'hi' ? listsHi['general'] : listsEn['general']);
-    return items.map(i => `<li>${i}</li>`).join('');
-}
-function simplifyDescription(desc) {
-    // Return description as-is; LLM-generated text is already summarised
-    return desc || '';
-}
-function extractRemedy(relevance) {
-    if (!relevance) return '';
-    const sentences = relevance.match(/[^.!?]+[.!?]*/g) || [relevance];
-    const verbs = [
-        'can file', 'can seek', 'can approach', 'can claim',
-        'entitled to', 'may apply', 'has the right to', 'can demand',
-        'should contact', 'provides a remedy', 'allows the citizen',
-        'citizen may', 'citizen can'
-    ];
-    for (const s of sentences) {
-        const sl = s.toLowerCase();
-        if (verbs.some(v => sl.includes(v))) {
-            let res = s.trim();
-            if (!/[.!?]$/.test(res)) {
-                res += '.';
-            }
-            return res;
-        }
-    }
-    return relevance.trim();
-}
-
-// ── Main Render ───────────────────────────────────────────
-function renderResult(result) {
-    // Create local copy to override with language translations
-    const resCopy = { ...result };
-    const activeLang = localStorage.getItem('prahari_lang') || 'english';
-    const preferred = result.preferred_language || 'hindi';
-    const langData = result.language_outputs;
-    const langOut = langData?.[activeLang] || langData?.[preferred] || langData?.['hindi'] || null;
-    
-    if (langOut) {
-        resCopy.title_hi = langOut.situation_title || result.title_hi || result.title_en;
-        resCopy.brief_hi = langOut.situation_brief || result.brief_hi || result.brief_en;
-        resCopy.what_is_happening_hi = langOut.what_is_happening || result.what_is_happening_hi || result.what_is_happening_en;
-        resCopy.legal_provisions_hi = langOut.legal_provisions || result.legal_provisions_hi || [];
-        resCopy.legal_timeline_hi = langOut.legal_timeline || result.legal_timeline_hi || [];
-        resCopy.golden_window_hi = langOut.golden_window || result.golden_window_hi || {};
-        resCopy.emergency_contacts_hi = langOut.emergency_contacts || result.emergency_contacts_hi || [];
-        resCopy.primary_concern_hi = langOut.primary_concern || result.primary_concern_hi || "";
-        resCopy.conflict_resolution_hi = langOut.conflict_resolution || result.conflict_resolution_hi || null;
-        resCopy.escalation_path_hi = langOut.escalation_path || result.escalation_path_hi || [];
-        resCopy.immediate_actions_hi = langOut.immediate_actions || result.immediate_actions_hi || [];
-        resCopy.authorities_to_notify_hi = langOut.authorities_to_notify || result.authorities_to_notify_hi || [];
-        resCopy.resources_needed_hi = langOut.resources_needed || result.resources_needed_hi || [];
-        resCopy.evidence_to_collect_hi = langOut.evidence_to_collect || result.evidence_to_collect_hi || [];
-    } else if (activeLang !== 'hindi' && activeLang !== 'english') {
-        // Fall back to English if active language is mr, bn, etc. and no translation exists
-        resCopy.title_hi = result.title_en;
-        resCopy.brief_hi = result.brief_en;
-        resCopy.what_is_happening_hi = result.what_is_happening_en;
-        resCopy.legal_provisions_hi = [];
-        resCopy.legal_timeline_hi = [];
-        resCopy.golden_window_hi = {};
-        resCopy.emergency_contacts_hi = [];
-        resCopy.primary_concern_hi = "";
-        resCopy.conflict_resolution_hi = null;
-        resCopy.escalation_path_hi = [];
-        resCopy.immediate_actions_hi = [];
-        resCopy.authorities_to_notify_hi = [];
-        resCopy.resources_needed_hi = [];
-        resCopy.evidence_to_collect_hi = [];
-    }
-    result = resCopy;
-
-    // Hide loading card
-    document.getElementById('loading-card').style.display = 'none';
-
-    // Banners will be updated dynamically by renderCaseStatus
-
-    document.getElementById('result-section').style.display = 'flex';
-
-    // Hide/configure share buttons based on host and settings (Fix 5)
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const hasSiteUrl = typeof siteUrl !== 'undefined' && siteUrl && siteUrl.trim() !== '';
-
-    const waBtn = document.getElementById('whatsapp-share-btn');
-    if (waBtn) {
-        if (isLocalhost || !hasSiteUrl) {
-            waBtn.style.display = 'none';
-        } else {
-            const titleText = result.title_en || '';
-            const base = siteUrl && siteUrl.trim() !== '' ? siteUrl : window.location.origin;
-            const reportUrl = base + window.location.pathname;
-            const textToShare = `Prahari Report | ${titleText} | View at ${reportUrl}`;
-            waBtn.href = `https://wa.me/?text=${encodeURIComponent(textToShare)}`;
-            waBtn.style.display = 'inline-flex';
-        }
-    }
-
-    const shareBtn = document.getElementById('clipboard-share-btn');
-    if (shareBtn) {
-        if (isLocalhost || !hasSiteUrl) {
-            shareBtn.style.display = 'none';
-        } else {
-            shareBtn.style.display = 'inline-block';
-        }
-    }
-
     const domain = (result.domain || '').toLowerCase();
-    const isHealth = ['health', 'emergency', 'cross', 'cross_domain'].includes(domain);
-    const isLegal  = ['legal', 'cross', 'cross_domain'].includes(domain);
-    const isCross  = ['cross', 'cross_domain'].includes(domain);
-    const lang = document.documentElement.getAttribute('lang') || 'en';
+    const isHealth = domain === 'health';
+    const isLegal = domain === 'legal';
+    const isCross = domain === 'cross' || domain === 'cross_domain';
+    const nearestAuth = result.nearest_authority_type || 'DLSA';
+    const triageSev = (result.triage_severity || '').toLowerCase();
+    const provisions = result.legal_provisions || [];
 
-    let html = '';
-
-    // ── Title + Badges ───────────────────────────────────
-    const sev = (result.severity_label || 'medium').toLowerCase();
-    let sevLabelEn = 'Moderate';
-    let sevLabelHi = 'मध्यम';
-    if (sev === 'critical') {
-        sevLabelEn = 'Critical';
-        sevLabelHi = 'अत्यंत गंभीर';
-    } else if (sev === 'high') {
-        sevLabelEn = 'High';
-        sevLabelHi = 'गंभीर';
-    } else if (sev === 'medium' || sev === 'moderate') {
-        sevLabelEn = 'Moderate';
-        sevLabelHi = 'मध्यम';
-    } else if (sev === 'low') {
-        sevLabelEn = 'Low';
-        sevLabelHi = 'कम';
-    }
+    // Title Row
     const titleHTML = `
-    <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem;">
-        <div class="badge-row">
-            <span class="badge ${sev}">
-                <span class="loc-en">Severity: ${sevLabelEn}</span>
-                <span class="loc-hi">गंभीरता: ${sevLabelHi}</span>
-            </span>
-            <span class="badge domain">
-                <span class="loc-en">Domain: ${domain.toUpperCase()}</span>
-                <span class="loc-hi">विषय: ${domain.toUpperCase()}</span>
-            </span>
-        </div>
-        <div class="loc-en" style="font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:800;color:var(--text-main);line-height:1.25;">${result.title_en || ''}</div>
-        <div class="loc-hi" lang="hi" style="font-family:'Noto Sans Devanagari',sans-serif;font-size:1.55rem;font-weight:700;color:var(--text-main);line-height:1.35;">${result.title_hi || result.title_en || ''}</div>
+    <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: 0.5rem; text-align: left;">
+        <span class="section-eyebrow" style="color: var(--yellow);">${domain.toUpperCase()} Case Guidance</span>
+        <h2 class="section-title loc-en" style="margin-top: 2px;">Incident Guidance Brief</h2>
+        <h2 class="section-title loc-hi" lang="hi" style="margin-top: 2px;">घटना मार्गदर्शन सारांश</h2>
     </div>`;
 
-    // ── TOP EMERGENCY CONTACTS ───────────────────────────
+    // Dynamic emergency buttons
     let topContactsHTML = '';
-    let buttons = [];
-    const nearestAuth = (result.nearest_authority_type || '').trim();
-    const hospDenial = result.hospital_denial_detected || false;
-    const triageSev = (result.triage_severity || '').toLowerCase();
-
-    if (domain === 'health') {
+    const buttons = [];
+    const hospDenial = triageSev === 'immediate' || triageSev === 'critical';
+    
+    if (isHealth) {
         buttons.push(`
-            <a href="tel:108" class="top-contact-btn red-btn">
-                <span class="top-contact-num">📞 108</span>
-                <span class="top-contact-label loc-en">Ambulance (Emergency)</span>
-                <span class="top-contact-label loc-hi" lang="hi">एम्बुलेंस (आपातकालीन)</span>
+            <a href="tel:108" class="emergency-card e-108">
+                <span class="ec-name loc-en">Ambulance (Emergency)</span>
+                <span class="ec-name loc-hi" lang="hi">एम्बुलेंस (आपातकालीन)</span>
+                <span class="ec-number">📞 108</span>
+                <span class="ec-when loc-en">24/7 Resuscitation</span>
+                <span class="ec-when loc-hi" lang="hi">24/7 तत्काल सेवा</span>
             </a>
         `);
         buttons.push(`
-            <a href="tel:112" class="top-contact-btn amber-btn">
-                <span class="top-contact-num">📞 112</span>
-                <span class="top-contact-label loc-en">National Emergency</span>
-                <span class="top-contact-label loc-hi" lang="hi">राष्ट्रीय आपातकाल</span>
+            <a href="tel:112" class="emergency-card e-100">
+                <span class="ec-name loc-en">National Emergency</span>
+                <span class="ec-name loc-hi" lang="hi">राष्ट्रीय आपातकाल</span>
+                <span class="ec-number">📞 112</span>
+                <span class="ec-when loc-en">Immediate Dispatch</span>
+                <span class="ec-when loc-hi" lang="hi">त्वरित प्रतिक्रिया</span>
             </a>
         `);
         if (hospDenial) {
             buttons.push(`
-                <a href="tel:100" class="top-contact-btn subtle-btn">
-                    <span class="top-contact-num">📞 100</span>
-                    <span class="top-contact-label loc-en">Police</span>
-                    <span class="top-contact-label loc-hi" lang="hi">पुलिस</span>
+                <a href="tel:100" class="emergency-card">
+                    <span class="ec-name loc-en">Police</span>
+                    <span class="ec-name loc-hi" lang="hi">पुलिस</span>
+                    <span class="ec-number">📞 100</span>
+                    <span class="ec-when loc-en">Emergency Patrol</span>
+                    <span class="ec-when loc-hi" lang="hi">गश्ती दल</span>
                 </a>
             `);
         }
     } else if (domain === 'emergency') {
         buttons.push(`
-            <a href="tel:112" class="top-contact-btn red-btn">
-                <span class="top-contact-num">📞 112</span>
-                <span class="top-contact-label loc-en">National Emergency</span>
-                <span class="top-contact-label loc-hi" lang="hi">राष्ट्रीय आपातकाल</span>
+            <a href="tel:112" class="emergency-card e-108">
+                <span class="ec-name loc-en">National Emergency</span>
+                <span class="ec-name loc-hi" lang="hi">राष्ट्रीय आपातकाल</span>
+                <span class="ec-number">📞 112</span>
+                <span class="ec-when loc-en">First Responders</span>
+                <span class="ec-when loc-hi" lang="hi">त्वरित पुलिस सहायता</span>
             </a>
         `);
         buttons.push(`
-            <a href="tel:108" class="top-contact-btn amber-btn">
-                <span class="top-contact-num">📞 108</span>
-                <span class="top-contact-label loc-en">Ambulance</span>
-                <span class="top-contact-label loc-hi" lang="hi">एम्बुलेंस</span>
+            <a href="tel:108" class="emergency-card e-100">
+                <span class="ec-name loc-en">Ambulance</span>
+                <span class="ec-name loc-hi" lang="hi">एम्बुलेंस</span>
+                <span class="ec-number">📞 108</span>
+                <span class="ec-when loc-en">Medical Rescue</span>
+                <span class="ec-when loc-hi" lang="hi">चिकित्सा सहायता</span>
             </a>
         `);
         buttons.push(`
-            <a href="tel:101" class="top-contact-btn subtle-btn">
-                <span class="top-contact-num">📞 101</span>
-                <span class="top-contact-label loc-en">Fire Brigade</span>
-                <span class="top-contact-label loc-hi" lang="hi">दमकल केंद्र</span>
-            </a>
-        `);
-        buttons.push(`
-            <a href="tel:100" class="top-contact-btn subtle-btn">
-                <span class="top-contact-num">📞 100</span>
-                <span class="top-contact-label loc-en">Police</span>
-                <span class="top-contact-label loc-hi" lang="hi">पुलिस</span>
+            <a href="tel:101" class="emergency-card">
+                <span class="ec-name loc-en">Fire Brigade</span>
+                <span class="ec-name loc-hi" lang="hi">दमकल केंद्र</span>
+                <span class="ec-number">📞 101</span>
+                <span class="ec-when loc-en">Fire emergencies</span>
+                <span class="ec-when loc-hi" lang="hi">अग्निशमन दल</span>
             </a>
         `);
     } else if (domain === 'legal') {
         if (nearestAuth === 'DLSA' || nearestAuth === 'High Court') {
             buttons.push(`
-                <a href="tel:15100" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 15100</span>
-                    <span class="top-contact-label loc-en">NALSA Legal Aid</span>
-                    <span class="top-contact-label loc-hi" lang="hi">NALSA कानूनी सहायता</span>
-                </a>
-            `);
-        } else if (nearestAuth === 'Police Complaint Authority') {
-            buttons.push(`
-                <a href="tel:100" class="top-contact-btn red-btn">
-                    <span class="top-contact-num">📞 100</span>
-                    <span class="top-contact-label loc-en">Police Helpline</span>
-                    <span class="top-contact-label loc-hi" lang="hi">पुलिस हेल्पलाइन</span>
+                <a href="tel:15100" class="emergency-card" style="border-color: var(--yellow);">
+                    <span class="ec-name loc-en">NALSA Legal Aid</span>
+                    <span class="ec-name loc-hi" lang="hi">NALSA कानूनी सहायता</span>
+                    <span class="ec-number" style="color: var(--yellow);">📞 15100</span>
+                    <span class="ec-when loc-en">24/7 Legal Helpline</span>
+                    <span class="ec-when loc-hi" lang="hi">24/7 कानूनी सहायता</span>
                 </a>
             `);
         } else if (nearestAuth === 'Labour Court') {
             buttons.push(`
-                <a href="tel:14444" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 14444</span>
-                    <span class="top-contact-label loc-en">Labour Helpline</span>
-                    <span class="top-contact-label loc-hi" lang="hi">श्रम हेल्पलाइन</span>
+                <a href="tel:14444" class="emergency-card" style="border-color: var(--yellow);">
+                    <span class="ec-name loc-en">Labour Helpline</span>
+                    <span class="ec-name loc-hi" lang="hi">श्रम हेल्पलाइन</span>
+                    <span class="ec-number" style="color: var(--yellow);">📞 14444</span>
+                    <span class="ec-when loc-en">Wage Dispute Aid</span>
+                    <span class="ec-when loc-hi" lang="hi">मजदूरी विवाद सहायता</span>
                 </a>
             `);
         } else if (nearestAuth === 'Consumer Forum') {
             buttons.push(`
-                <a href="tel:1915" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 1915</span>
-                    <span class="top-contact-label loc-en">Consumer Helpline</span>
-                    <span class="top-contact-label loc-hi" lang="hi">उपभोक्ता हेल्पलाइन</span>
+                <a href="tel:1915" class="emergency-card" style="border-color: var(--yellow);">
+                    <span class="ec-name loc-en">Consumer Helpline</span>
+                    <span class="ec-name loc-hi" lang="hi">उपभोक्ता हेल्पलाइन</span>
+                    <span class="ec-number" style="color: var(--yellow);">📞 1915</span>
+                    <span class="ec-when loc-en">Fraud & Grievances</span>
+                    <span class="ec-when loc-hi" lang="hi">उपभोक्ता शिकायत</span>
                 </a>
             `);
         }
-    } else if (isCross) {
-        if (triageSev === 'immediate' || isHealth) {
-            buttons.push(`
-                <a href="tel:108" class="top-contact-btn red-btn">
-                    <span class="top-contact-num">📞 108</span>
-                    <span class="top-contact-label loc-en">Ambulance (Emergency)</span>
-                    <span class="top-contact-label loc-hi" lang="hi">एम्बुलेंस (आपातकालीन)</span>
-                </a>
-            `);
-        }
-        
-        buttons.push(`
-            <a href="tel:112" class="top-contact-btn amber-btn">
-                <span class="top-contact-num">📞 112</span>
-                <span class="top-contact-label loc-en">National Emergency</span>
-                <span class="top-contact-label loc-hi" lang="hi">राष्ट्रीय आपातकाल</span>
-            </a>
-        `);
-
-        if (hospDenial || nearestAuth === 'Police Complaint Authority') {
-            buttons.push(`
-                <a href="tel:100" class="top-contact-btn subtle-btn">
-                    <span class="top-contact-num">📞 100</span>
-                    <span class="top-contact-label loc-en">Police</span>
-                    <span class="top-contact-label loc-hi" lang="hi">पुलिस</span>
-                </a>
-            `);
-        }
-        
-        if (nearestAuth === 'DLSA' || nearestAuth === 'High Court') {
-            buttons.push(`
-                <a href="tel:15100" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 15100</span>
-                    <span class="top-contact-label loc-en">NALSA Legal Aid</span>
-                    <span class="top-contact-label loc-hi" lang="hi">NALSA कानूनी सहायता</span>
-                </a>
-            `);
-        } else if (nearestAuth === 'Labour Court') {
-            buttons.push(`
-                <a href="tel:14444" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 14444</span>
-                    <span class="top-contact-label loc-en">Labour Helpline</span>
-                    <span class="top-contact-label loc-hi" lang="hi">श्रम हेल्पलाइन</span>
-                </a>
-            `);
-        } else if (nearestAuth === 'Consumer Forum') {
-            buttons.push(`
-                <a href="tel:1915" class="top-contact-btn indigo-btn">
-                    <span class="top-contact-num">📞 1915</span>
-                    <span class="top-contact-label loc-en">Consumer Helpline</span>
-                    <span class="top-contact-label loc-hi" lang="hi">उपभोक्ता हेल्पलाइन</span>
-                </a>
-            `);
-        }
-    }
-
-    let secondaryNoteHTML = '';
-    if (nearestAuth === 'Police Complaint Authority') {
-        secondaryNoteHTML = `
-        <div style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-muted);">
-            <span class="loc-en"><strong>Note:</strong> You can also file a written complaint to the SP/SSP office.</span>
-            <span class="loc-hi" lang="hi"><strong>टिप्पणी:</strong> आप एसपी/एसएसपी कार्यालय में लिखित शिकायत भी दर्ज कर सकते हैं।</span>
-        </div>`;
     }
 
     if (buttons.length > 0) {
         topContactsHTML = `
-        <div class="top-contact-bar" style="margin-bottom:1.5rem;">
-            <div class="top-contact-title">
-                <span class="loc-en">🚨 Emergency Contacts</span>
-                <span class="loc-hi">🚨 आपातकालीन संपर्क</span>
+        <div class="rs-section" style="padding: 0; margin-bottom: var(--space-4);">
+            <div class="section-header" style="border: none; margin-bottom: 0.5rem;">
+                <span class="section-eyebrow">🚨 Action Contacts</span>
             </div>
-            <div class="top-contact-buttons">
+            <div class="emergency-contacts-grid">
                 ${buttons.join('')}
             </div>
-            ${secondaryNoteHTML}
         </div>`;
     }
 
-    // ── GOLDEN WINDOW (health, between S1 & S2) ───────────
+    // ── GOLDEN WINDOW (health warning) ───────────
     let goldenWindowHTML = '';
     if (isHealth && result.golden_window && result.golden_window.time_remaining) {
         const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
         const icon = isImm ? '🚨' : '⏱️';
         const gwHi = result.golden_window_hi || {};
         goldenWindowHTML = `
-    <div class="golden-window-alert" role="alert" style="margin-bottom:1.5rem;">
-        <div class="gw-label loc-en">⚠️ Time Critical — Golden Treatment Window</div>
-        <div class="gw-label loc-hi" lang="hi">⚠️ समय अत्यंत महत्वपूर्ण है — समय सीमा</div>
+    <div class="golden-window-alert" role="alert" style="margin-bottom: var(--space-4);">
+        <div class="gw-label loc-en">Time Critical — Golden Treatment Window</div>
+        <div class="gw-label loc-hi" lang="hi">समय अत्यंत महत्वपूर्ण है — समय सीमा</div>
         <div class="gw-time">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
         <p class="gw-consequence loc-en"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
         <p class="gw-consequence loc-hi" lang="hi"><strong>यदि देरी हुई:</strong> ${gwHi.consequence_of_delay || result.golden_window.consequence_of_delay || ''}</p>
-        <a href="tel:108" class="call-btn-large">📞 Call 108 — National Ambulance</a>
+        <a href="tel:108" class="btn-danger" style="width: fit-content;">📞 Call 108 — National Ambulance</a>
     </div>`;
     }
 
@@ -1934,50 +694,33 @@ function renderResult(result) {
         const cr = result.conflict_resolution;
         const crHi = result.conflict_resolution_hi || cr;
         priorityNoticeHTML = `
-    <div class="priority-notice" role="note" style="margin-bottom:1.5rem;">
+    <div class="priority-notice" role="note" style="margin-bottom: var(--space-4);">
         <div class="priority-notice-label loc-en">⚡ Priority Notice — Cross-Domain Situation</div>
         <div class="priority-notice-label loc-hi">⚡ प्राथमिकता सूचना — क्रॉस-डोमेन स्थिति</div>
-        <p class="priority-notice-text loc-en">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
+        <p class="priority-notice-text loc-en">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is prioritized first because: ${cr.reasoning || ''}</p>
         <p class="priority-notice-text loc-hi" lang="hi">इस स्थिति में चिकित्सा और कानूनी दोनों पहलू हैं। <strong>${(cr.primary_priority === 'medical' ? 'चिकित्सा' : 'कानूनी').toUpperCase()}</strong> को सबसे पहले प्राथमिकता दी जा रही है क्योंकि: ${crHi.reasoning || cr.reasoning || ''}</p>
-        ${cr.sequence ? `<p class="loc-en" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
-        ${crHi.sequence ? `<p class="loc-hi" lang="hi" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${crHi.sequence}</p>` : ''}
     </div>`;
     }
 
-    // ── SECTION 1: WHAT IS HAPPENING ─────────────────────
+    // ── SECTION 1: WHAT IS HAPPENING (Executive Summary) ──
     const briefEn = result.brief_en || result.what_is_happening_en || '';
     const briefHi = result.brief_hi || result.what_is_happening_hi || briefEn;
     const whatIsHappeningHTML = `
-    <section class="rs-section" aria-label="What is happening">
+    <section class="rs-section" aria-label="Executive Summary">
         <div class="section-header">
             <span class="section-label">Section 1</span>
             <h2 class="section-heading">
-                <span class="loc-en">What is Happening</span>
-                <span class="loc-hi">क्या हो रहा है</span>
+                <span class="loc-en">Executive Summary</span>
+                <span class="loc-hi">घटना का विवरण</span>
             </h2>
         </div>
         <p class="brief-text loc-en">${briefEn}</p>
         <p class="brief-text brief-text-hi loc-hi" lang="hi">${briefHi}</p>
-        
-        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.5rem; text-align: left;">
-            ${result.resources_needed && result.resources_needed.length > 0 ? `
-            <div class="loc-en" style="font-size:.85rem;color:var(--text-muted);"><strong>Resources Needed:</strong> ${result.resources_needed.join(', ')}</div>
-            <div class="loc-hi" lang="hi" style="font-size:.85rem;color:var(--text-muted);"><strong>आवश्यक संसाधन:</strong> ${result.resources_needed_hi && result.resources_needed_hi.length > 0 ? result.resources_needed_hi.join(', ') : result.resources_needed.join(', ')}</div>
-            ` : ''}
-            ${result.authorities_to_notify && result.authorities_to_notify.length > 0 ? `
-            <div class="loc-en" style="font-size:.85rem;color:var(--text-muted);"><strong>Authorities to Notify:</strong> ${result.authorities_to_notify.join(', ')}</div>
-            <div class="loc-hi" lang="hi" style="font-size:.85rem;color:var(--text-muted);"><strong>प्राधिकरण जिन्हें सूचित करना है:</strong> ${result.authorities_to_notify_hi && result.authorities_to_notify_hi.length > 0 ? result.authorities_to_notify_hi.join(', ') : result.authorities_to_notify.join(', ')}</div>
-            ` : ''}
-        </div>
-    </section>
-    
-    <!-- Case Outcome Predictor Stats Card -->
-    <div id="outcome-stats-card" style="display: none; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.1rem 1.4rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
-    </div>`;
+        <div id="outcome-stats-card" style="margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle);"></div>
+    </section>`;
 
     // ── SECTION 2: YOUR RIGHTS ───────────────────────────
     let rightsHTML = '';
-    const provisions = result.legal_provisions || [];
     if (isLegal && provisions.length > 0) {
         const provCards = provisions.map((p, idx) => {
             const simpleDesc = simplifyDescription(p.description);
@@ -1990,75 +733,66 @@ function renderResult(result) {
             
             const isVer = p.verified === true;
             const badgeEn = isVer 
-                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ Verified statutory provision</div>`
-                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(255,255,255,0.03);color:var(--text-muted);border:1px solid var(--border-color);">⚠ Provision could not be verified</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.72rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ Verified statutory provision</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.72rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:var(--bg-surface-raised);color:var(--text-muted);border:1px solid var(--border-default);">⚠ Provision could not be verified</div>`;
             const badgeHi = isVer
-                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ सत्यापित कानूनी प्रावधान</div>`
-                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(255,255,255,0.03);color:var(--text-muted);border:1px solid var(--border-color);">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.72rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ सत्यापित कानूनी प्रावधान</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.72rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:var(--bg-surface-raised);color:var(--text-muted);border:1px solid var(--border-default);">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
 
             const cardStyle = isVer
-                ? `border: 1px solid rgba(34, 197, 94, 0.2); background: rgba(255, 255, 255, 0.025); box-shadow: 0 4px 12px rgba(0,0,0,0.25);`
-                : `border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.025); box-shadow: 0 4px 12px rgba(0,0,0,0.25);`;
-
-            const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
-            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
-            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
+                ? `border: 1px solid rgba(34, 197, 94, 0.2); background: var(--bg-surface);`
+                : `border: 1px solid var(--border-default); background: var(--bg-surface);`;
 
             const appVal = p.applicability || 'primary';
-            const appLabelHi = appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित';
             
             let appBg = 'rgba(255, 204, 51, 0.08)';
-            let appColor = 'var(--prahari-yellow)';
-            if (appVal === 'primary') {
-                appBg = 'rgba(255, 204, 51, 0.08)';
-                appColor = 'var(--prahari-yellow)';
-            } else if (appVal === 'secondary') {
-                appBg = 'rgba(255, 255, 255, 0.03)';
-                appColor = 'var(--text-muted)';
-            } else {
-                appBg = 'rgba(255, 255, 255, 0.03)';
+            let appColor = 'var(--yellow)';
+            if (appVal === 'secondary' || appVal === 'uncertain') {
+                appBg = 'var(--bg-surface-raised)';
                 appColor = 'var(--text-muted)';
             }
 
-            const appBadgeEn = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">Applicability: ${appVal}</span>`;
-            const appBadgeHi = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">प्रासंगिकता: ${appLabelHi}</span>`;
+            const appBadgeEn = `<span style="font-size:.72rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">Applicability: ${appVal}</span>`;
+            const appBadgeHi = `<span style="font-size:.72rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">लागू होने की स्थिति: ${appVal === 'primary' ? 'प्राथमिक' : 'सहायक'}</span>`;
 
             return `
-            <div class="right-card" style="${cardStyle} text-align: left; padding: 1.5rem; border-radius: var(--radius-card); display: flex; flex-direction: column; gap: 0.85rem;">
+            <div style="padding: var(--space-4); border-radius: var(--radius-card); ${cardStyle} display: flex; flex-direction: column; gap: var(--space-2); text-align: left;">
                 <div>
-                    <h3 class="right-card-title loc-en" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">${p.provision || ''} ${appBadgeEn}</h3>
-                    <h3 class="right-card-title loc-hi" lang="hi" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.provision || p.provision || ''} ${appBadgeHi}</h3>
-                    <div class="loc-en">${badgeEn} ${legacyEn}</div>
-                    <div class="loc-hi" lang="hi">${badgeHi} ${legacyHi}</div>
+                    ${badgeEn}
+                    ${badgeHi}
                 </div>
-                <div class="right-card-desc loc-en" style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">${p.description || ''}</div>
-                <div class="right-card-desc loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.description || p.description || ''}</div>
-                <div class="right-card-body" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
-                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: var(--color-primary); margin-right: .35rem;">🎯 YOUR CASE:</span>${p.relevance || ''}</p>
-                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--color-primary); margin-right: .35rem;">🎯 आपके मामले में:</span>${relevanceHi}</p>
-                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: var(--text-muted); margin-right: .35rem;">📋 WHAT THIS LAW SAYS:</span>${simpleDesc}</p>
-                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--text-muted); margin-right: .35rem;">📋 यह कानून क्या कहता है:</span>${simpleDescHi}</p>
-                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: #10b981; margin-right: .35rem;">✅ YOUR REMEDY:</span>${remedy}</p>
-                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: #10b981; margin-right: .35rem;">✅ आपका उपाय:</span>${remedyHi}</p>
-                </div>
+                <h3 class="card-title loc-en" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">${p.provision || ''} ${appBadgeEn}</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.provision || p.provision || ''} ${appBadgeHi}</h3>
+                
+                <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary);"><span style="font-weight:700;" class="loc-en">WHAT THIS MEANS: </span>${simpleDesc}</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight:700;" class="loc-hi">इसका क्या मतलब है: </span>${simpleDescHi}</p>
+                
+                ${remedy ? `
+                <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;"><span style="font-weight:700;" class="loc-en">YOUR REMEDY: </span>${remedy}</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight:700;" class="loc-hi">आपका उपाय: </span>${remedyHi}</p>
+                ` : ''}
             </div>`;
         }).join('');
+        
         rightsHTML = `
-    <section class="rs-section" aria-label="Your Rights">
+    <section class="rs-section" aria-label="Legal Rights">
         <div class="section-header">
             <span class="section-label">Section 2</span>
             <h2 class="section-heading">
-                <span class="loc-en">Your Rights (Legal Information)</span>
-                <span class="loc-hi">आपके अधिकार (कानूनी जानकारी)</span>
+                <span class="loc-en">Your Statutory Rights</span>
+                <span class="loc-hi">आपके वैधानिक अधिकार</span>
             </h2>
-            <p class="section-subheading loc-en">Based on your report, the following rights apply to your situation:</p>
-            <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी स्थिति पर लागू होते हैं:</p>
+            <p class="section-subheading loc-en">Based on your report, the following rights protect you in this situation:</p>
+            <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी सुरक्षा करते हैं:</p>
         </div>
-        <div class="rights-grid" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; width: 100%;">${provCards}</div>
-        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
-            <button id="legal-notice-btn" class="generate-notice-btn" onclick="generateLegalNotice('${result.incident_id}')" style="background: linear-gradient(135deg, var(--color-primary), #d97706); color: var(--bg-primary); border: none; padding: 0.85rem 1.5rem; border-radius: var(--radius-inner); font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); width: fit-content;">
-                <span class="loc-en">📄 Generate Legal Notice</span>
-                <span class="loc-hi">📄 कानूनी नोटिस बनाएं</span>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">${provCards}</div>
+        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+            <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id}')" style="width: fit-content;">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+                <span class="loc-en">Generate Legal Notice</span>
+                <span class="loc-hi">कानूनी नोटिस बनाएं</span>
             </button>
         </div>
     </section>`;
@@ -2066,15 +800,20 @@ function renderResult(result) {
 
     // ── WHAT NOT TO DO WARNING CARD ───────────────────
     let whatNotToDoHTML = '';
+    const avoidTitleEn = 'Things to Avoid';
+    const avoidTitleHi = 'इन बातों से बचें';
+    
     if (isHealth && isLegal) {
         whatNotToDoHTML = `
-        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
-                <span>⚠️</span>
-                <span class="loc-en">What NOT to Do</span>
-                <span class="loc-hi" lang="hi">क्या न करें</span>
+        <div class="surface-card" style="border-color: rgba(255, 204, 51, 0.15); display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); text-align: left;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 14px; height: 14px;" aria-hidden="true">
+                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+                <span class="loc-en">${avoidTitleEn}</span>
+                <span class="loc-hi" lang="hi">${avoidTitleHi}</span>
             </div>
-            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
                 <li class="loc-en">Do not delay medical treatment for police or legal formalities. Life-saving care is the absolute first priority.</li>
                 <li class="loc-hi" lang="hi">पुलिस या कानूनी औपचारिकताओं के लिए चिकित्सा उपचार में देरी न करें। जीवन रक्षक देखभाल पूर्ण प्रथम प्राथमिकता है।</li>
                 <li class="loc-en">Do not accept verbal treatment refusals. Insist on a written rejection or reference note.</li>
@@ -2083,13 +822,15 @@ function renderResult(result) {
         </div>`;
     } else if (isHealth) {
         whatNotToDoHTML = `
-        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
-                <span>⚠️</span>
-                <span class="loc-en">What NOT to Do</span>
-                <span class="loc-hi" lang="hi">क्या न करें</span>
+        <div class="surface-card" style="border-color: rgba(255, 204, 51, 0.15); display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); text-align: left;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 14px; height: 14px;" aria-hidden="true">
+                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+                <span class="loc-en">${avoidTitleEn}</span>
+                <span class="loc-hi" lang="hi">${avoidTitleHi}</span>
             </div>
-            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
                 <li class="loc-en">Do not attempt self-medication or medical procedures without professional guidance.</li>
                 <li class="loc-hi" lang="hi">पेशेवर मार्गदर्शन के बिना स्वयं दवा लेने या चिकित्सा प्रक्रियाओं का प्रयास न करें।</li>
                 <li class="loc-en">Do not give oral fluids or food if the victim is unconscious or semi-conscious.</li>
@@ -2098,13 +839,15 @@ function renderResult(result) {
         </div>`;
     } else if (isLegal) {
         whatNotToDoHTML = `
-        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
-                <span>⚠️</span>
-                <span class="loc-en">What NOT to Do</span>
-                <span class="loc-hi" lang="hi">क्या न करें</span>
+        <div class="surface-card" style="border-color: rgba(255, 204, 51, 0.15); display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); text-align: left;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 14px; height: 14px;" aria-hidden="true">
+                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+                <span class="loc-en">${avoidTitleEn}</span>
+                <span class="loc-hi" lang="hi">${avoidTitleHi}</span>
             </div>
-            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
                 <li class="loc-en">Do not sign any statements, settlement drafts, or blank papers without reading them thoroughly.</li>
                 <li class="loc-hi" lang="hi">बिना पूरी तरह पढ़े किसी भी बयान, समझौते के प्रारूप या खाली कागजों पर हस्ताक्षर न करें।</li>
                 <li class="loc-en">Do not pay bribes or unofficial fees to register complaints or retrieve documents.</li>
@@ -2153,17 +896,19 @@ function renderResult(result) {
             const forumHi = extractForum(s.actionHi) || forum;
             const isUrgent = s.timeframe && (s.timeframe.toLowerCase().includes('immediate') || s.timeframe.toLowerCase().includes('hour'));
             const urgentBadge = isUrgent ? `
-            <span class="badge critical" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 5px; line-height: 1; display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 0.5rem; width: fit-content; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
-                <span class="loc-en">🚨 URGENT ACTION</span>
-                <span class="loc-hi">🚨 तत्काल कार्रवाई</span>
+            <span class="badge critical" style="margin-bottom: var(--space-1);">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px;">
+                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+                <span class="loc-en">Urgent Action</span>
+                <span class="loc-hi">तत्काल कार्रवाई</span>
             </span>` : '';
             return `
-            <div class="action-step-card" style="text-align: left;">
+            <div class="action-step-card">
                 <div class="step-num-circle ${cls}">${s.num}</div>
                 <div class="step-body">
                     <div>
-                        <span class="loc-en" style="font-size:.8rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;">Step ${s.num}</span>
-                        <span class="loc-hi" style="font-size:.8rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;">चरण ${s.num}</span>
+                        <span class="section-eyebrow">Step ${s.num}</span>
                     </div>
                     ${urgentBadge}
                     <span class="step-tf-badge ${cls}">
@@ -2173,17 +918,18 @@ function renderResult(result) {
                     <p class="step-action-text loc-en">${s.action}</p>
                     <p class="step-action-text loc-hi" lang="hi">${s.actionHi}</p>
                     ${s.owner ? `
-                    <p class="step-owner loc-en"><span style="font-weight:700;color:#c4b5fd;margin-right:.35rem;">Owner:</span>${s.owner}</p>
-                    <p class="step-owner loc-hi" lang="hi"><span style="font-weight:700;color:#c4b5fd;margin-right:.35rem;">जिम्मेदार:</span>${s.ownerHi}</p>` : ''}
+                    <p class="step-forum loc-en"><span class="step-forum-label">Responsible:</span>${s.owner}</p>
+                    <p class="step-forum loc-hi" lang="hi"><span class="step-forum-label">जिम्मेदार:</span>${s.ownerHi}</p>` : ''}
                     ${s.why_urgent ? `
-                    <p class="step-why loc-en"><span class="step-why-label">Why urgent:</span>${s.why_urgent}</p>
-                    <p class="step-why loc-hi" lang="hi"><span class="step-why-label">यह क्यों जरूरी है:</span>${s.why_urgentHi}</p>` : ''}
+                    <p class="step-why loc-en"><span class="step-why-label">Reason:</span>${s.why_urgent}</p>
+                    <p class="step-why loc-hi" lang="hi"><span class="step-why-label">कारण:</span>${s.why_urgentHi}</p>` : ''}
                     ${forum ? `
-                    <p class="step-forum loc-en"><span class="step-forum-label">Forum / Contact:</span>${forum}</p>
-                    <p class="step-forum loc-hi" lang="hi"><span class="step-forum-label">मंच / संपर्क:</span>${forumHi}</p>` : ''}
+                    <p class="step-forum loc-en"><span class="step-forum-label">Contact / Authority:</span>${forum}</p>
+                    <p class="step-forum loc-hi" lang="hi"><span class="step-forum-label">संपर्क / मंच:</span>${forumHi}</p>` : ''}
                 </div>
             </div>`;
         }).join('');
+        
         actionPlanHTML = `
     <section class="rs-section" aria-label="Action Plan">
         <div class="section-header">
@@ -2215,26 +961,29 @@ function renderResult(result) {
             const isTimeSensitive = e.time_sensitive || false;
 
             return `
-            <div class="evidence-item-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; display: grid; grid-template-columns: auto 1fr; gap: 0.75rem 1.25rem; align-items: start; text-align: left;">
-                <div style="padding-top: 0.2rem;">
-                    <input type="checkbox" id="evidence-check-${i}" style="width: 18px; height: 18px; accent-color: var(--color-indigo); cursor: pointer;" aria-label="Mark ${itemEn} as collected / ${itemHi} को एकत्र के रूप में चिह्नित करें" />
+            <div class="evidence-item-card">
+                <div style="padding-top: 0.15rem;">
+                    <input type="checkbox" id="evidence-check-${i}" style="width: 18px; height: 18px; accent-color: var(--yellow); cursor: pointer;" aria-label="Mark ${itemEn} as collected / ${itemHi} को एकत्र के रूप में चिह्नित करें" />
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                <div style="display: flex; flex-direction: column; gap: var(--space-1);">
                     <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 0.5rem;">
-                        <h4 class="loc-en" style="font-size: 1rem; font-weight: 600; color: var(--text-main); line-height: 1.4;">${itemEn}</h4>
-                        <h4 class="loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); line-height: 1.4;">${itemHi}</h4>
+                        <h4 class="card-title loc-en" style="font-weight: 600; color: var(--text-primary); line-height: 1.4;">${itemEn}</h4>
+                        <h4 class="card-title loc-hi" lang="hi" style="font-weight: 600; color: var(--text-primary); line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">${itemHi}</h4>
                         ${isTimeSensitive ? `
-                        <span class="badge critical" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 5px; line-height: 1; display: inline-flex; align-items: center; gap: 0.25rem;">
-                            <span class="loc-en">⏰ TIME SENSITIVE</span>
-                            <span class="loc-hi">⏰ समय-संवेदनशील</span>
+                        <span class="badge critical">
+                            <svg class="icon-svg" viewBox="0 0 24 24" style="width: 12px; height: 12px;" aria-hidden="true">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                            </svg>
+                            <span class="loc-en">Time Sensitive</span>
+                            <span class="loc-hi">समय-संवेदनशील</span>
                         </span>` : ''}
                     </div>
                     ${whyEn ? `
-                    <p class="loc-en" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;"><span style="font-weight: 700; color: #fb923c; margin-right: 0.35rem;">Why important:</span>${whyEn}</p>
-                    <p class="loc-hi" lang="hi" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.45;"><span style="font-weight: 700; color: #fb923c; margin-right: 0.35rem;">क्यों आवश्यक है:</span>${whyHi}</p>` : ''}
+                    <p class="loc-en" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;"><span style="font-weight: 700; color: var(--yellow); margin-right: 0.35rem;">Importance:</span>${whyEn}</p>
+                    <p class="loc-hi" lang="hi" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--yellow); margin-right: 0.35rem;">महत्व:</span>${whyHi}</p>` : ''}
                     ${howEn ? `
-                    <p class="loc-en" style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.45;"><span style="font-weight: 700; color: #14b8a6; margin-right: 0.35rem;">How to collect:</span>${howEn}</p>
-                    <p class="loc-hi" lang="hi" style="font-size: 0.88rem; color: var(--text-sub); line-height: 1.45;"><span style="font-weight: 700; color: #14b8a6; margin-right: 0.35rem;">कैसे इकट्ठा करें:</span>${howHi}</p>` : ''}
+                    <p class="loc-en" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;"><span style="font-weight: 700; color: var(--text-primary); margin-right: 0.35rem;">Method:</span>${howEn}</p>
+                    <p class="loc-hi" lang="hi" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--text-primary); margin-right: 0.35rem;">तरीका:</span>${howHi}</p>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -2244,15 +993,16 @@ function renderResult(result) {
         <div class="section-header">
             <span class="section-label">Section 3.5</span>
             <h2 class="section-heading">
-                <span class="loc-en">Your Reference Checklist</span>
-                <span class="loc-hi">आपकी संदर्भ चेकलिस्ट</span>
+                <span class="loc-en">Personal Preparation Checklist</span>
+                <span class="loc-hi">व्यक्तिगत तैयारी चेकलिस्ट</span>
             </h2>
-            <p class="section-subheading loc-en" style="color: var(--color-primary); font-weight: 500;">📋 Note: These checkboxes are for your own reference and are not saved or sent to Prahari.</p>
-            <p class="section-subheading loc-hi" lang="hi" style="color: var(--color-primary); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;">📋 नोट: ये चेकबॉक्स केवल आपके अपने संदर्भ के लिए हैं और इन्हें प्रहरी को नहीं भेजा जाता है।</p>
-            <p class="section-subheading loc-en" style="margin-top: 0.5rem;">Collect these items before they disappear or become unavailable:</p>
-            <p class="section-subheading loc-hi" lang="hi" style="margin-top: 0.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">इन्हें गायब होने या अनुपलब्ध होने से पहले इकट्ठा करें:</p>
+            <p class="section-subheading loc-en" style="color: var(--yellow); font-weight: 500;">🔔 Disclaimer: This checklist is local for your reference. Checked states are saved on your device and never sent to Prahari.</p>
+            <p class="section-subheading loc-hi" lang="hi" style="color: var(--yellow); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;">🔔 अस्वीकरण: यह चेकबॉक्स केवल आपके संदर्भ के लिए है। चिह्नित स्थिति आपके डिवाइस पर सहेजी जाती है और कभी भी प्रहरी को नहीं भेजी जाती।</p>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 1rem;">${evidenceCards}</div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">${evidenceCards}</div>
+        <div style="margin-top: var(--space-3); display: flex; gap: var(--space-2);">
+            <button class="btn-secondary" onclick="clearChecklistState()" style="font-size: 0.85rem; padding: 6px 14px;">Clear Checklist</button>
+        </div>
     </section>`;
     }
 
@@ -2275,10 +1025,10 @@ function renderResult(result) {
             </a>`;
         }).join('');
         emergencyContactsHTML = `
-    <section class="rs-section" aria-label="Emergency Hotlines" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.02);">
-        <div class="section-header">
-            <span class="section-label" style="color:var(--color-critical);">Emergency</span>
-            <h2 class="section-heading" style="color:var(--color-critical);">
+    <section class="rs-section" aria-label="Emergency Hotlines" style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-4);">
+        <div class="section-header" style="border: none; margin-bottom: var(--space-2);">
+            <span class="section-label" style="color: var(--critical);">Critical Help</span>
+            <h2 class="section-heading" style="color: var(--critical);">
                 <span class="loc-en">Emergency Hotlines — Tap to Call</span>
                 <span class="loc-hi" lang="hi">आपातकालीन हेल्पलाइन — कॉल करने के लिए टैप करें</span>
             </h2>
@@ -2295,28 +1045,31 @@ function renderResult(result) {
     const titleTextHi = result.title_hi || titleText || '';
 
     let primaryContactHTML = `
-    <div class="primary-contact-card" style="text-align: left;">
+    <div class="primary-contact-card">
         <div>
             <div class="contact-authority-name">${authorityType}</div>
             <div class="contact-authority-desc">${authorityDesc}</div>
         </div>
         ${isNALSA ? `
-        <div>
+        <div style="margin: var(--space-2) 0;">
             <a href="tel:15100" class="nalsa-btn">
-                📞 15100
-                <span class="nalsa-btn-sublabel loc-en">NALSA Free Legal Aid Helpline · Free · 24/7 · They connect you to your local DLSA</span>
-                <span class="nalsa-btn-sublabel loc-hi" lang="hi">NALSA मुफ्त कानूनी सहायता हेल्पलाइन · निःशुल्क · 24/7 · वे आपको आपके स्थानीय DLSA से जोड़ते हैं</span>
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: #080A0D;">
+                    <path d="M6.62 10.79a15.15 15.15 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.27 11.72 11.72 0 0 0 3.7.59 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.7 1 1 0 0 1-.27 1.11z"/>
+                </svg>
+                <span>Call NALSA (15100)</span>
             </a>
+            <div class="nalsa-btn-sublabel loc-en">Free Legal Aid Helpline · Free · 24/7 · Connects to local DLSA</div>
+            <div class="nalsa-btn-sublabel loc-hi" lang="hi">निःशुल्क विधिक सेवा हेल्पलाइन · निःशुल्क · 24/7 · स्थानीय डीएलएसए से संपर्क</div>
         </div>
-        <p class="contact-what-to-tell loc-en"><span class="contact-what-label">What to tell them: </span>"${titleText || 'My situation'}" — and ask for emergency legal assistance.</p>
-        <p class="contact-what-to-tell loc-hi" lang="hi"><span class="contact-what-label">उन्हें क्या बताएं: </span>"${titleTextHi || 'मेरी स्थिति'}" — और आपातकालीन कानूनी सहायता मांगें।</p>
+        <p class="contact-what-to-tell loc-en"><span class="contact-what-label">Recommended report subject: </span>"${titleText || 'My situation'}"</p>
+        <p class="contact-what-to-tell loc-hi" lang="hi"><span class="contact-what-label">अनुशंसित रिपोर्ट विषय: </span>"${titleTextHi || 'मेरी स्थिति'}"</p>
         ` : `
         <p class="contact-what-to-tell"><span class="contact-what-label">Who to contact: </span>${authorityDesc}</p>
         `}
-        <div>
-            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.6rem;">
-                <span class="loc-en">What to bring:</span>
-                <span class="loc-hi">क्या लाएँ:</span>
+        <div style="margin-top: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.5rem;">
+                <span class="loc-en">Documents to bring:</span>
+                <span class="loc-hi">लाने योग्य दस्तावेज:</span>
             </div>
             <ul class="bring-checklist loc-en">${bringChecklist(domain, authorityType, result.title_en, result.brief_en, 'en')}</ul>
             <ul class="bring-checklist loc-hi" lang="hi">${bringChecklist(domain, authorityType, result.title_hi || result.title_en, result.brief_hi || result.brief_en, 'hi')}</ul>
@@ -2328,52 +1081,55 @@ function renderResult(result) {
         <div class="section-header">
             <span class="section-label">Section 4</span>
             <h2 class="section-heading">
-                <span class="loc-en">Who to Contact</span>
-                <span class="loc-hi">किससे संपर्क करें</span>
+                <span class="loc-en">Authority Contact Directory</span>
+                <span class="loc-hi">अधिकारी संपर्क निर्देशिका</span>
             </h2>
-            <p class="section-subheading loc-en">Contact directory — different from your action steps above.</p>
-            <p class="section-subheading loc-hi" lang="hi">संपर्क निर्देशिका — ऊपर दिए गए कदमों से अलग।</p>
+            <p class="section-subheading loc-en">Primary administrative authority directory to resolve this file:</p>
+            <p class="section-subheading loc-hi" lang="hi">इस मामले के समाधान के लिए प्राथमिक प्रशासनिक अधिकारी निर्देशिका:</p>
         </div>
         <div class="contact-grid">
             ${primaryContactHTML}
         </div>
     </section>`;
 
-    // ── SECTION 5: LEGAL REFERENCE (collapsible) ─────────
+    // ── SECTION 5: LEGAL REFERENCE (progressive disclosure) ─
     let legalReferenceHTML = '';
     if (isLegal && provisions.length > 0) {
         const accItems = provisions.map((p, i) => {
             const pHi = (result.legal_provisions_hi || [])[i] || {};
             return `
-            <div class="accordion-item">
-                <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${i}">
-                    <div class="accordion-trigger-left">
-                        <span class="acc-provision loc-en">${p.provision || ''}</span>
-                        <span class="acc-provision loc-hi" lang="hi">${pHi.provision || p.provision || ''}</span>
-                        <span class="acc-desc loc-en">${p.description || ''}</span>
-                        <span class="acc-desc loc-hi" lang="hi">${pHi.description || p.description || ''}</span>
+            <div class="accordion-item" style="margin-bottom: var(--space-2);">
+                <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${i}" style="text-align: left;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span class="card-title loc-en" style="font-size: 1rem;">${p.provision || ''}</span>
+                        <span class="card-title loc-hi" lang="hi" style="font-size: 1rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.provision || p.provision || ''}</span>
+                        <span class="metadata-text loc-en">${p.description || ''}</span>
+                        <span class="metadata-text loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.description || p.description || ''}</span>
                     </div>
-                    <span class="acc-chevron" aria-hidden="true">
+                    <span class="acc-chevron" aria-hidden="true" style="font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0; margin-left: 10px;">
                         <span class="loc-en">▼ Expand</span>
                         <span class="loc-hi">▼ विस्तार करें</span>
                     </span>
                 </button>
                 <div class="accordion-content" role="region" aria-labelledby="acc-btn-${i}">
-                    <span class="loc-en">${p.relevance || ''}</span>
-                    <span class="loc-hi" lang="hi">${pHi.relevance || p.relevance || ''}</span>
+                    <div style="padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); font-size: 0.92rem; line-height: 1.6; color: var(--text-secondary);">
+                        <span class="loc-en">${p.relevance || ''}</span>
+                        <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.relevance || p.relevance || ''}</span>
+                    </div>
                 </div>
             </div>`;
         }).join('');
+        
         legalReferenceHTML = `
-    <section class="rs-section muted" aria-label="Legal Reference">
+    <section class="rs-section" aria-label="Legal Reference">
         <div class="section-header">
             <span class="section-label">Section 5 — Reference</span>
-            <h2 class="section-heading" style="color:var(--text-muted);font-size:1.1rem;">
-                <span class="loc-en">Legal Reference</span>
-                <span class="loc-hi">कानूनी संदर्भ</span>
+            <h2 class="section-heading">
+                <span class="loc-en">Legal Statutory Reference</span>
+                <span class="loc-hi">कानूनी वैधानिक संदर्भ</span>
             </h2>
-            <p class="section-subheading loc-en">Tap to expand each provision for detailed legal information.</p>
-            <p class="section-subheading loc-hi" lang="hi">विस्तृत कानूनी जानकारी के लिए प्रत्येक प्रावधान पर टैप करें।</p>
+            <p class="section-subheading loc-en">Expand each provision below to read detailed legal applicability parameters:</p>
+            <p class="section-subheading loc-hi" lang="hi">विस्तृत कानूनी मापदंडों को पढ़ने के लिए प्रत्येक प्रावधान का विस्तार करें:</p>
         </div>
         <div class="accordion-list">${accItems}</div>
     </section>`;
@@ -2387,117 +1143,78 @@ function renderResult(result) {
         const escCards = escPath.map((e, i) => {
             const eHi = (result.escalation_path_hi || [])[i] || {};
             const arrow = i < escPath.length - 1 ? `
-            <div class="esc-arrow loc-en">↓ escalate if ignored</div>
-            <div class="esc-arrow loc-hi" lang="hi">↓ यदि अनदेखा किया जाए तो आगे बढ़ें</div>` : '';
+            <div class="esc-arrow">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 16px; height: 16px; color: var(--text-muted);" aria-hidden="true">
+                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                </svg>
+                <span class="loc-en" style="font-size: 0.8rem; margin-left: 4px;">escalate if unresolved</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.8rem; margin-left: 4px;">यदि समाधान न हो तो एस्केलेट करें</span>
+            </div>` : '';
             return `
-            <div class="esc-card" style="text-align: left;">
+            <div class="esc-card">
                 <div class="esc-level-badge loc-en">Escalation Level ${e.level}</div>
                 <div class="esc-level-badge loc-hi" lang="hi">एस्केलेशन स्तर ${e.level}</div>
                 <div class="esc-authority loc-en">${e.authority || ''}</div>
                 <div class="esc-authority loc-hi" lang="hi">${eHi.authority || e.authority || ''}</div>
-                <p class="esc-trigger loc-en"><span class="esc-trigger-label">Use this if: </span>${e.trigger || ''}</p>
-                <p class="esc-trigger loc-hi" lang="hi"><span class="esc-trigger-label">इसका उपयोग करें अगर: </span>${eHi.trigger || e.trigger || ''}</p>
-                <p class="esc-contact loc-en">${e.contact || ''}</p>
-                <p class="esc-contact loc-hi" lang="hi">${eHi.contact || e.contact || ''}</p>
+                <p class="esc-trigger loc-en"><span class="esc-trigger-label">Trigger condition: </span>${e.trigger || ''}</p>
+                <p class="esc-trigger loc-hi" lang="hi"><span class="esc-trigger-label">शर्तें: </span>${eHi.trigger || e.trigger || ''}</p>
+                <p class="esc-contact loc-en"><span style="font-weight: 700;">Helpline: </span>${e.contact || ''}</p>
+                <p class="esc-contact loc-hi" lang="hi"><span style="font-weight: 700;">हेल्पलाइन: </span>${eHi.contact || e.contact || ''}</p>
             </div>
             ${arrow}`;
         }).join('');
+        
         escalationHTML = `
-    <section class="rs-section" aria-label="Escalation Path" style="border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.04);">
+    <section class="rs-section" aria-label="Escalation Path">
         <div class="section-header">
-            <span class="section-label" style="color:#fb923c;">Section 6</span>
-            <h2 class="section-heading" style="color:#fdba74;">
+            <span class="section-label">Section 6</span>
+            <h2 class="section-heading">
                 <span class="loc-en">Next Steps (Escalation Path)</span>
                 <span class="loc-hi">अगले कदम (एस्केलेशन पथ)</span>
             </h2>
-            <p class="section-subheading loc-en">Escalate in this order if your initial attempts are ignored:</p>
-            <p class="section-subheading loc-hi" lang="hi">यदि आपके प्रारंभिक प्रयासों को अनदेखा किया जाए तो इस क्रम में आगे बढ़ें:</p>
+            <p class="section-subheading loc-en">Escalate in this order if your initial recommended actions are ignored:</p>
+            <p class="section-subheading loc-hi" lang="hi">यदि आपके प्रारंभिक सुझाए गए कार्यों की अनदेखी की जाती है तो इस क्रम में आगे बढ़ें:</p>
         </div>
         <div class="escalation-list">${escCards}</div>
     </section>`;
     }
 
     // ── REARRANGE SECTIONS BY PRIORITIZATION ───────────────────
+    let html = '';
     if (isHealth) {
         html += titleHTML;
-        // 1. Emergency warning
-        if (goldenWindowHTML) {
-            html += goldenWindowHTML;
-        }
-        // 2. Immediate action
-        if (actionPlanHTML) {
-            html += actionPlanHTML;
-        }
-        // 3. Emergency contacts
-        if (topContactsHTML) {
-            html += topContactsHTML;
-        }
-        if (emergencyContactsHTML) {
-            html += emergencyContactsHTML;
-        }
-        // 4. Medical escalation
-        if (escalationHTML) {
-            html += escalationHTML;
-        }
-        // 5. Supporting / cross-domain notices
-        if (priorityNoticeHTML) {
-            html += priorityNoticeHTML;
-        }
-        if (whatIsHappeningHTML) {
-            html += whatIsHappeningHTML;
-        }
-        if (rightsHTML) {
-            html += rightsHTML;
-        }
-        if (evidenceHTML) {
-            html += evidenceHTML;
-        }
-        if (contactHTML) {
-            html += contactHTML;
-        }
-        if (legalReferenceHTML) {
-            html += legalReferenceHTML;
-        }
+        if (goldenWindowHTML) html += goldenWindowHTML;
+        if (actionPlanHTML) html += actionPlanHTML;
+        if (topContactsHTML) html += topContactsHTML;
+        if (emergencyContactsHTML) html += emergencyContactsHTML;
+        if (escalationHTML) html += escalationHTML;
+        if (priorityNoticeHTML) html += priorityNoticeHTML;
+        if (whatIsHappeningHTML) html += whatIsHappeningHTML;
+        if (rightsHTML) html += rightsHTML;
+        if (evidenceHTML) html += evidenceHTML;
+        if (contactHTML) html += contactHTML;
+        if (legalReferenceHTML) html += legalReferenceHTML;
     } else {
         html += titleHTML;
-        // 1. Situation / Status
-        if (priorityNoticeHTML) {
-            html += priorityNoticeHTML;
-        }
-        if (whatIsHappeningHTML) {
-            html += whatIsHappeningHTML;
-        }
-        // 2. Immediate recommended actions
-        if (actionPlanHTML) {
-            html += actionPlanHTML;
-        }
-        // 3. Relevant legal provisions
-        if (rightsHTML) {
-            html += rightsHTML;
-        }
-        // 4. Authorities / resources / contacts
-        if (topContactsHTML) {
-            html += topContactsHTML;
-        }
-        if (contactHTML) {
-            html += contactHTML;
-        }
-        // 5. Timeline / Escalation
-        if (escalationHTML) {
-            html += escalationHTML;
-        }
-        // 6. Supporting evidence / reference
-        if (evidenceHTML) {
-            html += evidenceHTML;
-        }
-        if (legalReferenceHTML) {
-            html += legalReferenceHTML;
-        }
+        if (priorityNoticeHTML) html += priorityNoticeHTML;
+        if (whatIsHappeningHTML) html += whatIsHappeningHTML;
+        if (actionPlanHTML) html += actionPlanHTML;
+        if (rightsHTML) html += rightsHTML;
+        if (topContactsHTML) html += topContactsHTML;
+        if (contactHTML) html += contactHTML;
+        if (escalationHTML) html += escalationHTML;
+        if (evidenceHTML) html += evidenceHTML;
+        if (legalReferenceHTML) html += legalReferenceHTML;
     }
-document.getElementById('dynamic-sections').innerHTML = html;
+    
+    document.getElementById('dynamic-sections').innerHTML = html;
+    
     if (pipelineCompleted && result.incident_id) {
         loadOutcomeStats(result.incident_id);
     }
+    
+    registerChecklistListeners();
+    restoreChecklistState();
 }
 
 // ── Case Status ───────────────────────────────────────────
@@ -2513,26 +1230,26 @@ function renderCaseStatus(status, notes, contactNumber) {
 
     const s = (status || 'pending').toLowerCase();
     if (s === 'pending') {
-        badgeTextEn = '⏳ Pending';
-        badgeTextHi = '⏳ लंबित';
-        descEn = "Analysis completed by Prahari AI. Please use the options in Section 4 to contact the relevant authorities.";
-        descHi = "प्रहरी AI द्वारा विश्लेषण पूरा हो गया है। प्रासंगिक अधिकारियों से संपर्क करने के लिए कृपया अनुभाग 4 में दिए गए विकल्पों का उपयोग करें।";
+        badgeTextEn = 'Pending';
+        badgeTextHi = 'लंबित';
+        descEn = "Analysis completed by Prahari AI. Please use the options below to contact the relevant authorities.";
+        descHi = "प्रहरी AI द्वारा विश्लेषण पूरा हो गया है। प्रासंगिक अधिकारियों से संपर्क करने के लिए कृपया नीचे दिए गए विकल्पों का उपयोग करें।";
         badgeClass = 'status-pending';
     } else if (s === 'under_review') {
-        badgeTextEn = '🔍 Under Review';
-        badgeTextHi = '🔍 समीक्षा के तहत';
+        badgeTextEn = 'Under Review';
+        badgeTextHi = 'समीक्षा के तहत';
         descEn = "Incident is being reviewed by a district coordinator.";
         descHi = "मामले की समीक्षा जिला समन्वयक द्वारा की जा रही है।";
         badgeClass = 'status-under_review';
     } else if (s === 'action_taken') {
-        badgeTextEn = '⚡ Action Taken';
-        badgeTextHi = '⚡ कार्रवाई की गई';
+        badgeTextEn = 'Action Taken';
+        badgeTextHi = 'कार्रवाई की गई';
         descEn = "Incident details escalated to the relevant department.";
         descHi = "मामले का विवरण संबंधित विभाग को भेज दिया गया है।";
         badgeClass = 'status-action_taken';
     } else if (s === 'resolved') {
-        badgeTextEn = '✅ Resolved';
-        badgeTextHi = '✅ हल हो गया';
+        badgeTextEn = 'Resolved';
+        badgeTextHi = 'हल हो गया';
         descEn = "Incident marked as resolved by coordinator.";
         descHi = "समन्वयक द्वारा मामले को हल किया हुआ चिह्नित किया गया है।";
         badgeClass = 'status-resolved';
@@ -2541,278 +1258,181 @@ function renderCaseStatus(status, notes, contactNumber) {
     let notesHTML = '';
     if (notes && notes.trim() !== '') {
         notesHTML = `
-        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.04); font-size:0.9rem;">
-            <div class="loc-en" style="color:var(--text-sub);"><strong>Coordinator update:</strong> ${notes}</div>
-            <div class="loc-hi" lang="hi" style="color:var(--text-sub);"><strong>समन्वयक का अपडेट:</strong> ${notes}</div>
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-subtle); font-size:0.9rem;">
+            <div class="loc-en" style="color:var(--text-secondary);"><strong>Coordinator update:</strong> ${notes}</div>
+            <div class="loc-hi" lang="hi" style="color:var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;"><strong>समन्वयक का अपडेट:</strong> ${notes}</div>
         </div>`;
     }
 
     container.innerHTML = `
-    <div class="rs-section" style="border-color: var(--border-color); background: rgba(255, 255, 255, 0.025); margin-bottom: 0.5rem;">
-        <div class="section-header" style="flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <h2 class="section-heading" style="font-size:1.15rem; display:flex; align-items:center; gap:0.5rem;">
-                <span class="loc-en">📋 Case Status</span>
-                <span class="loc-hi">📋 मामले की स्थिति</span>
+    <div class="surface-card" style="margin-bottom: 0.5rem; text-align: left;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; margin-bottom: 8px;">
+            <h2 class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow);" aria-hidden="true">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                </svg>
+                <span class="loc-en">Case Status</span>
+                <span class="loc-hi">मामले की स्थिति</span>
             </h2>
-            <span class="badge ${badgeClass}" style="font-size:0.8rem; padding:0.35rem 0.75rem; border-radius:8px;">
+            <span class="badge ${badgeClass}">
                 <span class="loc-en">${badgeTextEn}</span>
                 <span class="loc-hi">${badgeTextHi}</span>
             </span>
         </div>
-        <div style="font-size:0.95rem; color:var(--text-sub); margin-top:0.25rem;">
+        <div style="font-size:0.95rem; color:var(--text-secondary); margin-top:0.25rem;">
             <span class="loc-en">${descEn}</span>
             <span class="loc-hi" lang="hi">${descHi}</span>
         </div>
-        <div style="font-size:0.88rem; color:var(--text-muted); margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.04);">
-            <span class="loc-en">If you have questions, use your Report ID <strong>${trackingId}</strong> when contacting authorities.</span>
-            <span class="loc-hi" lang="hi">प्रश्नों के लिए, प्राधिकरण से संपर्क करते समय अपनी Report ID <strong>${trackingId}</strong> बताएं।</span>
-        </div>
         ${notesHTML}
     </div>`;
-    
     container.style.display = 'block';
+    
+    const currentLang = localStorage.getItem('prahari_lang') || 'hindi';
+    setLanguageTheme(currentLang);
 }
 
-// ── Error State ───────────────────────────────────────────
-function showError() {
-    document.getElementById('loading-card').innerHTML = `
-    <div class="loading-card-header">
-        <h2 class="loading-title loc-en" style="color:var(--color-critical)">Analysis Failed</h2>
-        <h2 class="loading-title loc-hi" lang="hi" style="color:var(--color-critical)">विश्लेषण विफल रहा</h2>
-    </div>
-    <p class="loc-en" style="color:var(--text-muted)">An error occurred during multi-agent pipeline routing. Coordinators have been notified.</p>
-    <p class="loc-hi" lang="hi" style="color:var(--text-muted)">मल्टी-एजेंट पाइपलाइन रूटिंग के दौरान एक त्रुटि उत्पन्न हुई। समन्वयकों को सूचित कर दिया गया है।</p>`;
-}
-
-// ── Legal Notice Generator ────────────────────────────────
-async function generateLegalNotice(incidentId) {
-    const btn = document.getElementById('legal-notice-btn');
-    if (!btn || !incidentId) return;
-
-    const originalHTML = btn.innerHTML;
-    // Show spinner
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner"></span> <span class="loc-en">Generating...</span><span class="loc-hi">बनाया जा रहा है...</span>`;
-
+// ── Polling & Lifecycle ────────────────────────────────────
+async function pollStatus() {
     try {
-        const res = await fetch(`/api/incidents/${incidentId}/legal-notice/`);
-        if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            const errMsg = data.detail || data.message || "Failed to generate legal notice.";
-            alert(errMsg);
+        const response = await fetch(`/api/incidents/status/${signalId}/`);
+        if (!response.ok) {
+            // Quietly retry on transient HTTP errors
             return;
         }
-        const data = await res.json();
         
-        // Show modal and inject content
-        const modal = document.getElementById('legal-notice-modal');
-        const content = document.getElementById('legal-notice-content');
-        if (modal && content) {
-            modalTriggerElement = document.activeElement;
-            content.textContent = data.notice || '';
-            modal.style.display = 'flex';
-            
-            // Focus first button
-            const focusables = modal.querySelectorAll('button');
-            if (focusables.length > 0) focusables[0].focus();
-            
-            document.addEventListener('keydown', handleModalKeydown);
+        const data = await response.json();
+        pollAttempts++;
+        document.getElementById('attempt-counter').textContent = `Check attempt: ${pollAttempts}`;
+
+        if (data.status === 'error' || data.status === 'failed' || data.status === 'pipeline_error') {
+            clearInterval(pollTimer);
+            showFailureState(data.message || 'Workflow pipeline failure');
+            return;
         }
-    } catch (e) {
-        console.error('Error generating notice:', e);
-        alert(localStorage.getItem('prahari_lang') === 'hi' ? 'कानूनी नोटिस उत्पन्न करने में असमर्थ' : 'Failed to generate legal notice.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-    }
-}
 
-let modalTriggerElement = null;
-function handleModalKeydown(e) {
-    const modal = document.getElementById('legal-notice-modal');
-    if (!modal || modal.style.display !== 'flex') return;
+        updateChecklistUI(data.steps || {});
 
-    if (e.key === 'Escape') {
-        closeLegalNoticeModal();
-        return;
-    }
-
-    if (e.key === 'Tab') {
-        const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-
-        if (e.shiftKey) {
-            if (document.activeElement === first) {
-                last.focus();
-                e.preventDefault();
+        if (data.steps && data.steps.translated) {
+            clearInterval(pollTimer);
+            pipelineCompleted = true;
+            document.getElementById('loading-card').style.display = 'none';
+            document.getElementById('result-section').style.display = 'flex';
+            showResult(data.result);
+            if (data.result) {
+                renderCaseStatus(data.result.status, data.result.coordinator_notes, data.result.contact_number);
             }
         } else {
-            if (document.activeElement === last) {
-                first.focus();
-                e.preventDefault();
+            if (pollAttempts >= maxPollAttempts) {
+                clearInterval(pollTimer);
+                document.getElementById('timeout-message').style.display = 'block';
+                document.getElementById('pulsing-progress').style.display = 'none';
             }
         }
+    } catch (e) {
+        // Log silently
     }
 }
 
-function closeLegalNoticeModal() {
+function showFailureState(msg) {
+    document.getElementById('loading-card').style.display = 'none';
+    const container = document.getElementById('case-status-container');
+    if (container) {
+        container.innerHTML = `
+        <div class="surface-card" style="border-color: var(--critical); text-align: left;">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--critical);" aria-hidden="true">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <h3 class="card-title" style="color: var(--critical);">
+                    <span class="loc-en">Analysis Pipeline Unsuccessful</span>
+                    <span class="loc-hi">विश्लेषण प्रक्रिया असफल</span>
+                </h3>
+            </div>
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
+                <span class="loc-en">We couldn't complete the RAG analysis. Your report has been safely logged in databases. You can return later or try re-submitting. Details: ${msg}</span>
+                <span class="loc-hi" lang="hi">हम रिपोर्ट का विश्लेषण पूरा नहीं कर सके। आपकी रिपोर्ट डेटाबेस में सुरक्षित रूप से दर्ज कर ली गई है। आप बाद में पुनः प्रयास कर सकते हैं। विवरण: ${msg}</span>
+            </p>
+        </div>`;
+        container.style.display = 'block';
+    }
+}
+
+function simplifyDescription(desc) {
+    if (!desc) return '';
+    return desc.trim();
+}
+
+function extractRemedy(relevance) {
+    if (!relevance) return '';
+    return relevance.trim();
+}
+
+// Close Return Key Session and Go Home (Improvement C)
+async function closeSessionAndGoHome() {
+    try {
+        await fetch('/api/session/close/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (e) {
+        // Silently redirect anyway
+    }
+    window.location.href = '/';
+}
+
+// ── Legal Notice Generation / Actions ──────────────────────
+async function generateLegalNotice(incidentId) {
     const modal = document.getElementById('legal-notice-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.removeEventListener('keydown', handleModalKeydown);
-        if (modalTriggerElement) {
-            modalTriggerElement.focus();
-            modalTriggerElement = null;
+    const content = document.getElementById('legal-notice-content');
+    if (!modal || !content) return;
+
+    content.textContent = 'Generating draft notice... / कानूनी नोटिस का प्रारूप तैयार किया जा रहा है...';
+    modal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/api/incidents/${incidentId}/notice/`);
+        if (response.ok) {
+            const data = await response.json();
+            const selectedLang = localStorage.getItem('prahari_lang') || 'hindi';
+            content.textContent = selectedLang === 'hindi' ? data.notice_hi : data.notice_en;
+        } else {
+            content.textContent = 'Failed to generate legal notice. / कानूनी नोटिस उत्पन्न करने में विफल।';
         }
+    } catch (e) {
+        content.textContent = 'Failed to generate legal notice. / कानूनी नोटिस उत्पन्न करने में विफल।';
     }
 }
 
 function copyLegalNotice() {
-    const content = document.getElementById('legal-notice-content');
-    if (content) {
-        navigator.clipboard.writeText(content.textContent);
-        alert(localStorage.getItem('prahari_lang') === 'hi' ? 'कानूनी नोटिस क्लिपबोर्ड पर कॉपी हो गया!' : 'Legal notice copied to clipboard!');
-    }
+    const text = document.getElementById('legal-notice-content').textContent;
+    navigator.clipboard.writeText(text);
+    alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'कानूनी नोटिस कॉपी हो गया!' : 'Legal notice copied to clipboard!');
 }
 
 function printLegalNotice() {
-    const content = document.getElementById('legal-notice-content');
-    if (!content) return;
-
-    const printWin = window.open('', '', 'width=800,height=600');
-    if (printWin) {
-        printWin.document.write(`
-            <html>
-                <head>
-                    <title>Legal Notice</title>
-                    <style>
-                        body {
-                            font-family: 'Times New Roman', Times, serif;
-                            font-size: 12pt;
-                            line-height: 1.6;
-                            margin: 1.5in 1in 1in 1in;
-                            color: #000;
-                            white-space: pre-wrap;
-                        }
-                    </style>
-                </head>
-                <body>\${content.textContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
-            </html>
-        `);
-        printWin.document.close();
-        printWin.focus();
-        printWin.print();
-        printWin.close();
-    }
+    const text = document.getElementById('legal-notice-content').textContent;
+    const win = window.open('', '_blank');
+    win.document.write(`<pre style="white-space:pre-wrap;font-family:sans-serif;padding:2rem;line-height:1.6;">${text}</pre>`);
+    win.document.close();
+    win.print();
 }
 
-// ── Verification check & code submission (Upgrade 6) ──────
-const isAnonymous = {% if is_anonymous %}true{% else %}false{% endif %};
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+function closeLegalNoticeModal() {
+    document.getElementById('legal-notice-modal').style.display = 'none';
 }
 
-function checkVerification() {
-    if (isAnonymous) {
-        const verifiedKey = 'prahari_verified_' + signalId;
-        if (sessionStorage.getItem(verifiedKey) === 'true') {
-            document.getElementById('report-content-wrapper').style.display = 'block';
-            const verificationWrapper = document.getElementById('verification-wrapper');
-            if (verificationWrapper) verificationWrapper.style.display = 'none';
-            return true;
-        } else {
-            document.getElementById('report-content-wrapper').style.display = 'none';
-            const verificationWrapper = document.getElementById('verification-wrapper');
-            if (verificationWrapper) verificationWrapper.style.display = 'flex';
-            return false;
-        }
-    } else {
-        document.getElementById('report-content-wrapper').style.display = 'block';
-        return true;
-    }
-}
-
-async function verifyAccessCode(event) {
-    event.preventDefault();
-    const input = document.getElementById('access-code-input');
-    const errorDiv = document.getElementById('verification-error');
-    if (!input || !errorDiv) return;
-    
-    const code = input.value.trim().toUpperCase();
-    if (!code) return;
-    
-    try {
-        const response = await fetch(`/api/signals/${signalId}/verify-code/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') || ''
-            },
-            body: JSON.stringify({ code: code })
-        });
-        
-        if (!response.ok) throw new Error("Verification request failed");
-        
-        const data = await response.json();
-        if (data.valid) {
-            sessionStorage.setItem('prahari_verified_' + signalId, 'true');
-            errorDiv.style.display = 'none';
-            
-            // Show report content and hide verification card
-            document.getElementById('report-content-wrapper').style.display = 'block';
-            document.getElementById('verification-wrapper').style.display = 'none';
-            
-            // Start polling if not already started
-            if (!pollTimer) {
-                checkPipelineStatus();
-                pollTimer = setInterval(checkPipelineStatus, pollInterval);
-            }
-        } else {
-            errorDiv.style.display = 'block';
-        }
-    } catch (err) {
-        console.error("Verification error:", err);
-        errorDiv.style.display = 'block';
-    }
-}
-
-// ── Boot ──────────────────────────────────────────────────
+// ── On Page Load Entry Point ──────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    initLanguage();
-    
-    // Auto-verify if the raw code is passed directly in the template context (redirect from submission)
-    const anonCodeFromContext = "{{ anonymous_access_code|default:'' }}";
-    if (anonCodeFromContext) {
-        sessionStorage.setItem('prahari_verified_' + signalId, 'true');
-    }
-    
-    if (checkVerification()) {
-        checkPipelineStatus();
-        pollTimer = setInterval(checkPipelineStatus, pollInterval);
-    }
+    // Check initial language state
+    const preferredLanguage = preferredLanguageFromContext || localStorage.getItem('prahari_lang') || 'english';
+    setLanguageTheme(preferredLanguage === 'hindi' ? 'hindi' : 'english');
+
+    // Start background status updates
+    pollStatus();
+    pollTimer = setInterval(pollStatus, pollInterval);
 });
-
-function closeSessionAndGoHome() {
-    // Clear verification sessionStorage for this signal so they have to re-authenticate if they return
-    const verifiedKey = 'prahari_verified_' + signalId;
-    sessionStorage.removeItem(verifiedKey);
-    // Redirect to home page
-    window.location.href = '/';
-}
-
     </script>
 {% endblock %}

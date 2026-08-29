@@ -13,35 +13,11 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <a href="/" class="logo-container">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFCC33" style="width: 26px; height: 26px;">
-                <path d="M12 2S3 5 3 5v6c0 5.5 3.8 10.7 9 12c5.2-1.3 9-6.5 9-12V5s-9-3-9-3zm0 17.9c-2.9-.8-5-3.6-5-6.9V7.1l5-1.7 5 1.7v3.9c0 3.3-2.1 6.1-5 6.9z"/>
-            </svg>
-            <div style="display: flex; flex-direction: column; justify-content: center;">
-                <h1>Prahari</h1>
-                <span class="logo-subtitle loc-hi" lang="hi" style="font-size: 0.68rem; color: var(--prahari-yellow); font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 600; margin-top: -0.1rem; line-height: 1.1;">तत्काल नागरिक सूचना एवं सहायता प्रणाली</span>
-            </div>
-        </a>
-        <div class="nav-right">
-            {% block nav_links %}{% endblock %}
-            <div class="lang-selector-bar">
-                <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')">English</button>
-                <button type="button" class="lang-pill" data-lang="hindi" onclick="changeLanguage('hindi')">हिंदी</button>
-            </div>
-            <select class="lang-selector-select" onchange="changeLanguage(this.value)">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी</option>
-            </select>
-        </div>
-    </header>
+    {% include "components/header.html" %}
 
     {% block content %}{% endblock %}
 
-    <footer>
-        <span class="loc-en">PRAHARI — Empowering Citizens, Supporting NGOs, Assisting Coordinators.</span>
-        <span class="loc-hi" lang="hi">प्रहरी — नागरिकों को सशक्त बनाना, गैर सरकारी संगठनों का समर्थन करना, समन्वयकों की सहायता करना।</span>
-    </footer>
+    {% include "components/footer.html" %}
 
     <script src="{% static 'js/prahari.js' %}"></script>
     {% block extra_js %}{% endblock %}

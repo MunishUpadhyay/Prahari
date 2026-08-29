@@ -3,188 +3,134 @@
 {% block title %}Prahari — Report an Incident{% endblock %}
 
 {% block nav_links %}
-    <a href="/login/" class="login-link">
+    <a href="/login/" class="btn-secondary">
         <span class="loc-en">Coordinator Login</span>
         <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
     </a>
 {% endblock %}
 
-{% block extra_css %}
-    <style>
-        main {
-            flex: 1;
-            max-width: 680px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 3rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 1.75rem;
-        }
-
-        .form-header {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 1.25rem;
-        }
-
-        .form-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .form-title[lang="hi"] {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
-
-        .form-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .form-subtitle[lang="hi"] {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 140px;
-            line-height: 1.5;
-        }
-
-        .form-error {
-            color: var(--color-error);
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
-        @media (max-width: 768px) {
-            main {
-                padding: 1.5rem 1rem;
-            }
-            .form-card {
-                padding: 1.75rem 1.25rem;
-                gap: 1.25rem;
-            }
-            .form-title {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-{% endblock %}
-
-
 {% block content %}
-    <main>
-        <!-- Citizen Journey Stepper -->
-        <div class="stepper" id="prahari-stepper" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
-            <!-- JavaScript will dynamically render steps here -->
+<main style="flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
+    <!-- Citizen Journey Stepper -->
+    <div class="stepper" id="prahari-stepper" aria-label="Incident Submission Progress">
+        <!-- JavaScript will dynamically render steps here -->
+    </div>
+
+    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1);">
+            <h2 class="section-title loc-en">Report an Incident</h2>
+            <h2 class="section-title loc-hi" lang="hi">घटना की रिपोर्ट करें</h2>
+            
+            <p class="metadata-text loc-en">Describe the incident below. Prahari analyzes the description to determine appropriate response steps.</p>
+            <p class="metadata-text loc-hi" lang="hi">नीचे घटना का वर्णन करें। प्रहरी उचित प्रतिक्रिया कदम उठाने के लिए विवरण का विश्लेषण करता है।</p>
         </div>
 
-        <div class="form-card">
-            <div class="form-header">
-                <h2 class="form-title loc-en">Report an Incident</h2>
-                <h2 class="form-title loc-hi" lang="hi">घटना की रिपोर्ट करें</h2>
-                
-                <p class="form-subtitle loc-en">Describe the incident below. No personal accounts or logins are required to report.</p>
-                <p class="form-subtitle loc-hi" lang="hi">नीचे घटना का वर्णन करें। रिपोर्ट करने के लिए किसी व्यक्तिगत खाते या लॉगिन की आवश्यकता नहीं है।</p>
-            </div>
+        <form method="POST" action="/submit/" onsubmit="return validateForm()">
+            {% csrf_token %}
+            <input type="hidden" name="preferred_language" id="preferred_language_field" value="hindi">
+            
+            {% if error %}
+                <div class="form-error-label" style="margin-bottom: var(--space-4); font-weight: 600;">
+                    {{ error }}
+                </div>
+            {% endif %}
 
-            <form method="POST" action="/submit/" onsubmit="return validateForm()">
-                {% csrf_token %}
-                <input type="hidden" name="preferred_language" id="preferred_language_field" value="hindi">
-                
-                {% if error %}
-                    <div class="form-error" style="margin-bottom: 1.5rem; font-weight: 600;">
-                        {{ error }}
-                    </div>
-                {% endif %}
-
-                <div class="form-group" style="margin-bottom: 1.5rem;">
+            <!-- 01 What happened? -->
+            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <span class="section-eyebrow" style="color: var(--yellow);">01</span>
                     <label class="form-label loc-en" for="raw_text">Describe what is happening *</label>
                     <label class="form-label loc-hi" lang="hi" for="raw_text">वर्णन करें कि क्या हो रहा है *</label>
-                    
-                    <textarea 
-                        name="raw_text" 
-                        id="raw_text" 
-                        class="form-control" 
-                        required
-                        placeholder="Explain the situation in details (e.g. medical denial, custody violations, emergency accident, building collapse)..."
-                    ></textarea>
                 </div>
+                <textarea 
+                    name="raw_text" 
+                    id="raw_text" 
+                    class="form-control" 
+                    required
+                    style="min-height: 140px; resize: vertical;"
+                ></textarea>
+            </div>
 
-                <div class="form-group" style="margin-bottom: 1.5rem;">
+            <!-- 02 Where did it happen? -->
+            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <span class="section-eyebrow" style="color: var(--yellow);">02</span>
                     <label class="form-label loc-en" for="location">Location (City / District)</label>
                     <label class="form-label loc-hi" lang="hi" for="location">स्थान (शहर / जिला)</label>
-                    
-                    <input 
-                        type="text" 
-                        name="location" 
-                        id="location" 
-                        class="form-control"
-                        placeholder="e.g. Wayanad, Mumbai, Dharavi..."
-                    >
+                </div>
+                <input 
+                    type="text" 
+                    name="location" 
+                    id="location" 
+                    class="form-control"
+                >
+            </div>
+
+            <!-- 03 How urgent is it? & Anonymous Option -->
+            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <span class="section-eyebrow" style="color: var(--yellow);">03</span>
+                    <span class="form-label loc-en">Submission Mode & Updates</span>
+                    <span class="form-label loc-hi" lang="hi">जमा करने का तरीका और अपडेट</span>
+                </div>
+                
+                <!-- Anonymous toggle -->
+                <div class="switch-container" id="anon_switch_container">
+                    <label class="switch" aria-label="Toggle anonymous submission / गुमनाम रिपोर्ट विकल्प">
+                        <input type="checkbox" name="anonymous" id="anonymous_toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="body-text" style="font-size: 0.95rem; font-weight: 500;">Submit Anonymously / गुमनाम रूप से जमा करें</span>
+                </div>
+                
+                <!-- Anonymous description -->
+                <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1);">
+                    <span class="loc-en">Your identity will not be recorded. You will receive a Private Return Key to access your report later.</span>
+                    <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं की जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको एक निजी रिटर्न कुंजी मिलेगी।</span>
                 </div>
 
-                <!-- Anonymous toggle switch container (Upgrade 6) -->
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <div class="switch-container" id="anon_switch_container">
-                        <label class="switch">
-                            <input type="checkbox" name="anonymous" id="anonymous_toggle">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="form-label" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <span>🔒 Submit Anonymously / गुमनाम रूप से जमा करें</span>
-                        </span>
+                <!-- Anonymous warning card -->
+                <div id="anonymous_warning" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); background: var(--bg-surface-raised); border: 1px solid var(--border-default); margin-top: var(--space-2);">
+                    <div style="display: flex; gap: var(--space-2); align-items: flex-start;">
+                        <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 16px; height: 16px; margin-top: 2px;" aria-hidden="true">
+                            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                        </svg>
+                        <div style="font-size: 0.85rem; line-height: 1.5; color: var(--yellow);">
+                            <span class="loc-en"><strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
+                            <span class="loc-hi" lang="hi"><strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
+                        </div>
                     </div>
-                    
-                    <!-- Anonymous message block -->
-                    <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: var(--text-sub); line-height: 1.4; margin-top: 0.5rem; animation: fadeInUp 0.3s ease-out;">
-                        <span class="loc-en">Your identity will not be recorded. You will receive a Private Return Key to access your report later.</span>
-                        <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं की जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको एक निजी रिटर्न कुंजी मिलेगी।</span>
-                    </div>
-
-                    <!-- Anonymous mode warning -->
-                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-highlight); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: var(--prahari-yellow); animation: fadeInUp 0.3s ease-out;">
-                        <span class="loc-en">⚠️ <strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
-                        <span class="loc-hi" lang="hi">⚠️ <strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
-                    </div>
-
                 </div>
 
-                <div id="contact_number_group" class="form-group" style="margin-bottom: 2rem; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.4s ease; overflow: hidden; max-height: 200px; opacity: 1;">
+                <!-- SMS updates phone input -->
+                <div id="contact_number_group" class="form-group" style="margin-top: var(--space-2); transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease; overflow: hidden; max-height: 200px; opacity: 1;">
                     <label class="form-label loc-en" for="contact_number">Contact Number (optional, for SMS updates)</label>
                     <label class="form-label loc-hi" lang="hi" for="contact_number">संपर्क नंबर (वैकल्पिक, एसएमएस अपडेट के लिए)</label>
-                    
                     <input 
                         type="text" 
                         name="contact_number" 
                         id="contact_number" 
                         class="form-control"
-                        placeholder="e.g. +919876543210..."
                     >
                 </div>
+            </div>
 
-                <button type="submit" class="submit-btn loc-en">Submit Report</button>
-                <button type="submit" class="submit-btn loc-hi" lang="hi">रिपोर्ट जमा करें</button>
-            </form>
-        </div>
-    </main>
+            <!-- 04 Review & Submit -->
+            <div style="margin-top: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);">
+                    <span class="section-eyebrow" style="color: var(--yellow);">04</span>
+                    <span class="form-label loc-en">Confirm & Submit</span>
+                    <span class="form-label loc-hi" lang="hi">पुष्टि करें और जमा करें</span>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                    <span class="loc-en">Submit Report</span>
+                    <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
 {% endblock %}
 
 {% block extra_js %}
@@ -245,39 +191,48 @@
             let html = '';
             if (isAnonymous) {
                 html = `
-                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">
-                        <span style="background: var(--color-primary); color: var(--bg-primary); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
-                        <span class="loc-en">Submit Report</span>
-                        <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                    <div class="step active">
+                        <span class="step-number">1</span>
+                        <div>
+                            <span class="loc-en">Submit</span>
+                            <span class="loc-hi" lang="hi">भेजें</span>
+                        </div>
                     </div>
-                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
-                        <span class="loc-en">Save Private Return Key</span>
-                        <span class="loc-hi" lang="hi">निजी रिटर्न कुंजी सुरक्षित करें</span>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div>
+                            <span class="loc-en">Save Key</span>
+                            <span class="loc-hi" lang="hi">कुंजी सुरक्षित करें</span>
+                        </div>
                     </div>
-                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">3</span>
-                        <span class="loc-en">Live Response</span>
-                        <span class="loc-hi" lang="hi">लाइव प्रतिक्रिया</span>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div>
+                            <span class="loc-en">Response</span>
+                            <span class="loc-hi" lang="hi">प्रतिक्रिया</span>
+                        </div>
                     </div>
                 `;
             } else {
                 html = `
-                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">
-                        <span style="background: var(--color-primary); color: var(--bg-primary); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
-                        <span class="loc-en">Submit Report</span>
-                        <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                    <div class="step active">
+                        <span class="step-number">1</span>
+                        <div>
+                            <span class="loc-en">Submit</span>
+                            <span class="loc-hi" lang="hi">भेजें</span>
+                        </div>
                     </div>
-                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
-                        <span class="loc-en">Live Response</span>
-                        <span class="loc-hi" lang="hi">लाइव प्रतिक्रिया</span>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div>
+                            <span class="loc-en">Response</span>
+                            <span class="loc-hi" lang="hi">प्रतिक्रिया</span>
+                        </div>
                     </div>
                 `;
             }
             stepperContainer.innerHTML = html;
             
-            // Re-apply language translation to the newly generated stepper elements
             const currentLang = localStorage.getItem('prahari_lang') || 'hindi';
             setLanguageTheme(currentLang);
         }
@@ -290,7 +245,6 @@
             const contactInput = document.getElementById('contact_number');
 
             if (anonToggle && contactGroup && anonMessage) {
-                // Initialize stepper based on default load state
                 updateStepper(anonToggle.checked);
                 
                 anonToggle.addEventListener('change', () => {
@@ -300,7 +254,7 @@
                     if (isAnon) {
                         contactGroup.style.maxHeight = '0px';
                         contactGroup.style.opacity = '0';
-                        contactGroup.style.marginBottom = '0px';
+                        contactGroup.style.marginTop = '0px';
                         contactGroup.style.pointerEvents = 'none';
                         if (contactInput) contactInput.value = '';
                         anonMessage.style.display = 'block';
@@ -308,7 +262,7 @@
                     } else {
                         contactGroup.style.maxHeight = '200px';
                         contactGroup.style.opacity = '1';
-                        contactGroup.style.marginBottom = '2rem';
+                        contactGroup.style.marginTop = 'var(--space-2)';
                         contactGroup.style.pointerEvents = 'auto';
                         anonMessage.style.display = 'none';
                         if (anonWarning) anonWarning.style.display = 'none';
@@ -318,7 +272,6 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Set the form field language context
             const selectedLang = localStorage.getItem('prahari_lang') || 'hindi';
             const field = document.getElementById('preferred_language_field');
             if (field) {
@@ -327,7 +280,6 @@
             
             initAnonymousToggle();
             
-            // Set initial placeholders
             const pKey = selectedLang === 'hindi' ? 'hi' : 'en';
             const rawTextEl = document.getElementById('raw_text');
             const locEl = document.getElementById('location');
