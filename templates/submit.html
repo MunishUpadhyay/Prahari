@@ -147,15 +147,15 @@
                     </div>
                     
                     <!-- Anonymous message block -->
-                    <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: #a5b4fc; line-height: 1.4; margin-top: 0.5rem; animation: fadeInUp 0.3s ease-out;">
-                        <span class="loc-en">Your identity will not be recorded. You will receive a 6-character access code to check your report.</span>
-                        <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं होगी। आपको रिपोर्ट देखने के लिए 6-अक्षर का कोड मिलेगा।</span>
+                    <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: var(--text-sub); line-height: 1.4; margin-top: 0.5rem; animation: fadeInUp 0.3s ease-out;">
+                        <span class="loc-en">Your identity will not be recorded. You will receive a Private Return Key to access your report later.</span>
+                        <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं की जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको एक निजी रिटर्न कुंजी मिलेगी।</span>
                     </div>
 
-                    <!-- Anonymous mode warning (Phase 4E requirement) -->
-                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5; animation: fadeInUp 0.3s ease-out;">
-                        <span class="loc-en">Save your Private Return Key. You can use it to return to this report from another device or browser. It will not be shown again.</span>
-                        <span class="loc-hi" lang="hi">अपनी निजी रिटर्न कुंजी (Private Return Key) को सुरक्षित रखें। आप इसका उपयोग दूसरे डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आने के लिए कर सकते हैं। यह दोबारा नहीं दिखाई जाएगी।</span>
+                    <!-- Anonymous mode warning -->
+                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(250, 204, 21, 0.08); border: 1px solid rgba(250, 204, 21, 0.25); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: #fef08a; animation: fadeInUp 0.3s ease-out;">
+                        <span class="loc-en">⚠️ <strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
+                        <span class="loc-hi" lang="hi">⚠️ <strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
                     </div>
 
                 </div>
@@ -238,15 +238,15 @@
             let html = '';
             if (isAnonymous) {
                 html = `
-                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
-                        <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
+                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">
+                        <span style="background: var(--color-primary); color: var(--bg-primary); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
                         <span class="loc-en">Submit Report</span>
                         <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
                     </div>
                     <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
                         <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
-                        <span class="loc-en">Secure Return Key</span>
-                        <span class="loc-hi" lang="hi">सुरक्षित रिटर्न कुंजी</span>
+                        <span class="loc-en">Save Private Return Key</span>
+                        <span class="loc-hi" lang="hi">निजी रिटर्न कुंजी सुरक्षित करें</span>
                     </div>
                     <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
                         <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">3</span>
@@ -256,8 +256,8 @@
                 `;
             } else {
                 html = `
-                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
-                        <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
+                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">
+                        <span style="background: var(--color-primary); color: var(--bg-primary); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
                         <span class="loc-en">Submit Report</span>
                         <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
                     </div>

@@ -1,27 +1,38 @@
 /* Prahari CSS Design System */
 
 :root {
-    --bg-primary: #090d16;
-    --bg-secondary: #0f172a;
-    --bg-card: rgba(22, 28, 45, 0.6);
-    --bg-card-solid: #161c2d;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.04);
+    --bg-primary: #04060a;
+    --bg-secondary: #0b0f17;
+    --bg-elevated: #121724;
+    --bg-card: rgba(18, 23, 36, 0.45);
+    --bg-card-solid: #121724;
+    --glass-surface: rgba(255, 255, 255, 0.02);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-subtle: rgba(255, 255, 255, 0.03);
+    
     --text-main: #f8fafc;
-    --text-sub: #e2e8f0;
+    --text-sub: #cbd5e1;
     --text-muted: #94a3b8;
-    --color-indigo: #6366f1;
-    --color-indigo-hover: #4f46e5;
-    --color-indigo-dim: rgba(99, 102, 241, 0.15);
-    --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
     
-    --color-critical: #ef4444;
-    --color-high: #f97316;
-    --color-medium: #eab308;
-    --color-low: #22c55e;
+    --color-primary: #facc15;
+    --color-primary-hover: #fde047;
+    --color-primary-dim: rgba(250, 204, 21, 0.12);
     
-    --radius-card: 18px;
-    --radius-inner: 12px;
+    /* Keep legacy color names to avoid breaking existing templates, but map them to the new visual identity */
+    --color-indigo: #facc15;
+    --color-indigo-hover: #fde047;
+    --color-indigo-dim: rgba(250, 204, 21, 0.12);
+    --glow-indigo: 0 0 20px rgba(250, 204, 21, 0.1);
+    
+    --color-critical: #ef4444; /* red for emergency */
+    --color-high: #f97316;     /* amber/orange */
+    --color-medium: #eab308;   /* yellow/amber */
+    --color-low: #22c55e;      /* green for verified/success */
+    --color-info: #94a3b8;     /* neutral gray */
+    
+    --radius-card: 16px;
+    --radius-inner: 10px;
 }
 
 * {
@@ -38,8 +49,8 @@ body {
     display: flex;
     flex-direction: column;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
-        radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.07) 0px, transparent 55%);
+        radial-gradient(at 0% 0%, rgba(250, 204, 21, 0.02) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.01) 0px, transparent 50%);
 }
 
 /* Header & Footer */

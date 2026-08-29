@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Prahari — Real-time Civic Intelligence & Response{% endblock %}
+{% block title %}Prahari — Civic Assistance & Emergency Response{% endblock %}
 
 {% block extra_css %}
     <style>
@@ -306,15 +306,24 @@
 {% block content %}
     <main>
         <section class="hero-section">
-            <h2 class="hero-title loc-en">Real-time Civic Intelligence & Response</h2>
-            <h2 class="hero-title loc-hi" lang="hi">वास्तविक समय नागरिक खुफिया और आपातकालीन प्रतिक्रिया</h2>
+            <h2 class="hero-title loc-en">Civic Assistance & Emergency Response</h2>
+            <h2 class="hero-title loc-hi" lang="hi">तत्काल नागरिक सूचना एवं सहायता प्रणाली</h2>
             
             <p class="hero-subtitle loc-en">
-                Prahari leverages multi-agent AI to analyze urgent healthcare, legal, and rescue emergencies, mapping violations and recommending immediate directives.
+                Prahari provides rapid guidance and resources for citizens facing urgent legal, healthcare, or rescue emergencies.
             </p>
             <p class="hero-subtitle loc-hi" lang="hi">
-                प्रहरी तत्काल स्वास्थ्य सेवा, कानूनी और बचाव आपात स्थितियों का विश्लेषण करने, उल्लघनों का मानचित्रण करने और तत्काल निर्देशों की सिफारिश करने के लिए मल्टी-एजेंट एआई का लाभ उठाता है।
+                प्रहरी नागरिकों को तत्काल कानूनी, स्वास्थ्य सेवा या आपातकालीन स्थितियों में त्वरित मार्गदर्शन और संसाधन प्रदान करता है।
             </p>
+
+            <!-- Emergency Warning Card -->
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 1rem 1.5rem; max-width: 720px; width: 100%; margin: 0.5rem auto; text-align: left; display: flex; align-items: flex-start; gap: 0.75rem; color: #fca5a5; font-size: 0.9rem; line-height: 1.5;">
+                <span style="font-size: 1.2rem; flex-shrink: 0; line-height: 1;">🚨</span>
+                <div>
+                    <span class="loc-en"><strong>Important Notice:</strong> For immediate physical danger or life-threatening medical emergencies, always call national emergency services directly at <strong>112</strong> or <strong>108</strong>. Prahari does not replace official emergency services.</span>
+                    <span class="loc-hi" lang="hi"><strong>महत्वपूर्ण सूचना:</strong> तत्काल शारीरिक खतरे या जीवन-धमकी वाली चिकित्सा आपात स्थिति के लिए, हमेशा सीधे राष्ट्रीय आपातकालीन सेवाओं को <strong>112</strong> या <strong>108</strong> पर कॉल करें। प्रहरी आधिकारिक आपातकालीन सेवाओं का विकल्प नहीं है।</span>
+                </div>
+            </div>
 
             <div class="hero-actions">
                 <a href="/submit/" class="cta-btn loc-en">Report an Incident</a>
@@ -323,11 +332,11 @@
 
             <!-- Tracking Section -->
             <div class="tracking-container">
-                <h3 class="loc-en">Track Existing Case Status</h3>
-                <h3 class="loc-hi" lang="hi">मौजूदा मामले की स्थिति ट्रैक करें</h3>
+                <h3 class="loc-en" style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;">Track a Report</h3>
+                <h3 class="loc-hi" lang="hi" style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; font-family: 'Noto Sans Devanagari', sans-serif;">रिपोर्ट ट्रैक करें</h3>
                 
                 <form id="tracking-form" onsubmit="event.preventDefault(); navigateToReport();">
-                    <input type="text" id="prahari-id-input" placeholder="Enter Prahari ID (e.g. PRAH-20260531-DB12)..." required />
+                    <input type="text" id="prahari-id-input" placeholder="Enter Prahari ID / रिपोर्ट आईडी (e.g. PRAH-20260531-DB12)..." required style="font-family: inherit;" />
                     <button type="submit">
                         <span class="loc-en">Track</span>
                         <span class="loc-hi">ट्रैक करें</span>
@@ -341,39 +350,39 @@
             <!-- Legal Card -->
             <div class="card">
                 <div class="card-icon">⚖️</div>
-                <h3 class="card-title loc-en">Legal Rights</h3>
-                <h3 class="card-title loc-hi" lang="hi">कानूनी अधिकार</h3>
+                <h3 class="card-title loc-en">Legal Help</h3>
+                <h3 class="card-title loc-hi" lang="hi">कानूनी सहायता</h3>
                 <p class="card-desc loc-en">
-                    Audit rights violations during police custody, illegal locks, or administrative failures with RAG-retrieved legal provisions.
+                    Understand your legal protections, rights in custody, or remedies against administrative failures and eviction.
                 </p>
                 <p class="card-desc loc-hi" lang="hi">
-                    पुलिस हिरासत, अवैध तालेबंदी या प्रशासनिक विफलताओं के दौरान आरएजी-पुनर्प्राप्त कानूनी प्रावधानों के साथ अधिकारों के उल्लंघन का ऑडिट करें।
+                    अवैध हिरासत, प्रशासनिक विफलताओं या बेदखली के खिलाफ अपनी कानूनी सुरक्षा, हिरासत में अधिकारों या उपचारों को समझें।
                 </p>
             </div>
 
             <!-- Health Card -->
             <div class="card">
                 <div class="card-icon">🏥</div>
-                <h3 class="card-title loc-en">Healthcare Emergency</h3>
-                <h3 class="card-title loc-hi" lang="hi">स्वास्थ्य आपातकाल</h3>
+                <h3 class="card-title loc-en">Medical Help</h3>
+                <h3 class="card-title loc-hi" lang="hi">चिकित्सा सहायता</h3>
                 <p class="card-desc loc-en">
-                    Fast medical triage protocols with built-in escalation routing for illegal hospital denials of emergency treatment.
+                    Access guidance on emergency medical treatment, critical first-aid protocols, and rules regarding hospital admission rights.
                 </p>
                 <p class="card-desc loc-hi" lang="hi">
-                    आपातकालीन उपचार से अवैध अस्पताल इनकार के लिए अंतर्निहित वृद्धि रूटिंग के साथ त्वरित चिकित्सा वर्गीकरण प्रोटोकॉल।
+                    आपातकालीन चिकित्सा उपचार, प्राथमिक उपचार के प्रोटोकॉल और अस्पताल में प्रवेश के अधिकारों पर आवश्यक मार्गदर्शन प्राप्त करें।
                 </p>
             </div>
 
             <!-- Emergency Card -->
             <div class="card">
                 <div class="card-icon">🚨</div>
-                <h3 class="card-title loc-en">Disaster Response</h3>
-                <h3 class="card-title loc-hi" lang="hi">आपदा प्रबंधन</h3>
+                <h3 class="card-title loc-en">Emergency Assistance</h3>
+                <h3 class="card-title loc-hi" lang="hi">आपातकालीन सहायता</h3>
                 <p class="card-desc loc-en">
-                    Coordinated alerts for physical emergencies, building collapses, flash floods, or other urgent rescue events.
+                    Get quick instructions and coordination resources during physical accidents, rescue situations, or building failures.
                 </p>
                 <p class="card-desc loc-hi" lang="hi">
-                    शारीरिक आपात स्थितियों, इमारत गिरने, अचानक आई बाढ़ या अन्य आवश्यक बचाव घटनाओं के लिए समन्वित अलर्ट।
+                    शारीरिक दुर्घटनाओं, बचाव की स्थितियों या इमारत के ढहने के दौरान त्वरित निर्देश और समन्वय संसाधन प्राप्त करें।
                 </p>
             </div>
         </section>

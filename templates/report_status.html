@@ -960,15 +960,19 @@
 {% if is_anonymous %}
     <!-- Verification Card (shown when sessionStorage key is not set) -->
     <div id="verification-wrapper" style="display: none; justify-content: center; align-items: center; min-height: 50vh; padding: 2rem 0; animation: fadeInUp 0.4s ease-out; width: 100%;">
-        <div class="rs-section" style="max-width: 450px; width: 100%; text-align: center; background: var(--bg-card); border-color: var(--color-indigo); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);">
+        <div class="rs-section" style="max-width: 450px; width: 100%; text-align: center; background: var(--bg-card); border-color: var(--color-primary); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);">
             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
-            <h3 class="loc-en" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Enter your 6-character access code</h3>
-            <h3 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">अपना 6-अक्षर का एक्सेस कोड दर्ज करें</h3>
+            <h3 class="loc-en" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Secure Report Access</h3>
+            <h3 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">सुरक्षित रिपोर्ट एक्सेस</h3>
             
-            <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">This report is anonymous. Please enter the access code you received upon submission to view it.</p>
-            <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">यह रिपोर्ट गुमनाम है। इसे देखने के लिए कृपया सबमिशन के समय मिला एक्सेस कोड दर्ज करें।</p>
+            <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">Enter your Report ID and Private Return Key to view this report.</p>
+            <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4;">इस रिपोर्ट को देखने के लिए अपनी रिपोर्ट आईडी और निजी रिटर्न कुंजी दर्ज करें।</p>
             
             <form id="verification-form" onsubmit="verifyAccessCode(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+                <label for="access-code-input" class="visually-hidden" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+                    <span class="loc-en">Private Return Key</span>
+                    <span class="loc-hi" lang="hi">निजी रिटर्न कुंजी</span>
+                </label>
                 <input 
                     type="text" 
                     id="access-code-input" 
@@ -979,11 +983,11 @@
                     required
                 >
                 <div id="verification-error" style="display: none; color: var(--color-critical); font-size: 0.88rem; font-weight: 600; text-align: center;">
-                    <span class="loc-en">Incorrect code. Please try again.</span>
-                    <span class="loc-hi" lang="hi">गलत कोड। कृपया पुनः प्रयास करें।</span>
+                    <span class="loc-en">Incorrect Return Key. Please try again.</span>
+                    <span class="loc-hi" lang="hi">गलत रिटर्न कुंजी। कृपया पुनः प्रयास करें।</span>
                 </div>
                 
-                <button type="submit" class="submit-btn" style="padding: 0.85rem 1.5rem; font-size: 1rem; background: linear-gradient(135deg, var(--color-indigo), #8b5cf6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25); width: 100%;">
+                <button type="submit" class="submit-btn" style="padding: 0.85rem 1.5rem; font-size: 1rem; background: linear-gradient(135deg, var(--color-primary), #d97706); border: none; border-radius: 10px; color: var(--bg-primary); cursor: pointer; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); width: 100%;">
                     <span class="loc-en">View Report</span>
                     <span class="loc-hi">रिपोर्ट देखें</span>
                 </button>
@@ -995,36 +999,41 @@
     <div id="report-content-wrapper" style="display: {% if is_anonymous %}none{% else %}block{% endif %}; width: 100%;">
         <!-- Access Code generated on confirmation page -->
         {% if anonymous_access_code %}
-        <div id="anonymous-code-box" class="rs-section" style="border-color: var(--color-indigo); background: rgba(99, 102, 241, 0.08); margin-bottom: 0.5rem; animation: fadeInUp 0.4s ease-out;">
-            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; padding: 1rem 0;">
-                <div style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 0.07em; background: linear-gradient(135deg, #ffffff 40%, var(--color-indigo) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.75rem;">
-                    <span>🔑</span>
-                    <span id="raw-access-code">{{ anonymous_access_code }}</span>
+        <div id="anonymous-code-box" class="rs-section" style="border-color: var(--color-primary); background: rgba(250, 204, 21, 0.08); margin-bottom: 0.5rem; animation: fadeInUp 0.4s ease-out; text-align: left; padding: 1.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div>
+                    <h4 class="loc-en" style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">⚠️ Private Return Key / निजी रिटर्न कुंजी</h4>
+                    <h4 class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">⚠️ निजी रिटर्न कुंजी</h4>
+                    
+                    <p class="loc-en" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">Save this key — it will not be shown again. You need this private credential to view your report later.</p>
+                    <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">इस कुंजी को सहेजें — यह दोबारा नहीं दिखाई जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको इस निजी क्रेडेंशियल की आवश्यकता होगी।</p>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <div class="loc-en" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
-                        Your Access Code: <span style="color: var(--color-indigo);">{{ anonymous_access_code }}</span>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); padding: 1rem 1.25rem; border-radius: var(--radius-inner);">
+                    <div style="flex: 1; min-width: 150px;">
+                        <span class="loc-en" style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.25rem;">Report ID (Public)</span>
+                        <span class="loc-hi" lang="hi" style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.25rem;">रिपोर्ट आईडी (सार्वजनिक)</span>
+                        <code style="font-family: monospace; font-size: 1.2rem; font-weight: bold; color: var(--text-main);">${trackingId}</code>
                     </div>
-                    <div class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
-                        आपका एक्सेस कोड: <span style="color: var(--color-indigo);">{{ anonymous_access_code }}</span>
-                    </div>
-                    <div class="loc-en" style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 500px;">
-                        Save this code — you will need it to view your report. We cannot recover it if lost.
-                    </div>
-                    <div class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 500px;">
-                        यह कोड सेव करें — रिपोर्ट देखने के लिए इसकी जरूरत होगी। यह दोबारा नहीं मिलेगा।
+                    <div style="flex: 1; min-width: 150px; border-left: 1px solid rgba(255, 255, 255, 0.05); padding-left: 1.5rem;">
+                        <span class="loc-en" style="font-size: 0.8rem; text-transform: uppercase; color: var(--color-primary); font-weight: 700; display: block; margin-bottom: 0.25rem;">Private Return Key (Secret)</span>
+                        <span class="loc-hi" lang="hi" style="font-size: 0.8rem; text-transform: uppercase; color: var(--color-primary); font-weight: 700; display: block; margin-bottom: 0.25rem;">निजी रिटर्न कुंजी (गोपनीय)</span>
+                        <code id="raw-access-code" style="font-family: monospace; font-size: 1.3rem; font-weight: bold; color: var(--color-primary); letter-spacing: 0.1em;">{{ anonymous_access_code }}</code>
                     </div>
                 </div>
-                <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="toolbar-btn" style="background: var(--color-indigo); border-color: var(--color-indigo); color: white; padding: 0.75rem 1.75rem; font-size: 0.95rem; font-weight: 700; border-radius: 9px; box-shadow: var(--glow-indigo);">
-                    <span class="loc-en">📋 Copy Code</span>
-                    <span class="loc-hi">📋 कोड कॉपी करें</span>
-                </button>
+
+                <div>
+                    <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="toolbar-btn" style="background: var(--color-primary); border-color: var(--color-primary); color: var(--bg-primary); padding: 0.75rem 1.75rem; font-size: 0.95rem; font-weight: 700; border-radius: 9px; box-shadow: var(--glow-indigo); cursor: pointer; transition: all 0.2s;">
+                        <span class="loc-en">📋 Copy Return Key</span>
+                        <span class="loc-hi">📋 रिटर्न कुंजी कॉपी करें</span>
+                    </button>
+                </div>
             </div>
         </div>
         <script>
         function copyAccessCode(code) {
             navigator.clipboard.writeText(code);
-            alert(localStorage.getItem('prahari_lang') === 'hi' ? 'एक्सेस कोड क्लिपबोर्ड पर कॉपी हो गया!' : 'Access code copied to clipboard!');
+            alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'निजी रिटर्न कुंजी क्लिपबोर्ड पर कॉपी हो गई है!' : 'Private Return Key copied to clipboard!');
         }
         </script>
         {% endif %}
@@ -1162,11 +1171,11 @@
         </div>
 
     
-        <!-- Done — Close Session Button (Improvement/Core Request) -->
+        <!-- Close Access Button -->
         <div class="close-session-container" style="display:flex; justify-content:center; margin-top:2rem; margin-bottom:1rem;">
-            <button onclick="closeSessionAndGoHome()" class="toolbar-btn" style="background: linear-gradient(135deg, var(--color-indigo), #8b5cf6); border: none; color: white; padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35); transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                <span class="loc-en">Done — Close Session & Submit Another Report</span>
-                <span class="loc-hi" lang="hi">पूर्ण — सत्र समाप्त करें और दूसरी रिपोर्ट सबमिट करें</span>
+            <button onclick="closeSessionAndGoHome()" class="toolbar-btn" style="background: linear-gradient(135deg, var(--color-primary), #d97706); border: none; color: var(--bg-primary); padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <span class="loc-en">🔒 Close Report Access</span>
+                <span class="loc-hi" lang="hi">🔒 रिपोर्ट एक्सेस बंद करें</span>
             </button>
         </div>
 </div>
@@ -1686,13 +1695,27 @@ function renderResult(result) {
 
     // ── Title + Badges ───────────────────────────────────
     const sev = (result.severity_label || 'medium').toLowerCase();
-    const sevScore = result.severity_score || 0;
+    let sevLabelEn = 'Moderate';
+    let sevLabelHi = 'मध्यम';
+    if (sev === 'critical') {
+        sevLabelEn = 'Critical';
+        sevLabelHi = 'अत्यंत गंभीर';
+    } else if (sev === 'high') {
+        sevLabelEn = 'High';
+        sevLabelHi = 'गंभीर';
+    } else if (sev === 'medium' || sev === 'moderate') {
+        sevLabelEn = 'Moderate';
+        sevLabelHi = 'मध्यम';
+    } else if (sev === 'low') {
+        sevLabelEn = 'Low';
+        sevLabelHi = 'कम';
+    }
     const titleHTML = `
     <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem;">
         <div class="badge-row">
             <span class="badge ${sev}">
-                <span class="loc-en">Severity: ${sev.toUpperCase()} · ${sevScore.toFixed(2)}</span>
-                <span class="loc-hi">गंभीरता: ${sev.toUpperCase()} · ${sevScore.toFixed(2)}</span>
+                <span class="loc-en">Severity: ${sevLabelEn}</span>
+                <span class="loc-hi">गंभीरता: ${sevLabelHi}</span>
             </span>
             <span class="badge domain">
                 <span class="loc-en">Domain: ${domain.toUpperCase()}</span>
@@ -1955,40 +1978,56 @@ function renderResult(result) {
             
             const isVer = p.verified === true;
             const badgeEn = isVer 
-                ? `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#dcfce7;color:#15803d;">✓ Verified legal source</div>`
-                : `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#fef3c7;color:#b45309;">⚠ Provision could not be verified</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">✓ Verified statutory provision</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(250,204,21,0.08);color:#fef08a;border:1px solid rgba(250,204,21,0.25);">⚠ Provision could not be verified</div>`;
             const badgeHi = isVer
-                ? `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#dcfce7;color:#15803d;">✓ सत्यापित कानूनी स्रोत</div>`
-                : `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#fef3c7;color:#b45309;">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">✓ सत्यापित कानूनी प्रावधान</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(250,204,21,0.08);color:#fef08a;border:1px solid rgba(250,204,21,0.25);">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
 
             const cardStyle = isVer
-                ? `border: 1px solid rgba(34, 197, 94, 0.45); background: rgba(34, 197, 94, 0.03);`
-                : `border: 1px solid rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.02);`;
+                ? `border: 1px solid rgba(34, 197, 94, 0.25); background: rgba(18, 23, 36, 0.45); box-shadow: 0 4px 15px rgba(0,0,0,0.25);`
+                : `border: 1px solid rgba(250, 204, 21, 0.2); background: rgba(18, 23, 36, 0.35); box-shadow: 0 4px 15px rgba(0,0,0,0.25);`;
 
             const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
-            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:#cbd5e1;margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
-            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:#cbd5e1;margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
+            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
+            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
 
             const appVal = p.applicability || 'primary';
             const appLabelHi = appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित';
-            const appBadgeEn = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .3rem;border-radius:3px;margin-left:.5rem;background:#e0f2fe;color:#0369a1;font-weight:bold;">${appVal}</span>`;
-            const appBadgeHi = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .3rem;border-radius:3px;margin-left:.5rem;background:#e0f2fe;color:#0369a1;font-weight:bold;">${appLabelHi}</span>`;
+            
+            let appBg = 'rgba(250, 204, 21, 0.12)';
+            let appColor = '#fef08a';
+            if (appVal === 'primary') {
+                appBg = 'rgba(250, 204, 21, 0.15)';
+                appColor = '#facc15';
+            } else if (appVal === 'secondary') {
+                appBg = 'rgba(255, 255, 255, 0.05)';
+                appColor = 'var(--text-muted)';
+            } else {
+                appBg = 'rgba(239, 68, 68, 0.1)';
+                appColor = '#fca5a5';
+            }
+
+            const appBadgeEn = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">Applicability: ${appVal}</span>`;
+            const appBadgeHi = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">प्रासंगिकता: ${appLabelHi}</span>`;
 
             return `
-            <div class="right-card" style="${cardStyle} text-align: left;">
-                <div class="right-card-title loc-en">${p.provision || ''} ${appBadgeEn}</div>
-                <div class="right-card-title loc-hi" lang="hi">${pHi.provision || p.provision || ''} ${appBadgeHi}</div>
-                <div class="loc-en">${badgeEn} ${legacyEn}</div>
-                <div class="loc-hi" lang="hi">${badgeHi} ${legacyHi}</div>
-                <div class="right-card-desc loc-en">${p.description || ''}</div>
-                <div class="right-card-desc loc-hi" lang="hi">${pHi.description || p.description || ''}</div>
-                <div class="right-card-body">
-                    <p class="right-para loc-en"><span class="right-para-label applies">🎯 YOUR CASE:</span>${p.relevance || ''}</p>
-                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label applies">🎯 आपके मामले में:</span>${relevanceHi}</p>
-                    <p class="right-para loc-en"><span class="right-para-label means">📋 WHAT THIS LAW SAYS:</span>${simpleDesc}</p>
-                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label means">📋 यह कानून क्या कहता है:</span>${simpleDescHi}</p>
-                    <p class="right-para loc-en"><span class="right-para-label remedy">✅ YOUR REMEDY:</span>${remedy}</p>
-                    <p class="right-para loc-hi" lang="hi"><span class="right-para-label remedy">✅ आपका उपाय:</span>${remedyHi}</p>
+            <div class="right-card" style="${cardStyle} text-align: left; padding: 1.5rem; border-radius: var(--radius-card); display: flex; flex-direction: column; gap: 0.85rem;">
+                <div>
+                    <h3 class="right-card-title loc-en" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">${p.provision || ''} ${appBadgeEn}</h3>
+                    <h3 class="right-card-title loc-hi" lang="hi" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.provision || p.provision || ''} ${appBadgeHi}</h3>
+                    <div class="loc-en">${badgeEn} ${legacyEn}</div>
+                    <div class="loc-hi" lang="hi">${badgeHi} ${legacyHi}</div>
+                </div>
+                <div class="right-card-desc loc-en" style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">${p.description || ''}</div>
+                <div class="right-card-desc loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; font-family: 'Noto Sans Devanagari', sans-serif;">${pHi.description || p.description || ''}</div>
+                <div class="right-card-body" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: var(--color-primary); margin-right: .35rem;">🎯 YOUR CASE:</span>${p.relevance || ''}</p>
+                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--color-primary); margin-right: .35rem;">🎯 आपके मामले में:</span>${relevanceHi}</p>
+                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: var(--text-muted); margin-right: .35rem;">📋 WHAT THIS LAW SAYS:</span>${simpleDesc}</p>
+                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: var(--text-muted); margin-right: .35rem;">📋 यह कानून क्या कहता है:</span>${simpleDescHi}</p>
+                    <p class="right-para loc-en" style="line-height: 1.45;"><span style="font-weight: 700; color: #10b981; margin-right: .35rem;">✅ YOUR REMEDY:</span>${remedy}</p>
+                    <p class="right-para loc-hi" lang="hi" style="line-height: 1.45; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight: 700; color: #10b981; margin-right: .35rem;">✅ आपका उपाय:</span>${remedyHi}</p>
                 </div>
             </div>`;
         }).join('');
@@ -2003,9 +2042,9 @@ function renderResult(result) {
             <p class="section-subheading loc-en">Based on your report, the following rights apply to your situation:</p>
             <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी स्थिति पर लागू होते हैं:</p>
         </div>
-        <div class="rights-grid">${provCards}</div>
+        <div class="rights-grid" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; width: 100%;">${provCards}</div>
         <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
-            <button id="legal-notice-btn" class="generate-notice-btn" onclick="generateLegalNotice('${result.incident_id}')" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; padding: 0.85rem 1.5rem; border-radius: var(--radius-inner); font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35); width: fit-content;">
+            <button id="legal-notice-btn" class="generate-notice-btn" onclick="generateLegalNotice('${result.incident_id}')" style="background: linear-gradient(135deg, var(--color-primary), #d97706); color: var(--bg-primary); border: none; padding: 0.85rem 1.5rem; border-radius: var(--radius-inner); font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); width: fit-content;">
                 <span class="loc-en">📄 Generate Legal Notice</span>
                 <span class="loc-hi">📄 कानूनी नोटिस बनाएं</span>
             </button>
@@ -2193,11 +2232,13 @@ function renderResult(result) {
         <div class="section-header">
             <span class="section-label">Section 3.5</span>
             <h2 class="section-heading">
-                <span class="loc-en">Collect This Evidence</span>
-                <span class="loc-hi">अभी सबूत इकट्ठा करें</span>
+                <span class="loc-en">Your Reference Checklist</span>
+                <span class="loc-hi">आपकी संदर्भ चेकलिस्ट</span>
             </h2>
-            <p class="section-subheading loc-en">Collect these before they disappear or become unavailable:</p>
-            <p class="section-subheading loc-hi" lang="hi">इन्हें गायब होने या अनुपलब्ध होने से पहले इकट्ठा करें:</p>
+            <p class="section-subheading loc-en" style="color: var(--color-primary); font-weight: 500;">📋 Note: These checkboxes are for your own reference and are not saved or sent to Prahari.</p>
+            <p class="section-subheading loc-hi" lang="hi" style="color: var(--color-primary); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;">📋 नोट: ये चेकबॉक्स केवल आपके अपने संदर्भ के लिए हैं और इन्हें प्रहरी को नहीं भेजा जाता है।</p>
+            <p class="section-subheading loc-en" style="margin-top: 0.5rem;">Collect these items before they disappear or become unavailable:</p>
+            <p class="section-subheading loc-hi" lang="hi" style="margin-top: 0.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">इन्हें गायब होने या अनुपलब्ध होने से पहले इकट्ठा करें:</p>
         </div>
         <div style="display: flex; flex-direction: column; gap: 1rem;">${evidenceCards}</div>
     </section>`;
@@ -2367,21 +2408,26 @@ function renderResult(result) {
     // ── REARRANGE SECTIONS BY PRIORITIZATION ───────────────────
     if (isHealth) {
         html += titleHTML;
+        // 1. Emergency warning
         if (goldenWindowHTML) {
             html += goldenWindowHTML;
         }
+        // 2. Immediate action
+        if (actionPlanHTML) {
+            html += actionPlanHTML;
+        }
+        // 3. Emergency contacts
         if (topContactsHTML) {
             html += topContactsHTML;
         }
         if (emergencyContactsHTML) {
             html += emergencyContactsHTML;
         }
-        if (actionPlanHTML) {
-            html += actionPlanHTML;
-        }
+        // 4. Medical escalation
         if (escalationHTML) {
             html += escalationHTML;
         }
+        // 5. Supporting / cross-domain notices
         if (priorityNoticeHTML) {
             html += priorityNoticeHTML;
         }
@@ -2402,32 +2448,38 @@ function renderResult(result) {
         }
     } else {
         html += titleHTML;
-        if (topContactsHTML) {
-            html += topContactsHTML;
-        }
+        // 1. Situation / Status
         if (priorityNoticeHTML) {
             html += priorityNoticeHTML;
         }
         if (whatIsHappeningHTML) {
             html += whatIsHappeningHTML;
         }
-        if (rightsHTML) {
-            html += rightsHTML;
-        }
+        // 2. Immediate recommended actions
         if (actionPlanHTML) {
             html += actionPlanHTML;
         }
-        if (evidenceHTML) {
-            html += evidenceHTML;
+        // 3. Relevant legal provisions
+        if (rightsHTML) {
+            html += rightsHTML;
+        }
+        // 4. Authorities / resources / contacts
+        if (topContactsHTML) {
+            html += topContactsHTML;
         }
         if (contactHTML) {
             html += contactHTML;
         }
-        if (legalReferenceHTML) {
-            html += legalReferenceHTML;
-        }
+        // 5. Timeline / Escalation
         if (escalationHTML) {
             html += escalationHTML;
+        }
+        // 6. Supporting evidence / reference
+        if (evidenceHTML) {
+            html += evidenceHTML;
+        }
+        if (legalReferenceHTML) {
+            html += legalReferenceHTML;
         }
     }
 document.getElementById('dynamic-sections').innerHTML = html;
