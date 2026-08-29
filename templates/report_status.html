@@ -1687,8 +1687,8 @@ function renderResult(result) {
     // ── Title + Badges ───────────────────────────────────
     const sev = (result.severity_label || 'medium').toLowerCase();
     const sevScore = result.severity_score || 0;
-    html += `
-    <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:.25rem;">
+    const titleHTML = `
+    <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem;">
         <div class="badge-row">
             <span class="badge ${sev}">
                 <span class="loc-en">Severity: ${sev.toUpperCase()} · ${sevScore.toFixed(2)}</span>
@@ -1703,10 +1703,9 @@ function renderResult(result) {
         <div class="loc-hi" lang="hi" style="font-family:'Noto Sans Devanagari',sans-serif;font-size:1.55rem;font-weight:700;color:var(--text-main);line-height:1.35;">${result.title_hi || result.title_en || ''}</div>
     </div>`;
 
-    // ── TOP EMERGENCY CONTACTS (Improvement B & FIX 1 & 2) ───────────
+    // ── TOP EMERGENCY CONTACTS ───────────────────────────
     let topContactsHTML = '';
     let buttons = [];
-    
     const nearestAuth = (result.nearest_authority_type || '').trim();
     const hospDenial = result.hospital_denial_detected || false;
     const triageSev = (result.triage_severity || '').toLowerCase();
@@ -1865,7 +1864,7 @@ function renderResult(result) {
 
     if (buttons.length > 0) {
         topContactsHTML = `
-        <div class="top-contact-bar">
+        <div class="top-contact-bar" style="margin-bottom:1.5rem;">
             <div class="top-contact-title">
                 <span class="loc-en">🚨 Emergency Contacts</span>
                 <span class="loc-hi">🚨 आपातकालीन संपर्क</span>
@@ -1876,13 +1875,44 @@ function renderResult(result) {
             ${secondaryNoteHTML}
         </div>`;
     }
-    
-    html += topContactsHTML;
+
+    // ── GOLDEN WINDOW (health, between S1 & S2) ───────────
+    let goldenWindowHTML = '';
+    if (isHealth && result.golden_window && result.golden_window.time_remaining) {
+        const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
+        const icon = isImm ? '🚨' : '⏱️';
+        const gwHi = result.golden_window_hi || {};
+        goldenWindowHTML = `
+    <div class="golden-window-alert" role="alert" style="margin-bottom:1.5rem;">
+        <div class="gw-label loc-en">⚠️ Time Critical — Golden Treatment Window</div>
+        <div class="gw-label loc-hi" lang="hi">⚠️ समय अत्यंत महत्वपूर्ण है — समय सीमा</div>
+        <div class="gw-time">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
+        <p class="gw-consequence loc-en"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
+        <p class="gw-consequence loc-hi" lang="hi"><strong>यदि देरी हुई:</strong> ${gwHi.consequence_of_delay || result.golden_window.consequence_of_delay || ''}</p>
+        <a href="tel:108" class="call-btn-large">📞 Call 108 — National Ambulance</a>
+    </div>`;
+    }
+
+    // ── PRIORITY NOTICE (cross-domain) ───────────────────
+    let priorityNoticeHTML = '';
+    if (isCross && result.conflict_resolution) {
+        const cr = result.conflict_resolution;
+        const crHi = result.conflict_resolution_hi || cr;
+        priorityNoticeHTML = `
+    <div class="priority-notice" role="note" style="margin-bottom:1.5rem;">
+        <div class="priority-notice-label loc-en">⚡ Priority Notice — Cross-Domain Situation</div>
+        <div class="priority-notice-label loc-hi">⚡ प्राथमिकता सूचना — क्रॉस-डोमेन स्थिति</div>
+        <p class="priority-notice-text loc-en">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
+        <p class="priority-notice-text loc-hi" lang="hi">इस स्थिति में चिकित्सा और कानूनी दोनों पहलू हैं। <strong>${(cr.primary_priority === 'medical' ? 'चिकित्सा' : 'कानूनी').toUpperCase()}</strong> को सबसे पहले प्राथमिकता दी जा रही है क्योंकि: ${crHi.reasoning || cr.reasoning || ''}</p>
+        ${cr.sequence ? `<p class="loc-en" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
+        ${crHi.sequence ? `<p class="loc-hi" lang="hi" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${crHi.sequence}</p>` : ''}
+    </div>`;
+    }
 
     // ── SECTION 1: WHAT IS HAPPENING ─────────────────────
     const briefEn = result.brief_en || result.what_is_happening_en || '';
     const briefHi = result.brief_hi || result.what_is_happening_hi || briefEn;
-    html += `
+    const whatIsHappeningHTML = `
     <section class="rs-section" aria-label="What is happening">
         <div class="section-header">
             <span class="section-label">Section 1</span>
@@ -1894,7 +1924,7 @@ function renderResult(result) {
         <p class="brief-text loc-en">${briefEn}</p>
         <p class="brief-text brief-text-hi loc-hi" lang="hi">${briefHi}</p>
         
-        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.5rem;">
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.5rem; text-align: left;">
             ${result.resources_needed && result.resources_needed.length > 0 ? `
             <div class="loc-en" style="font-size:.85rem;color:var(--text-muted);"><strong>Resources Needed:</strong> ${result.resources_needed.join(', ')}</div>
             <div class="loc-hi" lang="hi" style="font-size:.85rem;color:var(--text-muted);"><strong>आवश्यक संसाधन:</strong> ${result.resources_needed_hi && result.resources_needed_hi.length > 0 ? result.resources_needed_hi.join(', ') : result.resources_needed.join(', ')}</div>
@@ -1906,42 +1936,12 @@ function renderResult(result) {
         </div>
     </section>
     
-    <!-- Case Outcome Predictor Stats Card (Upgrade 5) -->
+    <!-- Case Outcome Predictor Stats Card -->
     <div id="outcome-stats-card" style="display: none; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.1rem 1.4rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
     </div>`;
 
-    // ── GOLDEN WINDOW (health, between S1 & S2) ───────────
-    if (isHealth && result.golden_window && result.golden_window.time_remaining) {
-        const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
-        const icon = isImm ? '🚨' : '⏱️';
-        const gwHi = result.golden_window_hi || {};
-        html += `
-    <div class="golden-window-alert" role="alert">
-        <div class="gw-label loc-en">⚠️ Time Critical — Golden Treatment Window</div>
-        <div class="gw-label loc-hi" lang="hi">⚠️ समय अत्यंत महत्वपूर्ण है — समय सीमा</div>
-        <div class="gw-time">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
-        <p class="gw-consequence loc-en"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
-        <p class="gw-consequence loc-hi" lang="hi"><strong>यदि देरी हुई:</strong> ${gwHi.consequence_of_delay || result.golden_window.consequence_of_delay || ''}</p>
-        <a href="tel:108" class="call-btn-large">📞 Call 108 — National Ambulance</a>
-    </div>`;
-    }
-
-    // ── PRIORITY NOTICE (cross-domain) ───────────────────
-    if (isCross && result.conflict_resolution) {
-        const cr = result.conflict_resolution;
-        const crHi = result.conflict_resolution_hi || cr;
-        html += `
-    <div class="priority-notice" role="note">
-        <div class="priority-notice-label loc-en">⚡ Priority Notice — Cross-Domain Situation</div>
-        <div class="priority-notice-label loc-hi">⚡ प्राथमिकता सूचना — क्रॉस-डोमेन स्थिति</div>
-        <p class="priority-notice-text loc-en">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is being prioritized first because: ${cr.reasoning || ''}</p>
-        <p class="priority-notice-text loc-hi" lang="hi">इस स्थिति में चिकित्सा और कानूनी दोनों पहलू हैं। <strong>${(cr.primary_priority === 'medical' ? 'चिकित्सा' : 'कानूनी').toUpperCase()}</strong> को सबसे पहले प्राथमिकता दी जा रही है क्योंकि: ${crHi.reasoning || ''}</p>
-        ${cr.sequence ? `<p class="loc-en" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${cr.sequence}</p>` : ''}
-        ${crHi.sequence ? `<p class="loc-hi" lang="hi" style="font-size:.85rem;color:#fdba74;margin-top:.25rem;">${crHi.sequence}</p>` : ''}
-    </div>`;
-    }
-
     // ── SECTION 2: YOUR RIGHTS ───────────────────────────
+    let rightsHTML = '';
     const provisions = result.legal_provisions || [];
     if (isLegal && provisions.length > 0) {
         const provCards = provisions.map((p, idx) => {
@@ -1961,9 +1961,13 @@ function renderResult(result) {
                 ? `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#dcfce7;color:#15803d;">✓ सत्यापित कानूनी स्रोत</div>`
                 : `<div style="display:inline-block;padding:.2rem .4rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:#fef3c7;color:#b45309;">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
 
+            const cardStyle = isVer
+                ? `border: 1px solid rgba(34, 197, 94, 0.45); background: rgba(34, 197, 94, 0.03);`
+                : `border: 1px solid rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.02);`;
+
             const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
-            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:#9ca3af;margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
-            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:#9ca3af;margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
+            const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:#cbd5e1;margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
+            const legacyHi = hasLegacy ? `<div style="font-size:.8rem;color:#cbd5e1;margin-top:.25rem;margin-bottom:.5rem;"><strong>पुराना संदर्भ:</strong> ${p.legacy_code} धारा ${p.legacy_section}</div>` : '';
 
             const appVal = p.applicability || 'primary';
             const appLabelHi = appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित';
@@ -1971,7 +1975,7 @@ function renderResult(result) {
             const appBadgeHi = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .3rem;border-radius:3px;margin-left:.5rem;background:#e0f2fe;color:#0369a1;font-weight:bold;">${appLabelHi}</span>`;
 
             return `
-            <div class="right-card">
+            <div class="right-card" style="${cardStyle} text-align: left;">
                 <div class="right-card-title loc-en">${p.provision || ''} ${appBadgeEn}</div>
                 <div class="right-card-title loc-hi" lang="hi">${pHi.provision || p.provision || ''} ${appBadgeHi}</div>
                 <div class="loc-en">${badgeEn} ${legacyEn}</div>
@@ -1988,13 +1992,13 @@ function renderResult(result) {
                 </div>
             </div>`;
         }).join('');
-        html += `
+        rightsHTML = `
     <section class="rs-section" aria-label="Your Rights">
         <div class="section-header">
             <span class="section-label">Section 2</span>
             <h2 class="section-heading">
-                <span class="loc-en">Your Rights</span>
-                <span class="loc-hi">आपके अधिकार</span>
+                <span class="loc-en">Your Rights (Legal Information)</span>
+                <span class="loc-hi">आपके अधिकार (कानूनी जानकारी)</span>
             </h2>
             <p class="section-subheading loc-en">Based on your report, the following rights apply to your situation:</p>
             <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी स्थिति पर लागू होते हैं:</p>
@@ -2009,8 +2013,57 @@ function renderResult(result) {
     </section>`;
     }
 
+    // ── WHAT NOT TO DO WARNING CARD ───────────────────
+    let whatNotToDoHTML = '';
+    if (isHealth && isLegal) {
+        whatNotToDoHTML = `
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
+                <span>⚠️</span>
+                <span class="loc-en">What NOT to Do</span>
+                <span class="loc-hi" lang="hi">क्या न करें</span>
+            </div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+                <li class="loc-en">Do not delay medical treatment for police or legal formalities. Life-saving care is the absolute first priority.</li>
+                <li class="loc-hi" lang="hi">पुलिस या कानूनी औपचारिकताओं के लिए चिकित्सा उपचार में देरी न करें। जीवन रक्षक देखभाल पूर्ण प्रथम प्राथमिकता है।</li>
+                <li class="loc-en">Do not accept verbal treatment refusals. Insist on a written rejection or reference note.</li>
+                <li class="loc-hi" lang="hi">मौखिक इलाज के इनकार को स्वीकार न करें। लिखित इनकार या संदर्भ नोट पर जोर दें।</li>
+            </ul>
+        </div>`;
+    } else if (isHealth) {
+        whatNotToDoHTML = `
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
+                <span>⚠️</span>
+                <span class="loc-en">What NOT to Do</span>
+                <span class="loc-hi" lang="hi">क्या न करें</span>
+            </div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+                <li class="loc-en">Do not attempt self-medication or medical procedures without professional guidance.</li>
+                <li class="loc-hi" lang="hi">पेशेवर मार्गदर्शन के बिना स्वयं दवा लेने या चिकित्सा प्रक्रियाओं का प्रयास न करें।</li>
+                <li class="loc-en">Do not give oral fluids or food if the victim is unconscious or semi-conscious.</li>
+                <li class="loc-hi" lang="hi">यदि पीड़ित बेहोश या अर्ध-बेहोश है तो उसे मुंह से तरल पदार्थ या भोजन न दें।</li>
+            </ul>
+        </div>`;
+    } else if (isLegal) {
+        whatNotToDoHTML = `
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem;">
+                <span>⚠️</span>
+                <span class="loc-en">What NOT to Do</span>
+                <span class="loc-hi" lang="hi">क्या न करें</span>
+            </div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5;">
+                <li class="loc-en">Do not sign any statements, settlement drafts, or blank papers without reading them thoroughly.</li>
+                <li class="loc-hi" lang="hi">बिना पूरी तरह पढ़े किसी भी बयान, समझौते के प्रारूप या खाली कागजों पर हस्ताक्षर न करें।</li>
+                <li class="loc-en">Do not pay bribes or unofficial fees to register complaints or retrieve documents.</li>
+                <li class="loc-hi" lang="hi">शिकायत दर्ज करने या दस्तावेज प्राप्त करने के लिए रिश्वत या अनौपचारिक शुल्क का भुगतान न करें।</li>
+            </ul>
+        </div>`;
+    }
+
     // ── SECTION 3: ACTION PLAN ───────────────────────────
-    // Use legal_timeline (from rights agent) for legal, fall back to immediate_actions
+    let actionPlanHTML = '';
     let actionSteps = [];
     if (result.legal_timeline && result.legal_timeline.length > 0) {
         actionSteps = result.legal_timeline.map((s, i) => {
@@ -2047,14 +2100,21 @@ function renderResult(result) {
             const cls = tfClass(s.timeframe);
             const forum = extractForum(s.action);
             const forumHi = extractForum(s.actionHi) || forum;
+            const isUrgent = s.timeframe && (s.timeframe.toLowerCase().includes('immediate') || s.timeframe.toLowerCase().includes('hour'));
+            const urgentBadge = isUrgent ? `
+            <span class="badge critical" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 5px; line-height: 1; display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 0.5rem; width: fit-content; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
+                <span class="loc-en">🚨 URGENT ACTION</span>
+                <span class="loc-hi">🚨 तत्काल कार्रवाई</span>
+            </span>` : '';
             return `
-            <div class="action-step-card">
+            <div class="action-step-card" style="text-align: left;">
                 <div class="step-num-circle ${cls}">${s.num}</div>
                 <div class="step-body">
                     <div>
                         <span class="loc-en" style="font-size:.8rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;">Step ${s.num}</span>
                         <span class="loc-hi" style="font-size:.8rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;">चरण ${s.num}</span>
                     </div>
+                    ${urgentBadge}
                     <span class="step-tf-badge ${cls}">
                         <span class="loc-en">Window: ${tfLabel(s.timeframe)}</span>
                         <span class="loc-hi">समय सीमा: ${tfLabel(s.timeframe)}</span>
@@ -2073,22 +2133,24 @@ function renderResult(result) {
                 </div>
             </div>`;
         }).join('');
-        html += `
+        actionPlanHTML = `
     <section class="rs-section" aria-label="Action Plan">
         <div class="section-header">
             <span class="section-label">Section 3</span>
             <h2 class="section-heading">
-                <span class="loc-en">Action Plan</span>
-                <span class="loc-hi">क्या करें</span>
+                <span class="loc-en">Action Plan (What to Do)</span>
+                <span class="loc-hi">कार्य योजना (क्या करें)</span>
             </h2>
             <p class="section-subheading loc-en">Steps you must take, in order of urgency:</p>
             <p class="section-subheading loc-hi" lang="hi">तत्काल करने योग्य कदम, प्राथमिकता के क्रम में:</p>
         </div>
         <div class="action-plan-list">${stepCards}</div>
+        ${whatNotToDoHTML}
     </section>`;
     }
 
     // ── SECTION 3.5: EVIDENCE CHECKLIST ──────────────────
+    let evidenceHTML = '';
     const evidenceToCollect = result.evidence_to_collect || [];
     if (evidenceToCollect.length > 0) {
         const evidenceCards = evidenceToCollect.map((e, i) => {
@@ -2102,9 +2164,9 @@ function renderResult(result) {
             const isTimeSensitive = e.time_sensitive || false;
 
             return `
-            <div class="evidence-item-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; display: grid; grid-template-columns: auto 1fr; gap: 0.75rem 1.25rem; align-items: start;">
+            <div class="evidence-item-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-inner); padding: 1.25rem 1.4rem; display: grid; grid-template-columns: auto 1fr; gap: 0.75rem 1.25rem; align-items: start; text-align: left;">
                 <div style="padding-top: 0.2rem;">
-                    <input type="checkbox" style="width: 18px; height: 18px; accent-color: var(--color-indigo); cursor: pointer;" />
+                    <input type="checkbox" id="evidence-check-${i}" style="width: 18px; height: 18px; accent-color: var(--color-indigo); cursor: pointer;" aria-label="Mark ${itemEn} as collected / ${itemHi} को एकत्र के रूप में चिह्नित करें" />
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.45rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 0.5rem;">
@@ -2126,7 +2188,7 @@ function renderResult(result) {
             </div>`;
         }).join('');
 
-        html += `
+        evidenceHTML = `
     <section class="rs-section" aria-label="Evidence to Collect">
         <div class="section-header">
             <span class="section-label">Section 3.5</span>
@@ -2142,15 +2204,45 @@ function renderResult(result) {
     }
 
     // ── SECTION 4: WHO TO CONTACT ────────────────────────
+    let emergencyContactsHTML = '';
+    if (isHealth && result.emergency_contacts && result.emergency_contacts.length > 0) {
+        const btns = result.emergency_contacts.map((c, i) => {
+            let cls = 'e-other';
+            if (c.number === '108') cls = 'e-108';
+            else if (c.number === '100') cls = 'e-100';
+            else if (c.number === '1091') cls = 'e-1091';
+            const cHi = (result.emergency_contacts_hi || [])[i] || {};
+            return `
+            <a href="tel:${c.number}" class="emergency-card ${cls}">
+                <span class="ec-name loc-en">${c.name}</span>
+                <span class="ec-name loc-hi" lang="hi">${cHi.name || c.name}</span>
+                <span class="ec-number">📞 ${c.number}</span>
+                <span class="ec-when loc-en">${c.when_to_call || ''}</span>
+                <span class="ec-when loc-hi" lang="hi">${cHi.when_to_call || c.when_to_call || ''}</span>
+            </a>`;
+        }).join('');
+        emergencyContactsHTML = `
+    <section class="rs-section" aria-label="Emergency Hotlines" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.02);">
+        <div class="section-header">
+            <span class="section-label" style="color:var(--color-critical);">Emergency</span>
+            <h2 class="section-heading" style="color:var(--color-critical);">
+                <span class="loc-en">Emergency Hotlines — Tap to Call</span>
+                <span class="loc-hi" lang="hi">आपातकालीन हेल्पलाइन — कॉल करने के लिए टैप करें</span>
+            </h2>
+        </div>
+        <div class="emergency-contacts-grid">${btns}</div>
+    </section>`;
+    }
+
+    let contactHTML = '';
     const authorityType  = result.nearest_authority_type || 'DLSA';
     const authorityDesc  = result.authority_to_contact   || 'National Legal Services Authority (NALSA)';
     const isNALSA = /dlsa|nalsa/i.test(authorityType + ' ' + authorityDesc);
     const titleText = result.title_en || '';
     const titleTextHi = result.title_hi || titleText || '';
-    const domainForList = isLegal ? 'legal' : isHealth ? 'health' : 'legal';
 
     let primaryContactHTML = `
-    <div class="primary-contact-card">
+    <div class="primary-contact-card" style="text-align: left;">
         <div>
             <div class="contact-authority-name">${authorityType}</div>
             <div class="contact-authority-desc">${authorityDesc}</div>
@@ -2178,34 +2270,7 @@ function renderResult(result) {
         </div>
     </div>`;
 
-    let emergencyContactsHTML = '';
-    if (isHealth && result.emergency_contacts && result.emergency_contacts.length > 0) {
-        const btns = result.emergency_contacts.map((c, i) => {
-            let cls = 'e-other';
-            if (c.number === '108') cls = 'e-108';
-            else if (c.number === '100') cls = 'e-100';
-            else if (c.number === '1091') cls = 'e-1091';
-            const cHi = (result.emergency_contacts_hi || [])[i] || {};
-            return `
-            <a href="tel:${c.number}" class="emergency-card ${cls}">
-                <span class="ec-name loc-en">${c.name}</span>
-                <span class="ec-name loc-hi" lang="hi">${cHi.name || c.name}</span>
-                <span class="ec-number">📞 ${c.number}</span>
-                <span class="ec-when loc-en">${c.when_to_call || ''}</span>
-                <span class="ec-when loc-hi" lang="hi">${cHi.when_to_call || c.when_to_call || ''}</span>
-            </a>`;
-        }).join('');
-        emergencyContactsHTML = `
-        <div>
-            <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:700;margin-bottom:.75rem;">
-                <span class="loc-en">Emergency Hotlines — Tap to Call</span>
-                <span class="loc-hi" lang="hi">आपातकालीन हेल्पलाइन — कॉल करने के लिए टैप करें</span>
-            </div>
-            <div class="emergency-contacts-grid">${btns}</div>
-        </div>`;
-    }
-
-    html += `
+    contactHTML = `
     <section class="rs-section" aria-label="Who to Contact">
         <div class="section-header">
             <span class="section-label">Section 4</span>
@@ -2218,11 +2283,11 @@ function renderResult(result) {
         </div>
         <div class="contact-grid">
             ${primaryContactHTML}
-            ${emergencyContactsHTML}
         </div>
     </section>`;
 
     // ── SECTION 5: LEGAL REFERENCE (collapsible) ─────────
+    let legalReferenceHTML = '';
     if (isLegal && provisions.length > 0) {
         const accItems = provisions.map((p, i) => {
             const pHi = (result.legal_provisions_hi || [])[i] || {};
@@ -2246,7 +2311,7 @@ function renderResult(result) {
                 </div>
             </div>`;
         }).join('');
-        html += `
+        legalReferenceHTML = `
     <section class="rs-section muted" aria-label="Legal Reference">
         <div class="section-header">
             <span class="section-label">Section 5 — Reference</span>
@@ -2262,6 +2327,7 @@ function renderResult(result) {
     }
 
     // ── SECTION 6: ESCALATION ────────────────────────────
+    let escalationHTML = '';
     const escPath = result.escalation_path || [];
     const escRequired = result.escalation_required;
     if (escRequired && escPath.length > 0) {
@@ -2271,7 +2337,7 @@ function renderResult(result) {
             <div class="esc-arrow loc-en">↓ escalate if ignored</div>
             <div class="esc-arrow loc-hi" lang="hi">↓ यदि अनदेखा किया जाए तो आगे बढ़ें</div>` : '';
             return `
-            <div class="esc-card">
+            <div class="esc-card" style="text-align: left;">
                 <div class="esc-level-badge loc-en">Escalation Level ${e.level}</div>
                 <div class="esc-level-badge loc-hi" lang="hi">एस्केलेशन स्तर ${e.level}</div>
                 <div class="esc-authority loc-en">${e.authority || ''}</div>
@@ -2283,13 +2349,13 @@ function renderResult(result) {
             </div>
             ${arrow}`;
         }).join('');
-        html += `
+        escalationHTML = `
     <section class="rs-section" aria-label="Escalation Path" style="border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.04);">
         <div class="section-header">
             <span class="section-label" style="color:#fb923c;">Section 6</span>
             <h2 class="section-heading" style="color:#fdba74;">
-                <span class="loc-en">If Nobody Helps</span>
-                <span class="loc-hi">अगर कोई मदद न करे</span>
+                <span class="loc-en">Next Steps (Escalation Path)</span>
+                <span class="loc-hi">अगले कदम (एस्केलेशन पथ)</span>
             </h2>
             <p class="section-subheading loc-en">Escalate in this order if your initial attempts are ignored:</p>
             <p class="section-subheading loc-hi" lang="hi">यदि आपके प्रारंभिक प्रयासों को अनदेखा किया जाए तो इस क्रम में आगे बढ़ें:</p>
@@ -2298,28 +2364,73 @@ function renderResult(result) {
     </section>`;
     }
 
-    // ── TIMING BLOCK ─────────────────────────────────────
-    if (result.timing) {
-        const order = ['sentinel', 'triage', 'rights', 'coordination'];
-        const chips = order.map(agent => {
-            const t = result.timing[agent];
-            if (!t || !t.start || !t.end) return '';
-            const dur = ((new Date(t.end) - new Date(t.start)) / 1000).toFixed(1);
-            return `<span class="timing-chip">${agent.charAt(0).toUpperCase() + agent.slice(1)}: <span>${dur}s</span></span>`;
-        }).filter(Boolean).join('');
-        if (chips) {
-            html += `
-    <div class="timing-block">
-        <div class="timing-label">
-            <span class="loc-en">Agent Performance Timings</span>
-            <span class="loc-hi" lang="hi">एजेंट निष्पादन समय</span>
-        </div>
-        <div class="timing-chips">${chips}</div>
-    </div>`;
+    // ── REARRANGE SECTIONS BY PRIORITIZATION ───────────────────
+    if (isHealth) {
+        html += titleHTML;
+        if (goldenWindowHTML) {
+            html += goldenWindowHTML;
+        }
+        if (topContactsHTML) {
+            html += topContactsHTML;
+        }
+        if (emergencyContactsHTML) {
+            html += emergencyContactsHTML;
+        }
+        if (actionPlanHTML) {
+            html += actionPlanHTML;
+        }
+        if (escalationHTML) {
+            html += escalationHTML;
+        }
+        if (priorityNoticeHTML) {
+            html += priorityNoticeHTML;
+        }
+        if (whatIsHappeningHTML) {
+            html += whatIsHappeningHTML;
+        }
+        if (rightsHTML) {
+            html += rightsHTML;
+        }
+        if (evidenceHTML) {
+            html += evidenceHTML;
+        }
+        if (contactHTML) {
+            html += contactHTML;
+        }
+        if (legalReferenceHTML) {
+            html += legalReferenceHTML;
+        }
+    } else {
+        html += titleHTML;
+        if (topContactsHTML) {
+            html += topContactsHTML;
+        }
+        if (priorityNoticeHTML) {
+            html += priorityNoticeHTML;
+        }
+        if (whatIsHappeningHTML) {
+            html += whatIsHappeningHTML;
+        }
+        if (rightsHTML) {
+            html += rightsHTML;
+        }
+        if (actionPlanHTML) {
+            html += actionPlanHTML;
+        }
+        if (evidenceHTML) {
+            html += evidenceHTML;
+        }
+        if (contactHTML) {
+            html += contactHTML;
+        }
+        if (legalReferenceHTML) {
+            html += legalReferenceHTML;
+        }
+        if (escalationHTML) {
+            html += escalationHTML;
         }
     }
-
-    document.getElementById('dynamic-sections').innerHTML = html;
+document.getElementById('dynamic-sections').innerHTML = html;
     if (pipelineCompleted && result.incident_id) {
         loadOutcomeStats(result.incident_id);
     }

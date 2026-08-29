@@ -6,6 +6,7 @@ POST /api/signals/ — Ingest a new signal.
 
 import logging
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
@@ -55,6 +56,7 @@ class SignalIngestView(CreateAPIView):
         ingest_signal.delay(str(signal.id))
 
 
+from rest_framework.authentication import SessionAuthentication
 import hashlib
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -71,6 +73,7 @@ class SignalVerifyCodeView(APIView):
     Body: {"code": "XK7P2M"}
     Response: {"valid": true} or {"valid": false}
     """
+    authentication_classes = [SessionAuthentication]
     permission_classes = []  # Public endpoint
 
     def post(self, request, signal_id):
@@ -90,4 +93,34 @@ class SignalVerifyCodeView(APIView):
             return Response({"valid": True}, status=status.HTTP_200_OK)
         else:
             return Response({"valid": False}, status=status.HTTP_200_OK)
+
+
+@method_decorator(rate_limit_ip(limit=10, period=60, key_prefix="close_session"), name="dispatch")
+class SignalCloseSessionView(APIView):
+    """
+    POST /api/signals/<signal_id>/close-session/
+    
+    Citizen session operation to close/invalidate the verification session.
+    Removes only verified_<signal_id> from the session store.
+    """
+    authentication_classes = [SessionAuthentication]
+    permission_classes = []  # Public endpoint
+
+    def post(self, request, signal_id):
+        from rest_framework.authentication import CSRFCheck
+        from rest_framework.exceptions import PermissionDenied
+        
+        reason = CSRFCheck(lambda req: None).process_view(request._request, None, (), {})
+        if reason:
+            raise PermissionDenied(f"CSRF Failed: {reason}")
+
+        signal = resolve_signal(signal_id)
+        
+        session_key = f"verified_{signal.id}"
+        if session_key in request.session:
+            del request.session[session_key]
+            request.session.modified = True
+            return Response({"status": "success", "message": "Session closed successfully."}, status=status.HTTP_200_OK)
+            
+        return Response({"status": "success", "message": "Session already closed or not found."}, status=status.HTTP_200_OK)
 

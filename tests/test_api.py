@@ -265,5 +265,193 @@ def test_security_regression(client):
             rate_limited = True
             break
     assert rate_limited is True
+    cache.clear()
+
+
+
+@pytest.mark.django_db
+def test_anonymous_submission_flow_and_session(client):
+    tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    url = reverse("citizen_submit")
+    
+    # POST anonymous submission
+    response = client.post(url, {
+        "raw_text": "Anonymous incident description",
+        "location": "Test City",
+        "anonymous": "on"
+    })
+    
+    # Redirects to report page
+    assert response.status_code == 302
+    redirect_url = response.url
+    signal_tracking_id = redirect_url.split("/report/")[1].replace("/", "")
+    
+    # Resolve signal
+    from apps.signals.citizen_views import resolve_signal
+    signal = resolve_signal(signal_tracking_id)
+    
+    # 1. Anonymous submission generates a Return Key
+    assert f"anon_code_{signal.id}" in client.session
+    return_key = client.session[f"anon_code_{signal.id}"]
+    assert len(return_key) == 6
+    
+    # 2. Return Key hash is persisted
+    assert "anonymous_code" in signal.metadata
+    import hashlib
+    expected_hash = hashlib.sha256(return_key.encode()).hexdigest()
+    assert signal.metadata["anonymous_code"] == expected_hash
+    
+    # 3. Plaintext Return Key is not persisted in database
+    signal.refresh_from_db()
+    for field in signal._meta.fields:
+        val = getattr(signal, field.name)
+        assert return_key != val
+        
+    # 4. Current session automatically receives verified_<signal_id> = True
+    assert client.session.get(f"verified_{signal.id}") is True
+    
+    # 5. Newly submitted report can immediately access status (returns 200)
+    status_url = reverse("citizen_signal_status_api", kwargs={"signal_id": signal.id})
+    status_response = client.get(status_url)
+    assert status_response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_regular_submission_flow(client):
+    tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    url = reverse("citizen_submit")
+    
+    # POST regular submission (non-anonymous)
+    response = client.post(url, {
+        "raw_text": "Regular incident description",
+        "location": "Test City"
+    })
+    
+    assert response.status_code == 302
+    redirect_url = response.url
+    signal_tracking_id = redirect_url.split("/report/")[1].replace("/", "")
+    
+    from apps.signals.citizen_views import resolve_signal
+    signal = resolve_signal(signal_tracking_id)
+    
+    # 6. Regular submission does not create an anonymous credential
+    assert "anonymous_code" not in signal.metadata
+    
+    # 7. Regular submission does not expose Return Key UI (session keys empty)
+    assert f"anon_code_{signal.id}" not in client.session
+    assert client.session.get(f"verified_{signal.id}") is None
+
+
+@pytest.mark.django_db
+def test_returning_citizen_authorization_flow(client):
+    from django.core.cache import cache
+    cache.clear()
+    tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    import hashlib
+    
+    code = "KEY123"
+    code_hash = hashlib.sha256(code.encode()).hexdigest()
+    signal = Signal.objects.create(
+        tenant=tenant,
+        raw_text="Anonymous test report",
+        source_type="text",
+        metadata={"anonymous_code": code_hash}
+    )
+    
+    status_url = reverse("citizen_signal_status_api", kwargs={"signal_id": signal.id})
+    verify_url = reverse("signals:verify_code", kwargs={"signal_id": signal.id})
+    
+    # 8 & 9. Unverified anonymous user receives 403 from status API
+    from django.test import Client
+    clean_client = Client()
+    response = clean_client.get(status_url)
+    assert response.status_code == 403
+    assert "Anonymous access code verification required" in response.json()["message"]
+    
+    # 11. Incorrect Return Key does not establish authorization
+    response = clean_client.post(verify_url, {"code": "WRONG"}, content_type="application/json")
+    assert response.status_code == 200
+    assert response.json()["valid"] is False
+    assert clean_client.session.get(f"verified_{signal.id}") is None
+    
+    response = clean_client.get(status_url)
+    assert response.status_code == 403
+    
+    # 10. Correct Return Key establishes authorization
+    response = clean_client.post(verify_url, {"code": code}, content_type="application/json")
+    assert response.status_code == 200
+    assert response.json()["valid"] is True
+    assert clean_client.session.get(f"verified_{signal.id}") is True
+    
+    response = clean_client.get(status_url)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_session_closure_isolation_and_csrf(client):
+    from django.test import Client
+    csrf_client = Client(enforce_csrf_checks=True)
+    tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    
+    signal_a = Signal.objects.create(tenant=tenant, raw_text="Signal A text", source_type="text")
+    signal_b = Signal.objects.create(tenant=tenant, raw_text="Signal B text", source_type="text")
+    
+    # Verify Signal A and Signal B in session
+    session = csrf_client.session
+    session[f"verified_{signal_a.id}"] = True
+    session[f"verified_{signal_b.id}"] = True
+    session["some_other_value"] = "preserve-me"
+    session.save()
+    
+    close_a_url = reverse("signals:close_session", kwargs={"signal_id": signal_a.id})
+    
+    # 13 & 14. Verified session can close a report; close-session removes only verified_signal_a
+    # We must provide CSRF token header for SessionAuthentication
+    csrf_client.get(reverse("citizen_submit"))
+    csrf_token = csrf_client.cookies.get("csrftoken").value
+    
+    # Restore verified session keys after GET request (which might clear session if not careful, but csrf_client preserves session)
+    # We re-save session keys just in case
+    session = csrf_client.session
+    session[f"verified_{signal_a.id}"] = True
+    session[f"verified_{signal_b.id}"] = True
+    session["some_other_value"] = "preserve-me"
+    session.save()
+
+    response = csrf_client.post(close_a_url, content_type="application/json", HTTP_X_CSRFTOKEN=csrf_token)
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    
+    # 17. Signal B's authorization must remain untouched
+    assert csrf_client.session.get(f"verified_{signal_a.id}") is None
+    assert csrf_client.session.get(f"verified_{signal_b.id}") is True
+    
+    # 18. Unrelated session keys must be preserved (not destroyed by request.session.flush())
+    assert csrf_client.session.get("some_other_value") == "preserve-me"
+    
+    # 15. After closure, status API for Signal A returns 403 (Note: Signal A needs code_hash to trigger check)
+    import hashlib
+    signal_a.metadata = {"anonymous_code": hashlib.sha256(b"CODE").hexdigest()}
+    signal_a.save()
+    status_a_url = reverse("citizen_signal_status_api", kwargs={"signal_id": signal_a.id})
+    
+    response = csrf_client.get(status_a_url)
+    assert response.status_code == 403
+    
+    # 19. CSRF protection works correctly (fails with 403 Forbidden on close-session without CSRF header)
+    # Clear CSRF token from request header and cookies
+    csrf_client.cookies.clear()
+    response = csrf_client.post(close_a_url, content_type="application/json")
+    assert response.status_code == 403
+    
+    # 20. Invalid signal ID safely returns 404
+    invalid_url = reverse("signals:close_session", kwargs={"signal_id": "PRAH-20260829-9999"})
+    csrf_client.cookies["csrftoken"] = csrf_token
+    response = csrf_client.post(invalid_url, content_type="application/json", HTTP_X_CSRFTOKEN=csrf_token)
+    assert response.status_code == 404
+    
+    # 21. No sensitive details leaked in 404
+    assert "detail" in response.json() or "message" in response.json()
+
 
 

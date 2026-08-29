@@ -85,22 +85,8 @@
 {% block content %}
     <main>
         <!-- Citizen Journey Stepper -->
-        <div class="stepper" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
-            <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
-                <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
-                <span class="loc-en">Submit Report</span>
-                <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
-            </div>
-            <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
-                <span class="loc-en">Get Code</span>
-                <span class="loc-hi" lang="hi">कोड प्राप्त करें</span>
-            </div>
-            <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">3</span>
-                <span class="loc-en">Verify & Poll</span>
-                <span class="loc-hi" lang="hi">सत्यापन और ट्रैकिंग</span>
-            </div>
+        <div class="stepper" id="prahari-stepper" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
+            <!-- JavaScript will dynamically render steps here -->
         </div>
 
         <div class="form-card">
@@ -165,6 +151,13 @@
                         <span class="loc-en">Your identity will not be recorded. You will receive a 6-character access code to check your report.</span>
                         <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं होगी। आपको रिपोर्ट देखने के लिए 6-अक्षर का कोड मिलेगा।</span>
                     </div>
+
+                    <!-- Anonymous mode warning (Phase 4E requirement) -->
+                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: #fca5a5; animation: fadeInUp 0.3s ease-out;">
+                        <span class="loc-en">Save your Private Return Key. You can use it to return to this report from another device or browser. It will not be shown again.</span>
+                        <span class="loc-hi" lang="hi">अपनी निजी रिटर्न कुंजी (Private Return Key) को सुरक्षित रखें। आप इसका उपयोग दूसरे डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आने के लिए कर सकते हैं। यह दोबारा नहीं दिखाई जाएगी।</span>
+                    </div>
+
                 </div>
 
                 <div id="contact_number_group" class="form-group" style="margin-bottom: 2rem; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.4s ease; overflow: hidden; max-height: 200px; opacity: 1;">
@@ -238,27 +231,80 @@
             return true;
         }
 
+        function updateStepper(isAnonymous) {
+            const stepperContainer = document.getElementById('prahari-stepper');
+            if (!stepperContainer) return;
+            
+            let html = '';
+            if (isAnonymous) {
+                html = `
+                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
+                        <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
+                        <span class="loc-en">Submit Report</span>
+                        <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                    </div>
+                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
+                        <span class="loc-en">Secure Return Key</span>
+                        <span class="loc-hi" lang="hi">सुरक्षित रिटर्न कुंजी</span>
+                    </div>
+                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">3</span>
+                        <span class="loc-en">Live Response</span>
+                        <span class="loc-hi" lang="hi">लाइव प्रतिक्रिया</span>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="step active" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold; color: var(--color-indigo);">
+                        <span style="background: var(--color-indigo); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">1</span>
+                        <span class="loc-en">Submit Report</span>
+                        <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                    </div>
+                    <div class="step" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                        <span style="background: rgba(255,255,255,0.08); color: var(--text-muted); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Outfit', sans-serif;">2</span>
+                        <span class="loc-en">Live Response</span>
+                        <span class="loc-hi" lang="hi">लाइव प्रतिक्रिया</span>
+                    </div>
+                `;
+            }
+            stepperContainer.innerHTML = html;
+            
+            // Re-apply language translation to the newly generated stepper elements
+            const currentLang = localStorage.getItem('prahari_lang') || 'hindi';
+            setLanguageTheme(currentLang);
+        }
+
         function initAnonymousToggle() {
             const anonToggle = document.getElementById('anonymous_toggle');
             const contactGroup = document.getElementById('contact_number_group');
             const anonMessage = document.getElementById('anonymous_message');
+            const anonWarning = document.getElementById('anonymous_warning');
             const contactInput = document.getElementById('contact_number');
 
             if (anonToggle && contactGroup && anonMessage) {
+                // Initialize stepper based on default load state
+                updateStepper(anonToggle.checked);
+                
                 anonToggle.addEventListener('change', () => {
-                    if (anonToggle.checked) {
+                    const isAnon = anonToggle.checked;
+                    updateStepper(isAnon);
+                    
+                    if (isAnon) {
                         contactGroup.style.maxHeight = '0px';
                         contactGroup.style.opacity = '0';
                         contactGroup.style.marginBottom = '0px';
                         contactGroup.style.pointerEvents = 'none';
                         if (contactInput) contactInput.value = '';
                         anonMessage.style.display = 'block';
+                        if (anonWarning) anonWarning.style.display = 'block';
                     } else {
                         contactGroup.style.maxHeight = '200px';
                         contactGroup.style.opacity = '1';
                         contactGroup.style.marginBottom = '2rem';
                         contactGroup.style.pointerEvents = 'auto';
                         anonMessage.style.display = 'none';
+                        if (anonWarning) anonWarning.style.display = 'none';
                     }
                 });
             }
