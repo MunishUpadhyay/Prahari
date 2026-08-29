@@ -17,13 +17,13 @@
         }
 
         .login-card {
-            background: rgba(22, 28, 45, 0.45);
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 2.5rem 2.25rem;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), var(--glow-indigo);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
             gap: 1.75rem;
@@ -124,8 +124,8 @@
         }
 
         .login-btn {
-            background: linear-gradient(135deg, var(--color-indigo), #8b5cf6);
-            color: white;
+            background: var(--prahari-yellow);
+            color: #050608;
             padding: 0.85rem 2rem;
             font-family: 'Outfit', sans-serif;
             font-size: 1.05rem;
@@ -133,16 +133,15 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             width: 100%;
             text-align: center;
             margin-top: 0.5rem;
         }
 
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            background: var(--prahari-yellow-strong);
+            transform: translateY(-1px);
         }
 
         /* Floating background orbs */
@@ -152,14 +151,14 @@
             filter: blur(80px);
             z-index: 1;
             pointer-events: none;
-            opacity: 0.12;
+            opacity: 0.04;
             animation: float 20s infinite ease-in-out alternate;
         }
 
         .orb-1 {
             width: 350px;
             height: 350px;
-            background: var(--color-indigo);
+            background: var(--prahari-yellow);
             top: 20%;
             left: 15%;
             animation-duration: 22s;
@@ -168,7 +167,7 @@
         .orb-2 {
             width: 450px;
             height: 450px;
-            background: #14b8a6;
+            background: var(--prahari-yellow);
             bottom: 15%;
             right: 15%;
             animation-duration: 28s;

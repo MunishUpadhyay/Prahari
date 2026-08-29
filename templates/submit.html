@@ -2,6 +2,13 @@
 {% load static %}
 {% block title %}Prahari — Report an Incident{% endblock %}
 
+{% block nav_links %}
+    <a href="/login/" class="login-link">
+        <span class="loc-en">Coordinator Login</span>
+        <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
+    </a>
+{% endblock %}
+
 {% block extra_css %}
     <style>
         main {
@@ -153,7 +160,7 @@
                     </div>
 
                     <!-- Anonymous mode warning -->
-                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(250, 204, 21, 0.08); border: 1px solid rgba(250, 204, 21, 0.25); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: #fef08a; animation: fadeInUp 0.3s ease-out;">
+                    <div id="anonymous_warning" style="display: none; padding: 1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-highlight); margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: var(--prahari-yellow); animation: fadeInUp 0.3s ease-out;">
                         <span class="loc-en">⚠️ <strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
                         <span class="loc-hi" lang="hi">⚠️ <strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
                     </div>

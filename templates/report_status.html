@@ -2,6 +2,13 @@
 
 {% block title %}Prahari — Report Status{% endblock %}
 
+{% block nav_links %}
+    <a href="/login/" class="login-link">
+        <span class="loc-en">Coordinator Login</span>
+        <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
+    </a>
+{% endblock %}
+
 {% load static %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/prahari.css' %}">
@@ -104,9 +111,9 @@
         }
 
         .progress-step.active .step-icon {
-            border-color: var(--color-indigo);
-            color: var(--color-indigo);
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+            border-color: var(--prahari-yellow);
+            color: var(--prahari-yellow);
+            box-shadow: 0 0 8px rgba(255, 204, 51, 0.25);
             animation: pulseBorder 1.5s infinite;
         }
 
@@ -329,9 +336,9 @@
         }
 
         .step-num-circle.urgent { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 2px solid rgba(239, 68, 68, 0.4); }
-        .step-num-circle.amber { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 2px solid rgba(234, 179, 8, 0.3); }
-        .step-num-circle.blue { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 2px solid rgba(99, 102, 241, 0.3); }
-        .step-num-circle.grey { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); border: 2px solid rgba(255, 255, 255, 0.1); }
+        .step-num-circle.amber { background: rgba(255, 204, 51, 0.12); color: var(--prahari-yellow); border: 2px solid rgba(255, 204, 51, 0.25); }
+        .step-num-circle.blue { background: rgba(255, 255, 255, 0.03); color: var(--text-sub); border: 2px solid var(--border-color); }
+        .step-num-circle.grey { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 2px solid var(--border-color); }
 
         .step-body {
             display: flex;
@@ -351,9 +358,9 @@
         }
 
         .step-tf-badge.urgent { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .step-tf-badge.amber { background: #F59E0B; color: #1E293B; border: 1px solid #F59E0B; }
-        .step-tf-badge.blue { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.25); }
-        .step-tf-badge.grey { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .step-tf-badge.amber { background: var(--prahari-yellow); color: #050608; border: 1px solid var(--prahari-yellow); }
+        .step-tf-badge.blue { background: rgba(255, 255, 255, 0.03); color: var(--text-sub); border: 1px solid var(--border-color); }
+        .step-tf-badge.grey { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 1px solid var(--border-color); }
 
         .step-action-text {
             font-size: .97rem;
@@ -395,8 +402,8 @@
         }
 
         .primary-contact-card {
-            background: rgba(99, 102, 241, 0.06);
-            border: 1px solid rgba(99, 102, 241, 0.18);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-inner);
             padding: 1.75rem;
             display: flex;
@@ -408,7 +415,7 @@
             font-family: 'Outfit', sans-serif;
             font-size: 1.15rem;
             font-weight: 700;
-            color: #a5b4fc;
+            color: var(--prahari-yellow);
         }
 
         .contact-authority-desc {
@@ -421,26 +428,27 @@
             display: inline-flex;
             align-items: center;
             gap: .6rem;
-            background: linear-gradient(135deg, var(--color-indigo), #4f46e5);
-            color: #fff;
+            background: var(--prahari-yellow);
+            color: #050608;
             text-decoration: none;
             padding: .9rem 1.75rem;
             border-radius: 10px;
             font-size: 1.25rem;
             font-weight: 800;
-            box-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
-            transition: transform .2s;
+            box-shadow: 0 4px 15px rgba(255, 204, 51, 0.12);
+            transition: transform .2s, background .2s;
             width: fit-content;
         }
 
         .nalsa-btn:hover {
-            transform: scale(1.03);
+            transform: scale(1.02);
+            background: var(--prahari-yellow-strong);
         }
 
         .nalsa-btn-sublabel {
             font-size: .72rem;
-            font-weight: 400;
-            opacity: .85;
+            font-weight: 500;
+            color: #1e293b;
             display: block;
             margin-top: .15rem;
             letter-spacing: .01em;
@@ -454,7 +462,7 @@
 
         .contact-what-label {
             font-weight: 700;
-            color: #c4b5fd;
+            color: var(--prahari-yellow);
         }
 
         .bring-checklist {
@@ -509,17 +517,17 @@
         }
 
         .emergency-card.e-100 {
-            background: rgba(249, 115, 22, 0.15);
-            border: 1px solid rgba(249, 115, 22, 0.3);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-color);
         }
 
         .emergency-card.e-1091 {
-            background: rgba(236, 72, 153, 0.12);
-            border: 1px solid rgba(236, 72, 153, 0.3);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-color);
         }
 
         .emergency-card.e-other {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border-color);
         }
 
@@ -759,13 +767,17 @@
         .top-contact-btn.red-btn {
             background: linear-gradient(135deg, #ef4444, #b91c1c);
             color: #fff;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
         }
 
         .top-contact-btn.indigo-btn {
-            background: linear-gradient(135deg, var(--color-indigo), #4f46e5);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+            background: var(--prahari-yellow);
+            color: #050608;
+            box-shadow: 0 4px 15px rgba(255, 204, 51, 0.15);
+        }
+
+        .top-contact-btn.indigo-btn:hover {
+            background: var(--prahari-yellow-strong);
         }
 
         .top-contact-btn.amber-btn {
@@ -1173,7 +1185,7 @@
     
         <!-- Close Access Button -->
         <div class="close-session-container" style="display:flex; justify-content:center; margin-top:2rem; margin-bottom:1rem;">
-            <button onclick="closeSessionAndGoHome()" class="toolbar-btn" style="background: linear-gradient(135deg, var(--color-primary), #d97706); border: none; color: var(--bg-primary); padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2); transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="background: var(--prahari-yellow); border: none; color: #050608; padding: 1rem 2.5rem; font-size: 1.15rem; font-weight: 700; border-radius: var(--radius-inner); cursor: pointer; transition: transform 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
                 <span class="loc-en">🔒 Close Report Access</span>
                 <span class="loc-hi" lang="hi">🔒 रिपोर्ट एक्सेस बंद करें</span>
             </button>
@@ -1978,15 +1990,15 @@ function renderResult(result) {
             
             const isVer = p.verified === true;
             const badgeEn = isVer 
-                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">✓ Verified statutory provision</div>`
-                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(250,204,21,0.08);color:#fef08a;border:1px solid rgba(250,204,21,0.25);">⚠ Provision could not be verified</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ Verified statutory provision</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(255,255,255,0.03);color:var(--text-muted);border:1px solid var(--border-color);">⚠ Provision could not be verified</div>`;
             const badgeHi = isVer
-                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">✓ सत्यापित कानूनी प्रावधान</div>`
-                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(250,204,21,0.08);color:#fef08a;border:1px solid rgba(250,204,21,0.25);">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
+                ? `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">✓ सत्यापित कानूनी प्रावधान</div>`
+                : `<div style="display:inline-block;padding:.2rem .5rem;font-size:.75rem;border-radius:4px;font-weight:bold;margin-bottom:.5rem;background:rgba(255,255,255,0.03);color:var(--text-muted);border:1px solid var(--border-color);">⚠ प्रावधान सत्यापित नहीं हो सका</div>`;
 
             const cardStyle = isVer
-                ? `border: 1px solid rgba(34, 197, 94, 0.25); background: rgba(18, 23, 36, 0.45); box-shadow: 0 4px 15px rgba(0,0,0,0.25);`
-                : `border: 1px solid rgba(250, 204, 21, 0.2); background: rgba(18, 23, 36, 0.35); box-shadow: 0 4px 15px rgba(0,0,0,0.25);`;
+                ? `border: 1px solid rgba(34, 197, 94, 0.2); background: rgba(255, 255, 255, 0.025); box-shadow: 0 4px 12px rgba(0,0,0,0.25);`
+                : `border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.025); box-shadow: 0 4px 12px rgba(0,0,0,0.25);`;
 
             const hasLegacy = p.legacy_code && p.legacy_code !== 'None' && p.legacy_section && p.legacy_section !== 'None';
             const legacyEn = hasLegacy ? `<div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;margin-bottom:.5rem;"><strong>Legacy reference:</strong> ${p.legacy_code} Section ${p.legacy_section}</div>` : '';
@@ -1995,17 +2007,17 @@ function renderResult(result) {
             const appVal = p.applicability || 'primary';
             const appLabelHi = appVal === 'primary' ? 'प्राथमिक' : appVal === 'secondary' ? 'सहायक' : 'अनिश्चित';
             
-            let appBg = 'rgba(250, 204, 21, 0.12)';
-            let appColor = '#fef08a';
+            let appBg = 'rgba(255, 204, 51, 0.08)';
+            let appColor = 'var(--prahari-yellow)';
             if (appVal === 'primary') {
-                appBg = 'rgba(250, 204, 21, 0.15)';
-                appColor = '#facc15';
+                appBg = 'rgba(255, 204, 51, 0.08)';
+                appColor = 'var(--prahari-yellow)';
             } else if (appVal === 'secondary') {
-                appBg = 'rgba(255, 255, 255, 0.05)';
+                appBg = 'rgba(255, 255, 255, 0.03)';
                 appColor = 'var(--text-muted)';
             } else {
-                appBg = 'rgba(239, 68, 68, 0.1)';
-                appColor = '#fca5a5';
+                appBg = 'rgba(255, 255, 255, 0.03)';
+                appColor = 'var(--text-muted)';
             }
 
             const appBadgeEn = `<span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:.15rem .4rem;border-radius:4px;margin-left:.5rem;background:${appBg};color:${appColor};font-weight:bold;">Applicability: ${appVal}</span>`;
@@ -2536,7 +2548,7 @@ function renderCaseStatus(status, notes, contactNumber) {
     }
 
     container.innerHTML = `
-    <div class="rs-section" style="border-color: rgba(99,102,241,0.25); background: rgba(99,102,241,0.02); margin-bottom: 0.5rem;">
+    <div class="rs-section" style="border-color: var(--border-color); background: rgba(255, 255, 255, 0.025); margin-bottom: 0.5rem;">
         <div class="section-header" style="flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <h2 class="section-heading" style="font-size:1.15rem; display:flex; align-items:center; gap:0.5rem;">
                 <span class="loc-en">📋 Case Status</span>
