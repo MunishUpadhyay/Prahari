@@ -18,18 +18,15 @@
 <main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
     <!-- Private Key banner if anonymous (Improvement A) -->
     {% if anonymous_access_code %}
-    <div class="surface-card" style="border-color: rgba(255, 204, 51, 0.2); padding: var(--space-4) var(--space-5); margin-bottom: 0.5rem;">
+    <div class="surface-card" style="border-color: rgba(22, 140, 140, 0.2); padding: var(--space-4) var(--space-5); margin-bottom: 0.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
             <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
-                <span class="loc-en" style="font-size: 0.72rem; text-transform: uppercase; color: var(--yellow); font-weight: 700; display: block;">Private Return Key (Confidential)</span>
-                <span class="loc-hi" lang="hi" style="font-size: 0.72rem; text-transform: uppercase; color: var(--yellow); font-weight: 700; display: block;">निजी रिटर्न कुंजी (गोपनीय)</span>
-                <code id="raw-access-code" style="font-family: monospace; font-size: 1.25rem; font-weight: bold; color: var(--yellow); letter-spacing: 0.05em;">{{ anonymous_access_code }}</code>
+                <span class="loc-en" style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-teal); font-weight: 700; display: block;">Private Return Key (Confidential)</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-teal); font-weight: 700; display: block;">निजी रिटर्न कुंजी (गोपनीय)</span>
+                <code id="raw-access-code" style="font-family: monospace; font-size: 1.25rem; font-weight: bold; color: var(--accent-teal); letter-spacing: 0.05em;">{{ anonymous_access_code }}</code>
             </div>
             <div>
-                <button onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-secondary" style="font-size: 0.9rem; font-weight: 700;">
-                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                    </svg>
+                <button id="copy-return-key-btn" onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-secondary" style="font-size: 0.9rem; font-weight: 700; min-width: 140px;">
                     <span class="loc-en">Copy Return Key</span>
                     <span class="loc-hi">रिटर्न कुंजी कॉपी करें</span>
                 </button>
@@ -39,7 +36,15 @@
     <script>
     function copyAccessCode(code) {
         navigator.clipboard.writeText(code);
-        alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'निजी रिटर्न कुंजी क्लिपबोर्ड पर कॉपी हो गई है!' : 'Private Return Key copied to clipboard!');
+        const btn = document.getElementById('copy-return-key-btn');
+        if (btn) {
+            const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = isHindi ? 'कॉपी किया गया!' : 'Copied!';
+            setTimeout(() => {
+                btn.innerHTML = origHTML;
+            }, 2000);
+        }
     }
     </script>
     {% endif %}
@@ -48,20 +53,31 @@
     <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-inner); padding: var(--space-4) var(--space-5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: 0.5rem; text-align: left;">
         <div>
             <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Report ID</div>
-            <div style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--deep-navy);">
                 {{ tracking_id }}
             </div>
         </div>
         <div style="display: flex; gap: var(--space-3); align-items: center;">
-            <button onclick="navigator.clipboard.writeText('{{ tracking_id }}'); alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट आईडी कॉपी हो गई है!' : 'Report ID copied!');" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
+            <button id="copy-report-id-btn" onclick="copyReportID('{{ tracking_id }}')" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; min-width: 100px;">
                 <span class="loc-en">Copy ID</span>
                 <span class="loc-hi">आईडी कॉपी करें</span>
             </button>
         </div>
     </div>
+    <script>
+    function copyReportID(id) {
+        navigator.clipboard.writeText(id);
+        const btn = document.getElementById('copy-report-id-btn');
+        if (btn) {
+            const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = isHindi ? 'कॉपी किया गया!' : 'Copied!';
+            setTimeout(() => {
+                btn.innerHTML = origHTML;
+            }, 2000);
+        }
+    }
+    </script>
 
     <!-- Case Status Container (dynamic updates) -->
     <div id="case-status-container" style="display: none; margin-bottom: 0.5rem;"></div>
@@ -78,54 +94,54 @@
             <div id="progress-bar-fill" class="progress-bar-fill"></div>
         </div>
         <ul class="progress-list" style="text-align: left;">
-            <li id="step-received" class="progress-step done">
-                <span class="step-icon">✓</span>
+            <li id="step-received" class="progress-step pending">
+                <span class="step-icon">⏱</span>
                 <div>
                     <span class="loc-en">Report received</span>
                     <span class="loc-hi" lang="hi">रिपोर्ट प्राप्त हुई</span>
                 </div>
             </li>
-            <li id="step-classified" class="progress-step">
-                <span class="step-icon">⟳</span>
+            <li id="step-classified" class="progress-step pending">
+                <span class="step-icon">⏱</span>
                 <div>
-                    <span class="loc-en">Analyzing...</span>
-                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                    <span class="loc-en">Classifying domain</span>
+                    <span class="loc-hi" lang="hi">घटना क्षेत्र वर्गीकरण</span>
                 </div>
             </li>
-            <li id="step-analyzed" class="progress-step">
-                <span class="step-icon">⟳</span>
+            <li id="step-analyzed" class="progress-step pending">
+                <span class="step-icon">⏱</span>
                 <div>
-                    <span class="loc-en">Analyzing...</span>
-                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                    <span class="loc-en">RAG analysis & statutory mapping</span>
+                    <span class="loc-hi" lang="hi">RAG विश्लेषण और वैधानिक मैपिंग</span>
                 </div>
             </li>
-            <li id="step-coordinated" class="progress-step">
-                <span class="step-icon">⟳</span>
+            <li id="step-coordinated" class="progress-step pending">
+                <span class="step-icon">⏱</span>
                 <div>
-                    <span class="loc-en">Analyzing...</span>
-                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                    <span class="loc-en">Structuring coordinator guidance</span>
+                    <span class="loc-hi" lang="hi">मार्गदर्शन ढांचा तैयार करना</span>
                 </div>
             </li>
-            <li id="step-translated" class="progress-step">
-                <span class="step-icon">⟳</span>
+            <li id="step-translated" class="progress-step pending">
+                <span class="step-icon">⏱</span>
                 <div>
-                    <span class="loc-en">Analyzing...</span>
-                    <span class="loc-hi" lang="hi">विश्लेषण हो रहा है...</span>
+                    <span class="loc-en">Translating & final verification</span>
+                    <span class="loc-hi" lang="hi">अनुवाद और अंतिम सत्यापन</span>
                 </div>
             </li>
         </ul>
         <div style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-top:var(--space-4);">
             <!-- Pulsing Progress Indicator -->
             <div id="pulsing-progress" style="font-weight: 500;">
-                <span class="loc-en">⟳ Analyzing your report... (this takes 30-60 seconds)</span>
-                <span class="loc-hi" lang="hi">⟳ आपकी रिपोर्ट का विश्लेषण हो रहा है... (इसमें 30-60 सेकंड लगते हैं)</span>
+                <span class="loc-en">⟳ Reviewing your information... (this takes 30-60 seconds)</span>
+                <span class="loc-hi" lang="hi">⟳ आपके विवरण की समीक्षा हो रही है... (इसमें 30-60 सेकंड लगते हैं)</span>
             </div>
             <!-- Attempt Counter hidden from normal citizens, but kept silently for legacy verification -->
             <div id="attempt-counter" style="display: none;"></div>
             <!-- Timeout Message Box -->
-            <div id="timeout-message" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); margin-top: var(--space-4); color: var(--yellow);">
-                <span class="loc-en">Analysis is taking longer than expected. Please return back later using your Report ID: <strong>{{ tracking_id }}</strong>.</span>
-                <span class="loc-hi" lang="hi">विश्लेषण में समय लग रहा है। कृपया अपनी रिपोर्ट आईडी <strong>{{ tracking_id }}</strong> का उपयोग करके बाद में दोबारा जांचें।</span>
+            <div id="timeout-message" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); margin-top: var(--space-4); color: var(--caution);">
+                <span class="loc-en">This is taking longer than usual. Your report has been safely recorded. You can leave this page and return later using your Report ID: <strong>{{ tracking_id }}</strong>.</span>
+                <span class="loc-hi" lang="hi">इसमें सामान्य से अधिक समय लग रहा है। आपकी रिपोर्ट सुरक्षित रूप से दर्ज कर ली गई है। आप इस पृष्ठ को छोड़ सकते हैं और बाद में अपनी रिपोर्ट आईडी का उपयोग करके वापस आ सकते हैं: <strong>{{ tracking_id }}</strong>.</span>
             </div>
         </div>
     </div>
@@ -254,11 +270,15 @@ function saveChecklistState() {
         });
     });
     localStorage.setItem(`prahari_checklist_${trackingId}`, JSON.stringify(checkedStates));
+    updateChecklistCounter();
 }
 
 function restoreChecklistState() {
     const rawData = localStorage.getItem(`prahari_checklist_${trackingId}`);
-    if (!rawData) return;
+    if (!rawData) {
+        updateChecklistCounter();
+        return;
+    }
     try {
         const checkedStates = JSON.parse(rawData);
         checkedStates.forEach(item => {
@@ -268,13 +288,14 @@ function restoreChecklistState() {
     } catch (e) {
         console.error('Failed to restore checklist state', e);
     }
+    updateChecklistCounter();
 }
 
 function clearChecklistState() {
     localStorage.removeItem(`prahari_checklist_${trackingId}`);
     const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
     checkboxes.forEach(cb => cb.checked = false);
-    alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'चेकलिस्ट साफ कर दी गई है!' : 'Checklist cleared!');
+    updateChecklistCounter();
 }
 
 function registerChecklistListeners() {
@@ -291,40 +312,91 @@ function shareReport() {
     alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट लिंक क्लिपबोर्ड पर कॉपी हो गया!' : 'Report link copied to clipboard!');
 }
 
-function updateChecklistUI(steps) {
-    const set = (id, done, active, enLabel, hiLabel) => {
-        const el = document.getElementById(id);
+function updateChecklistUI(steps, isFailed = false) {
+    const pipelineOrder = ['received', 'classified', 'analyzed', 'coordinated', 'translated'];
+    const labels = {
+        received: { en: 'Report received', hi: 'रिपोर्ट प्राप्त हुई' },
+        classified: { en: 'Classifying domain', hi: 'घटना क्षेत्र वर्गीकरण' },
+        analyzed: { en: 'RAG analysis & statutory mapping', hi: 'RAG विश्लेषण और वैधानिक मैपिंग' },
+        coordinated: { en: 'Structuring coordinator guidance', hi: 'मार्गदर्शन ढांचा तैयार करना' },
+        translated: { en: 'Translating & final verification', hi: 'अनुवाद और अंतिम सत्यापन' }
+    };
+
+    let runningIndex = -1;
+    for (let i = 0; i < pipelineOrder.length; i++) {
+        if (!steps[pipelineOrder[i]]) {
+            runningIndex = i;
+            break;
+        }
+    }
+
+    pipelineOrder.forEach((key, idx) => {
+        const el = document.getElementById(`step-${key}`);
         if (!el) return;
-        el.className = 'progress-step' + (done ? ' done' : active ? ' active' : '');
-        el.querySelector('.step-icon').textContent = done ? '✓' : '⟳';
+
+        let state = 'pending';
+        let icon = '⏱';
         
+        if (steps[key]) {
+            state = 'completed';
+            icon = '✓';
+        } else if (idx === runningIndex) {
+            if (isFailed) {
+                state = 'failed';
+                icon = '✗';
+            } else {
+                state = 'running';
+                icon = '⟳';
+            }
+        }
+
+        el.className = `progress-step ${state}`;
+        const iconEl = el.querySelector('.step-icon');
+        if (iconEl) iconEl.textContent = icon;
+
         const enSpan = el.querySelector('.loc-en');
         const hiSpan = el.querySelector('.loc-hi');
-        if (done) {
-            enSpan.textContent = enLabel + ' — Complete';
-            hiSpan.textContent = hiLabel + ' — पूर्ण';
-        } else if (active) {
-            enSpan.textContent = 'Analyzing... (' + enLabel + ')';
-            hiSpan.textContent = 'विश्लेषण हो रहा है... (' + hiLabel + ')';
-        } else {
-            enSpan.textContent = enLabel;
-            hiSpan.textContent = hiLabel;
-        }
-    };
-    set('step-received',    true,             false, 'Report received', 'रिपोर्ट प्राप्त हुई');
-    set('step-classified',  steps.classified,  !steps.classified, 'Classifying Domain', 'डोमेन वर्गीकरण');
-    set('step-analyzed',    steps.analyzed,    steps.classified && !steps.analyzed, 'Analyzing Rights & Triage', 'अधिकार और वर्गीकरण विश्लेषण');
-    set('step-coordinated', steps.coordinated, steps.analyzed && !steps.coordinated, 'Generating Brief', 'समन्वय संक्षिप्त विवरण');
-    set('step-translated',  steps.translated,  steps.coordinated && !steps.translated, 'Translating Details', 'विवरण का अनुवाद');
+        if (enSpan && hiSpan) {
+            const enLabel = labels[key].en;
+            const hiLabel = labels[key].hi;
 
-    let pct = 20;
-    if (steps.classified)  pct += 20;
-    if (steps.analyzed)    pct += 20;
-    if (steps.coordinated) pct += 20;
-    if (steps.translated)  pct += 20;
+            if (state === 'completed') {
+                enSpan.textContent = `${enLabel} — Complete`;
+                hiSpan.textContent = `${hiLabel} — पूर्ण`;
+            } else if (state === 'running') {
+                enSpan.textContent = `Running... (${enLabel})`;
+                hiSpan.textContent = `प्रक्रिया चल रही है... (${hiLabel})`;
+            } else if (state === 'failed') {
+                enSpan.textContent = `Failed: ${enLabel}`;
+                hiSpan.textContent = `असफल: ${hiLabel}`;
+            } else {
+                enSpan.textContent = enLabel;
+                hiSpan.textContent = hiLabel;
+            }
+        }
+    });
+
+    // Update pulsing indicator text based on the running step
+    const pulsing = document.getElementById('pulsing-progress');
+    if (pulsing && runningIndex !== -1 && !isFailed) {
+        const currentKey = pipelineOrder[runningIndex];
+        const enText = `⟳ ${labels[currentKey].en}...`;
+        const hiText = `⟳ ${labels[currentKey].hi}...`;
+        if (pulsing.querySelector('.loc-en')) pulsing.querySelector('.loc-en').textContent = enText;
+        if (pulsing.querySelector('.loc-hi')) pulsing.querySelector('.loc-hi').textContent = hiText;
+    }
+
+    // Progress Bar Fill Percentage
+    let pct = 10;
+    if (steps.received) pct = 20;
+    if (steps.classified) pct = 40;
+    if (steps.analyzed) pct = 60;
+    if (steps.coordinated) pct = 80;
+    if (steps.translated) pct = 100;
     const bar = document.getElementById('progress-bar-fill');
     if (bar) bar.style.width = pct + '%';
 }
+
 
 async function loadOutcomeStats(incidentId) {
     const card = document.getElementById('outcome-stats-card');
@@ -1217,84 +1289,521 @@ function showResult(result) {
     restoreChecklistState();
 }
 
-// ── Case Status ───────────────────────────────────────────
-function renderCaseStatus(status, notes, contactNumber) {
-    const container = document.getElementById('case-status-container');
-    if (!container) return;
+function showResultUnified(result) {
+    if (!result) return;
+    currentResult = result;
+    
+    const domain = (result.domain || '').toLowerCase();
+    const isHealth = domain === 'health';
+    const isLegal = domain === 'legal';
+    const isCross = domain === 'cross' || domain === 'cross_domain';
+    const nearestAuth = result.nearest_authority_type || 'DLSA';
+    const triageSev = (result.triage_severity || '').toLowerCase();
+    const provisions = result.legal_provisions || [];
 
-    let badgeTextEn = '';
-    let badgeTextHi = '';
-    let descEn = '';
-    let descHi = '';
-    let badgeClass = '';
-
-    const s = (status || 'pending').toLowerCase();
-    if (s === 'pending') {
-        badgeTextEn = 'Pending';
-        badgeTextHi = 'लंबित';
-        descEn = "Analysis completed by Prahari AI. Please use the options below to contact the relevant authorities.";
-        descHi = "प्रहरी AI द्वारा विश्लेषण पूरा हो गया है। प्रासंगिक अधिकारियों से संपर्क करने के लिए कृपया नीचे दिए गए विकल्पों का उपयोग करें।";
-        badgeClass = 'status-pending';
-    } else if (s === 'under_review') {
-        badgeTextEn = 'Under Review';
-        badgeTextHi = 'समीक्षा के तहत';
-        descEn = "Incident is being reviewed by a district coordinator.";
-        descHi = "मामले की समीक्षा जिला समन्वयक द्वारा की जा रही है।";
-        badgeClass = 'status-under_review';
-    } else if (s === 'action_taken') {
-        badgeTextEn = 'Action Taken';
-        badgeTextHi = 'कार्रवाई की गई';
-        descEn = "Incident details escalated to the relevant department.";
-        descHi = "मामले का विवरण संबंधित विभाग को भेज दिया गया है।";
-        badgeClass = 'status-action_taken';
-    } else if (s === 'resolved') {
-        badgeTextEn = 'Resolved';
-        badgeTextHi = 'हल हो गया';
-        descEn = "Incident marked as resolved by coordinator.";
-        descHi = "समन्वयक द्वारा मामले को हल किया हुआ चिह्नित किया गया है।";
-        badgeClass = 'status-resolved';
-    }
-
+    // ── 01 — CASE OVERVIEW (ID, Status, Urgency, Domain, Summary) ───────────────────
+    const statusLabelMap = {
+        'pending': { en: 'Needs action', hi: 'कार्रवाई की आवश्यकता' },
+        'under_review': { en: 'Under Review', hi: 'समीक्षा के तहत' },
+        'action_taken': { en: 'Action Taken', hi: 'कार्रवाई की गई' },
+        'resolved': { en: 'Resolved', hi: 'हल हो गया' }
+    };
+    const statusLabels = statusLabelMap[result.status] || statusLabelMap['pending'];
+    const briefEn = result.brief_en || result.what_is_happening_en || result.situation_brief || '';
+    const briefHi = result.brief_hi || result.what_is_happening_hi || (result.language_outputs && result.language_outputs.hindi ? result.language_outputs.hindi.situation_brief : '') || briefEn;
+    
+    const notes = result.coordinator_notes || '';
     let notesHTML = '';
     if (notes && notes.trim() !== '') {
         notesHTML = `
-        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-subtle); font-size:0.9rem;">
+        <div style="margin-top:0.75rem; padding:0.75rem; background: var(--bg-surface-raised); border-radius: var(--radius-inner); border-left: 4px solid var(--accent-teal); font-size:0.9rem;">
             <div class="loc-en" style="color:var(--text-secondary);"><strong>Coordinator update:</strong> ${notes}</div>
             <div class="loc-hi" lang="hi" style="color:var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;"><strong>समन्वयक का अपडेट:</strong> ${notes}</div>
         </div>`;
     }
 
-    container.innerHTML = `
-    <div class="surface-card" style="margin-bottom: 0.5rem; text-align: left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; margin-bottom: 8px;">
-            <h2 class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
-                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow);" aria-hidden="true">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                <span class="loc-en">Case Status</span>
-                <span class="loc-hi">मामले की स्थिति</span>
-            </h2>
-            <span class="badge ${badgeClass}">
-                <span class="loc-en">${badgeTextEn}</span>
-                <span class="loc-hi">${badgeTextHi}</span>
+    const caseOverviewHTML = `
+    <section class="rs-section" aria-label="Case Overview" style="border-bottom: 2px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
+        <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-3);">
+            <span class="badge" style="background: var(--bg-surface-raised); color: var(--deep-navy); font-weight: 700; border: 1px solid var(--border-default); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">${domain.toUpperCase()}</span>
+            <span class="badge" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: #fff; background: ${triageSev === 'immediate' || triageSev === 'critical' ? 'var(--critical)' : 'var(--caution)'};">${result.severity_label ? result.severity_label.toUpperCase() : 'NORMAL'} PRIORITY</span>
+            <span class="badge" style="background: var(--accent-teal); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                <span class="loc-en">${statusLabels.en}</span>
+                <span class="loc-hi" lang="hi">${statusLabels.hi}</span>
             </span>
         </div>
-        <div style="font-size:0.95rem; color:var(--text-secondary); margin-top:0.25rem;">
-            <span class="loc-en">${descEn}</span>
-            <span class="loc-hi" lang="hi">${descHi}</span>
+        <h2 class="page-title loc-en" style="margin-bottom: var(--space-2); font-weight: 700; color: var(--deep-navy);">${result.title_en || 'Incident Guidance Record'}</h2>
+        <h2 class="page-title loc-hi" lang="hi" style="margin-bottom: var(--space-2); font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700; color: var(--deep-navy);">${result.title_hi || result.title_en || 'घटना मार्गदर्शन रिकॉर्ड'}</h2>
+        
+        <div style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-surface-raised); border-radius: var(--radius-inner); border-left: 4px solid var(--accent-teal);">
+            <p class="body-text loc-en" style="font-size: 1rem; color: var(--text-primary); margin: 0;"><strong>Summary:</strong> ${briefEn}</p>
+            <p class="body-text loc-hi" lang="hi" style="font-size: 1rem; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;"><strong>सारांश:</strong> ${briefHi}</p>
         </div>
         ${notesHTML}
-    </div>`;
-    container.style.display = 'block';
+    </section>`;
+
+    // ── 02 — WHAT IS HAPPENING (Plain-language executive summary) ───────────────────
+    const detailedEn = result.what_is_happening_en || result.brief_en || '';
+    const detailedHi = result.what_is_happening_hi || result.brief_hi || detailedEn;
+    const whatIsHappeningHTML = `
+    <section class="rs-section" aria-label="Executive Summary" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
+        <div class="section-header" style="margin-bottom: var(--space-2);">
+            <span class="section-label">Section 2</span>
+            <h2 class="section-title loc-en">What is Happening</h2>
+            <h2 class="section-title loc-hi" lang="hi">घटना का विवरण</h2>
+        </div>
+        <p class="body-text loc-en" style="line-height: 1.65; color: var(--text-secondary);">${detailedEn}</p>
+        <p class="body-text loc-hi" lang="hi" style="line-height: 1.65; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">${detailedHi}</p>
+    </section>`;
+
+    // ── 03 — WHAT YOU SHOULD DO NOW (Action Plan Centerpiece) ───────────────────
+    let actionSteps = [];
+    if (result.legal_timeline && result.legal_timeline.length > 0) {
+        actionSteps = result.legal_timeline.map((s, i) => {
+            const sHi = (result.legal_timeline_hi || [])[i] || {};
+            return {
+                num: s.step || (i + 1),
+                timeframe: s.timeframe || '',
+                action: s.action || '',
+                actionHi: sHi.action || s.action || '',
+                why_urgent: s.why_urgent || '',
+                why_urgentHi: sHi.why_urgent || s.why_urgent || '',
+                owner: '',
+                ownerHi: '',
+            };
+        });
+    } else if (result.immediate_actions && result.immediate_actions.length > 0) {
+        actionSteps = result.immediate_actions.map((a, i) => {
+            const aHi = (result.immediate_actions_hi || [])[i] || {};
+            return {
+                num: a.priority || (i + 1),
+                timeframe: a.time_window || '',
+                action: a.step_description || a.action || '',
+                actionHi: aHi.step_description || aHi.action || a.step_description || a.action || '',
+                why_urgent: a.importance_reason || a.why_urgent || '',
+                why_urgentHi: aHi.importance_reason || aHi.why_urgent || a.importance_reason || a.why_urgent || '',
+                owner: a.responsible_entity || '',
+                ownerHi: aHi.responsible_entity || a.responsible_entity || '',
+            };
+        });
+    }
+
+    let actionPlanHTML = '';
+    if (actionSteps.length > 0) {
+        const stepCards = actionSteps.map(s => {
+            const isUrgent = s.timeframe && (s.timeframe.toLowerCase().includes('immediate') || s.timeframe.toLowerCase().includes('hour') || s.timeframe.toLowerCase().includes('now'));
+            const urgencyBadgeEn = isUrgent ? `<span class="badge critical" style="font-size:0.7rem; margin-left:var(--space-2); color:#fff; background:var(--critical); padding: 2px 6px; border-radius: 4px; font-weight: bold;">Immediate</span>` : '';
+            const urgencyBadgeHi = isUrgent ? `<span class="badge critical" style="font-size:0.7rem; margin-left:var(--space-2); color:#fff; background:var(--critical); padding: 2px 6px; border-radius: 4px; font-weight: bold;">तत्काल</span>` : '';
+
+            return `
+            <div style="display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle);">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-teal); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
+                    ${s.num}
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                    <h4 class="card-title loc-en" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); display: flex; align-items: center; margin: 0;">
+                        ${s.action} ${urgencyBadgeEn}
+                    </h4>
+                    <h4 class="card-title loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); display: flex; align-items: center; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">
+                        ${s.actionHi} ${urgencyBadgeHi}
+                    </h4>
+                    ${s.why_urgent ? `
+                    <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 2px 0 0 0;"><span style="font-weight:600; color: var(--accent-teal);">Why:</span> ${s.why_urgent}</p>
+                    <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 2px 0 0 0;"><span style="font-weight:600; color: var(--accent-teal);">कारण:</span> ${s.why_urgentHi}</p>
+                    ` : ''}
+                    ${s.owner ? `
+                    <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-muted); margin: 2px 0 0 0;"><span style="font-weight:600;">Responsible:</span> ${s.owner}</p>
+                    <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif; margin: 2px 0 0 0;"><span style="font-weight:600;">जिम्मेदार:</span> ${s.ownerHi}</p>
+                    ` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        actionPlanHTML = `
+        <section class="rs-section" aria-label="Action Plan" style="border: 2px solid var(--accent-teal); border-radius: var(--radius-card); padding: var(--space-4); background: var(--bg-surface); margin-bottom: var(--space-4); text-align: left;">
+            <div class="section-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); margin-bottom: var(--space-3);">
+                <span class="section-label" style="color: var(--accent-teal); font-weight: 700;">Section 3 — Priority Centerpiece</span>
+                <h2 class="section-heading" style="color: var(--deep-navy); font-weight: 700; margin-top: 2px; margin-bottom: 4px;">
+                    <span class="loc-en">Your Action Plan</span>
+                    <span class="loc-hi">आपकी कार्य योजना</span>
+                </h2>
+                <p class="metadata-text loc-en" style="margin: 0;">Follow these numbered steps in priority order to handle your situation:</p>
+                <p class="metadata-text loc-hi" lang="hi" style="margin: 0;">अपनी स्थिति को संभालने के लिए प्राथमिकता के क्रम में इन क्रमांकित चरणों का पालन करें:</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-2);">${stepCards}</div>
+        </section>`;
+    }
+
+    // ── 04 — IMPORTANT DEADLINES / WARNINGS (Deadlines, Avoids) ───────────────────
+    let goldenWindowHTML = '';
+    if (isHealth && result.golden_window && result.golden_window.time_remaining) {
+        const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
+        const icon = isImm ? '🚨' : '⏱️';
+        const gwHi = result.golden_window_hi || {};
+        goldenWindowHTML = `
+        <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--critical); background: rgba(214, 69, 69, 0.05); margin-bottom: var(--space-3); text-align: left;">
+            <div class="gw-label loc-en" style="font-weight: bold; color: var(--critical); font-size: 0.9rem;">Time Critical — Golden Treatment Window</div>
+            <div class="gw-label loc-hi" lang="hi" style="font-weight: bold; color: var(--critical); font-size: 0.9rem; font-family: 'Noto Sans Devanagari', sans-serif;">समय अत्यंत महत्वपूर्ण है — समय सीमा</div>
+            <div class="gw-time" style="font-size: 1.1rem; font-weight: bold; color: var(--critical); margin: 4px 0;">${icon} ${(result.golden_window.time_remaining || '').toUpperCase()}</div>
+            <p class="gw-consequence loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;"><strong>If delayed:</strong> ${result.golden_window.consequence_of_delay || ''}</p>
+            <p class="gw-consequence loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;"><strong>यदि देरी हुई:</strong> ${gwHi.consequence_of_delay || result.golden_window.consequence_of_delay || ''}</p>
+        </div>`;
+    }
+
+    let priorityNoticeHTML = '';
+    if (isCross && result.conflict_resolution) {
+        const cr = result.conflict_resolution;
+        const crHi = result.conflict_resolution_hi || cr;
+        priorityNoticeHTML = `
+        <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--caution); background: rgba(197, 138, 34, 0.05); margin-bottom: var(--space-3); text-align: left;">
+            <div class="priority-notice-label loc-en" style="font-weight: bold; color: var(--caution); font-size: 0.9rem;">⚡ Priority Notice — Cross-Domain Situation</div>
+            <div class="priority-notice-label loc-hi" lang="hi" style="font-weight: bold; color: var(--caution); font-size: 0.9rem; font-family: 'Noto Sans Devanagari', sans-serif;">⚡ प्राथमिकता सूचना — क्रॉस-डोमेन स्थिति</div>
+            <p class="priority-notice-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 0;">This situation has both medical and legal aspects. <strong>${(cr.primary_priority || '').toUpperCase()}</strong> is prioritized first because: ${cr.reasoning || ''}</p>
+            <p class="priority-notice-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 0; font-family: 'Noto Sans Devanagari', sans-serif;">इस स्थिति में चिकित्सा और कानूनी दोनों पहलू हैं। <strong>${(cr.primary_priority === 'medical' ? 'चिकित्सा' : 'कानूनी').toUpperCase()}</strong> को सबसे पहले प्राथमिकता दी जा रही है क्योंकि: ${crHi.reasoning || cr.reasoning || ''}</p>
+        </div>`;
+    }
+
+    let whatNotToDoHTML = '';
+    const avoidTitleEn = 'Things to Avoid';
+    const avoidTitleHi = 'इन बातों से बचें';
+    let avoidListHTML = '';
+    if (isHealth && isLegal) {
+        avoidListHTML = `
+            <li class="loc-en">Do not delay medical treatment for police or legal formalities. Life-saving care is the absolute first priority.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">पुलिस या कानूनी औपचारिकताओं के लिए चिकित्सा उपचार में देरी न करें। जीवन रक्षक देखभाल पूर्ण प्रथम प्राथमिकता है।</li>
+            <li class="loc-en">Do not accept verbal treatment refusals. Insist on a written rejection or reference note.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">मौखिक इलाज के इनकार को स्वीकार न करें। लिखित इनकार या संदर्भ नोट पर जोर दें।</li>`;
+    } else if (isHealth) {
+        avoidListHTML = `
+            <li class="loc-en">Do not attempt self-medication or medical procedures without professional guidance.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">पेशेवर मार्गदर्शन के बिना स्वयं दवा लेने या चिकित्सा प्रक्रियाओं का प्रयास न करें।</li>
+            <li class="loc-en">Do not give oral fluids or food if the victim is unconscious or semi-conscious.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">यदि पीड़ित बेहोश या अर्ध-बेहोश है तो उसे मुंह से तरल पदार्थ या भोजन न दें।</li>`;
+    } else if (isLegal) {
+        avoidListHTML = `
+            <li class="loc-en">Do not sign any statements, settlement drafts, or blank papers without reading them thoroughly.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">बिना पूरी तरह पढ़े किसी भी बयान, समझौते के प्रारूप या खाली कागजों पर हस्ताक्षर न करें।</li>
+            <li class="loc-en">Do not pay bribes or unofficial fees to register complaints or retrieve documents.</li>
+            <li class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">शिकायत दर्ज करने या दस्तावेज प्राप्त करने के लिए रिश्वत या अनौपचारिक शुल्क का भुगतान न करें।</li>`;
+    }
+    if (avoidListHTML) {
+        whatNotToDoHTML = `
+        <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); text-align: left;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--caution); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 6px;">
+                <span class="loc-en">${avoidTitleEn}</span>
+                <span class="loc-hi" lang="hi">${avoidTitleHi}</span>
+            </div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">
+                ${avoidListHTML}
+            </ul>
+        </div>`;
+    }
+
+    let warningsHTML = '';
+    if (goldenWindowHTML || priorityNoticeHTML || whatNotToDoHTML) {
+        warningsHTML = `
+        <section class="rs-section" aria-label="Deadlines and Warnings" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
+            <div class="section-header" style="margin-bottom: var(--space-3);">
+                <span class="section-label">Section 4</span>
+                <h2 class="section-title loc-en">Important Deadlines & Warnings</h2>
+                <h2 class="section-title loc-hi" lang="hi">महत्वपूर्ण समय सीमा और चेतावनियां</h2>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                ${goldenWindowHTML}
+                ${priorityNoticeHTML}
+                ${whatNotToDoHTML}
+            </div>
+        </section>`;
+    }
+
+    // ── 05 — WHO TO CONTACT (Helplines / Directories) ───────────────────
+    let helplinesHTML = '';
+    const helplineButtons = [];
     
-    const currentLang = localStorage.getItem('prahari_lang') || 'hindi';
-    setLanguageTheme(currentLang);
+    if (isHealth || domain === 'emergency') {
+        helplineButtons.push(`
+            <a href="tel:108" class="emergency-card e-108" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--critical); border-radius:var(--radius-inner); background:rgba(214,69,69,0.05); text-decoration:none; color:var(--critical); text-align:left;">
+                <span style="font-weight:bold; font-size:0.95rem;">📞 108 — Ambulance</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">Resuscitation & Transport</span>
+            </a>
+        `);
+        helplineButtons.push(`
+            <a href="tel:112" class="emergency-card e-112" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
+                <span style="font-weight:bold; font-size:0.95rem;">📞 112 — National Help</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">Police Dispatch Center</span>
+            </a>
+        `);
+    } else if (isLegal) {
+        if (nearestAuth === 'DLSA' || nearestAuth === 'High Court') {
+            helplineButtons.push(`
+                <a href="tel:15100" class="emergency-card" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
+                    <span style="font-weight:bold; font-size:0.95rem;">📞 15100 — NALSA Legal Aid</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">Free legal advice helpline</span>
+                </a>
+            `);
+        } else if (nearestAuth === 'Labour Court') {
+            helplineButtons.push(`
+                <a href="tel:14444" class="emergency-card" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
+                    <span style="font-weight:bold; font-size:0.95rem;">📞 14444 — Labour Helpline</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">Wage Dispute assistance</span>
+                </a>
+            `);
+        } else if (nearestAuth === 'Consumer Forum') {
+            helplineButtons.push(`
+                <a href="tel:1915" class="emergency-card" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
+                    <span style="font-weight:bold; font-size:0.95rem;">📞 1915 — Consumer Helpline</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">Fraud & grievance helpline</span>
+                </a>
+            `);
+        }
+    }
+
+    if (helplineButtons.length > 0) {
+        helplinesHTML = `
+        <div style="margin-bottom: var(--space-3);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; text-align: left;">Direct Hotlines</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-2);">
+                ${helplineButtons.join('')}
+            </div>
+        </div>`;
+    }
+
+    let authorityCardHTML = '';
+    const authorityType = result.nearest_authority_type || 'DLSA';
+    const authorityDesc = result.authority_to_contact || 'National Legal Services Authority (NALSA)';
+    const titleText = result.title_en || '';
+    const titleTextHi = result.title_hi || titleText || '';
+    
+    authorityCardHTML = `
+    <div style="border: 1px solid var(--border-default); border-radius: var(--radius-inner); padding: var(--space-3); background: var(--bg-surface); text-align: left;">
+        <span class="badge" style="background:var(--bg-surface-raised); color:var(--deep-navy); font-weight:bold; font-size:0.7rem; padding:2px 6px; border:1px solid var(--border-default); border-radius:4px;">${authorityType}</span>
+        <h4 class="card-title loc-en" style="margin-top: 4px; font-size: 1.05rem; color: var(--deep-navy);">${authorityDesc}</h4>
+        <h4 class="card-title loc-hi" lang="hi" style="margin-top: 4px; font-size: 1.05rem; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">${authorityDesc}</h4>
+        <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 0;"><span style="font-weight:600;">Recommended Subject:</span> "${titleText}"</p>
+        <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 0; font-family: 'Noto Sans Devanagari', sans-serif;"><span style="font-weight:600;">अनुशंसित विषय:</span> "${titleTextHi}"</p>
+        
+        <div style="margin-top: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-2);">
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">
+                <span class="loc-en">Documents to bring:</span>
+                <span class="loc-hi">लाने योग्य दस्तावेज:</span>
+            </div>
+            <ul class="body-text loc-en" style="padding-left: 1.25rem; font-size: 0.9rem; margin: 0;">${bringChecklist(domain, authorityType, result.title_en, result.brief_en, 'en')}</ul>
+            <ul class="body-text loc-hi" lang="hi" style="padding-left: 1.25rem; font-size: 0.9rem; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">${bringChecklist(domain, authorityType, result.title_hi || result.title_en, result.brief_hi || result.brief_en, 'hi')}</ul>
+        </div>
+    </div>`;
+
+    const contactDirectoryHTML = `
+    <section class="rs-section" aria-label="Who to Contact" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
+        <div class="section-header" style="margin-bottom: var(--space-3); text-align: left;">
+            <span class="section-label">Section 5</span>
+            <h2 class="section-title loc-en">Who to Contact</h2>
+            <h2 class="section-title loc-hi" lang="hi">अधिकारी संपर्क विवरण</h2>
+            <p class="metadata-text loc-en" style="margin: 0;">Use these contact directory cards to escalate or coordinate your situation:</p>
+            <p class="metadata-text loc-hi" lang="hi" style="margin: 0;">अपनी स्थिति को हल करने या एस्केलेट करने के लिए इन संपर्क विवरणों का उपयोग करें:</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            ${helplinesHTML}
+            ${authorityCardHTML}
+        </div>
+    </section>`;
+
+    // ── 06 — YOUR RIGHTS / RELEVANT PROVISIONS (Accordions) ───────────────────
+    let rightsProvisionsHTML = '';
+    if (isLegal && provisions.length > 0) {
+        const accItems = provisions.map((p, idx) => {
+            const pHi = (result.legal_provisions_hi || [])[idx] || {};
+            const simpleDesc = simplifyDescription(p.description);
+            const remedy = extractRemedy(p.relevance);
+            const simpleDescHi = simplifyDescription(pHi.description || p.description);
+            const remedyHi = extractRemedy(pHi.relevance || p.relevance);
+            
+            const isVer = p.verified === true;
+            const badgeEn = isVer 
+                ? `<span class="badge" style="background:rgba(35,139,87,0.1); color:var(--success); border:1px solid rgba(35,139,87,0.2); font-weight:bold; font-size:0.7rem; padding: 2px 6px; border-radius: 4px; display:inline-flex; align-items:center; gap:2px;">✓ Verified</span>`
+                : `<span class="badge" style="background:var(--bg-surface-raised); color:var(--text-muted); border:1px solid var(--border-default); font-size:0.7rem; padding: 2px 6px; border-radius: 4px; display:inline-flex; align-items:center; gap:2px;">⚠ Unverified</span>`;
+            const badgeHi = isVer 
+                ? `<span class="badge" style="background:rgba(35,139,87,0.1); color:var(--success); border:1px solid rgba(35,139,87,0.2); font-weight:bold; font-size:0.7rem; padding: 2px 6px; border-radius: 4px; display:inline-flex; align-items:center; gap:2px;">✓ सत्यापित</span>`
+                : `<span class="badge" style="background:var(--bg-surface-raised); color:var(--text-muted); border:1px solid var(--border-default); font-size:0.7rem; padding: 2px 6px; border-radius: 4px; display:inline-flex; align-items:center; gap:2px;">⚠ असत्यापित</span>`;
+
+            const appVal = p.applicability || 'primary';
+            const appBadgeEn = `<span class="badge" style="background:var(--bg-surface-raised); color:var(--text-secondary); font-size:0.7rem; padding: 2px 6px; border-radius: 4px; border:1px solid var(--border-default);">${appVal.toUpperCase()}</span>`;
+            const appBadgeHi = `<span class="badge" style="background:var(--bg-surface-raised); color:var(--text-secondary); font-size:0.7rem; padding: 2px 6px; border-radius: 4px; border:1px solid var(--border-default);">${appVal === 'primary' ? 'प्राथमिक' : 'सहायक'}</span>`;
+
+            return `
+            <div class="accordion-item" style="margin-bottom: var(--space-2); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-inner);">
+                <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)" id="acc-btn-${idx}" style="text-align: left; padding: var(--space-3); width: 100%; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);">
+                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <div style="display: flex; gap: var(--space-1); align-items: center; flex-wrap: wrap;">
+                            ${badgeEn}
+                            ${badgeHi}
+                            ${appBadgeEn}
+                            ${appBadgeHi}
+                        </div>
+                        <span class="card-title loc-en" style="font-size: 1rem; font-weight: 600; color: var(--deep-navy); margin: 0;">${p.provision || ''}</span>
+                        <span class="card-title loc-hi" lang="hi" style="font-size: 1rem; font-weight: 600; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">${pHi.provision || p.provision || ''}</span>
+                    </div>
+                    <span class="acc-chevron" aria-hidden="true" style="font-size: 0.8rem; color: var(--text-muted); flex-shrink: 0; min-width: 80px; text-align: right;">
+                        <span class="loc-en">▼ Expand</span>
+                        <span class="loc-hi">▼ विस्तार</span>
+                    </span>
+                </button>
+                <div class="accordion-content" role="region" aria-labelledby="acc-btn-${idx}" style="display: none; padding: 0 var(--space-3) var(--space-3) var(--space-3); border-top: 1px solid var(--border-subtle);">
+                    <div style="padding-top: var(--space-2); font-size: 0.92rem; line-height: 1.6; display: flex; flex-direction: column; gap: var(--space-2);">
+                        <div>
+                            <span class="loc-en" style="font-weight: 600; color: var(--accent-teal);">What this means:</span>
+                            <span class="loc-hi" lang="hi" style="font-weight: 600; color: var(--accent-teal); font-family: 'Noto Sans Devanagari', sans-serif;">इसका मतलब:</span>
+                            <p class="body-text loc-en" style="margin-top: 2px; margin-bottom: 0;">${simpleDesc}</p>
+                            <p class="body-text loc-hi" lang="hi" style="margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 0;">${simpleDescHi}</p>
+                        </div>
+                        ${remedy ? `
+                        <div style="margin-top: var(--space-1);">
+                            <span class="loc-en" style="font-weight: 600; color: var(--accent-teal);">Your remedy:</span>
+                            <span class="loc-hi" lang="hi" style="font-weight: 600; color: var(--accent-teal); font-family: 'Noto Sans Devanagari', sans-serif;">उपाय:</span>
+                            <p class="body-text loc-en" style="margin-top: 2px; margin-bottom: 0;">${remedy}</p>
+                            <p class="body-text loc-hi" lang="hi" style="margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 0;">${remedyHi}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+        rightsProvisionsHTML = `
+        <section class="rs-section" aria-label="Your Rights and Provisions" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
+            <div class="section-header" style="margin-bottom: var(--space-3); text-align: left;">
+                <span class="section-label">Section 6</span>
+                <h2 class="section-title loc-en">Your Statutory Rights & Provisions</h2>
+                <h2 class="section-title loc-hi" lang="hi">आपके वैधानिक अधिकार और प्रावधान</h2>
+                <p class="metadata-text loc-en" style="margin: 0;">Evoke these rights in interactions with authorities to protect yourself:</p>
+                <p class="metadata-text loc-hi" lang="hi" style="margin: 0;">अधिकारियों के साथ बातचीत में अपनी सुरक्षा के लिए इन अधिकारों का उपयोग करें:</p>
+            </div>
+            <div class="accordion-list" style="display: flex; flex-direction: column; gap: var(--space-2);">${accItems}</div>
+            
+            <div style="margin-top: var(--space-3); text-align: left;">
+                <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id || result.signal_id}')" style="background: var(--accent-teal); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 600; border-radius: var(--radius-inner); cursor: pointer;">
+                    <span class="loc-en">Generate Legal Notice</span>
+                    <span class="loc-hi">कानूनी नोटिस बनाएं</span>
+                </button>
+            </div>
+        </section>`;
+    }
+
+    // ── 07 — DOCUMENTS / CHECKLIST (Local checklist, custom indicator count) ───────────────────
+    let documentsChecklistHTML = '';
+    const evidenceToCollect = result.evidence_to_collect || [];
+    if (evidenceToCollect.length > 0) {
+        const evidenceCards = evidenceToCollect.map((e, i) => {
+            const eHi = (result.evidence_to_collect_hi || [])[i] || {};
+            const whyEn = e.importance_reason || '';
+            const whyHi = eHi.importance_reason || whyEn;
+            const howEn = e.collection_method || '';
+            const howHi = eHi.collection_method || howEn;
+
+            return `
+            <div class="evidence-item-card" style="padding: var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-inner); background: var(--bg-surface); display: flex; gap: var(--space-2); align-items: flex-start; text-align: left;">
+                <input type="checkbox" id="evidence-check-${i}" style="width: 18px; height: 18px; accent-color: var(--accent-teal); cursor: pointer; margin-top: 2px;" aria-label="Evidence check item" />
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span class="card-title loc-en" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0;">${e.evidence_name || ''}</span>
+                    <span class="card-title loc-hi" lang="hi" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">${eHi.evidence_name || e.evidence_name || ''}</span>
+                    
+                    ${whyEn ? `
+                    <p class="loc-en" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;"><span style="font-weight: 600; color: var(--accent-teal); margin-right: 0.35rem;">Importance:</span>${whyEn}</p>
+                    <p class="loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;"><span style="font-weight: 600; color: var(--accent-teal); margin-right: 0.35rem;">महत्व:</span>${whyHi}</p>` : ''}
+                    
+                    ${howEn ? `
+                    <p class="loc-en" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin: 0;"><span style="font-weight: 600; color: var(--text-primary); margin-right: 0.35rem;">Method:</span>${howEn}</p>
+                    <p class="loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;"><span style="font-weight: 600; color: var(--text-primary); margin-right: 0.35rem;">तरीका:</span>${howHi}</p>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        documentsChecklistHTML = `
+        <section class="rs-section" aria-label="Evidence to Collect" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
+            <div class="section-header" style="margin-bottom: var(--space-3); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-2);">
+                <div>
+                    <span class="section-label">Section 7</span>
+                    <h2 class="section-title loc-en" style="margin-bottom: 4px;">Evidence & Personal Checklist</h2>
+                    <h2 class="section-title loc-hi" lang="hi" style="margin-bottom: 4px; font-family: 'Noto Sans Devanagari', sans-serif;">आवश्यक साक्ष्य और चेकलिस्ट</h2>
+                    <p class="metadata-text loc-en" style="color: var(--caution); font-weight: 500; margin: 0;">🔔 Saved locally on your device. Checked items are never uploaded to Prahari.</p>
+                    <p class="metadata-text loc-hi" lang="hi" style="color: var(--caution); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">🔔 आपके डिवाइस पर सुरक्षित रूप से सहेजी जाती है। प्रहरी पर कभी नहीं भेजी जाती।</p>
+                </div>
+                <div id="checklist-counter-badge" style="font-size: 0.95rem; font-weight: 700; color: var(--accent-teal); background: rgba(22,140,140,0.1); padding: 4px 8px; border-radius: var(--radius-inner);">
+                    0 of ${evidenceToCollect.length} collected
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">${evidenceCards}</div>
+            <div style="margin-top: var(--space-3); display: flex; gap: var(--space-2);">
+                <button class="btn-secondary" onclick="clearChecklistState()" style="font-size: 0.85rem; padding: 6px 14px; cursor: pointer; border-radius: var(--radius-inner);">Clear Checklist</button>
+            </div>
+        </section>`;
+    }
+
+    // ── 08 — ADDITIONAL REFERENCES (Audit logs & system references) ───────────────────
+    const additionalReferencesHTML = `
+    <section class="rs-section" aria-label="Additional References" style="margin-bottom: var(--space-4); text-align: left;">
+        <div class="section-header" style="margin-bottom: var(--space-2);">
+            <span class="section-label">Section 8</span>
+            <h2 class="section-title loc-en">Additional References & Audit Log</h2>
+            <h2 class="section-title loc-hi" lang="hi">अतिरिक्त संदर्भ और ऑडिट लॉग</h2>
+        </div>
+        <div style="background: var(--bg-surface-raised); padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default);">
+            <div id="outcome-stats-card" style="margin-bottom: var(--space-3); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle);">
+                <!-- Statistics will load here dynamically -->
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                <div><strong>System Signal ID:</strong> ${result.signal_id || result.incident_id || 'N/A'}</div>
+                <div><strong>Ingestion Time:</strong> ${result.created_at || 'N/A'}</div>
+                <div><strong>Pipeline Model Version:</strong> Prahari RAG-Agent v2.1</div>
+                <div><strong>Verification Status:</strong> Verified against Indian statutory codes</div>
+            </div>
+        </div>
+    </section>`;
+
+    // ── CONCATENATE THE 8Predictable SECTIONS ───────────────────
+    let html = '';
+    html += caseOverviewHTML;
+    if (whatIsHappeningHTML) html += whatIsHappeningHTML;
+    if (actionPlanHTML) html += actionPlanHTML;
+    if (warningsHTML) html += warningsHTML;
+    if (contactDirectoryHTML) html += contactDirectoryHTML;
+    if (rightsProvisionsHTML) html += rightsProvisionsHTML;
+    if (documentsChecklistHTML) html += documentsChecklistHTML;
+    html += additionalReferencesHTML;
+
+    document.getElementById('dynamic-sections').innerHTML = html;
+    
+    if (pipelineCompleted && (result.incident_id || result.signal_id)) {
+        loadOutcomeStats(result.incident_id || result.signal_id);
+    }
+    
+    registerChecklistListeners();
+    restoreChecklistState();
+}
+
+function updateChecklistCounter() {
+    const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
+    const total = checkboxes.length;
+    if (total === 0) return;
+    const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const badge = document.getElementById('checklist-counter-badge');
+    if (badge) {
+        const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
+        badge.textContent = isHindi 
+            ? `${checked} में से ${total} एकत्र किया गया` 
+            : `${checked} of ${total} collected`;
+    }
+}
+
+// ── Case Status ───────────────────────────────────────────
+function renderCaseStatus(status, notes, contactNumber) {
+    const container = document.getElementById('case-status-container');
+    if (container) container.style.display = 'none';
 }
 
 // ── Polling & Lifecycle ────────────────────────────────────
 async function pollStatus() {
     try {
-        const response = await fetch(`/api/incidents/status/${signalId}/`);
+        const response = await fetch(`/report/${signalId}/status/`);
         if (!response.ok) {
             // Quietly retry on transient HTTP errors
             return;
@@ -1306,6 +1815,7 @@ async function pollStatus() {
 
         if (data.status === 'error' || data.status === 'failed' || data.status === 'pipeline_error') {
             clearInterval(pollTimer);
+            updateChecklistUI(data.steps || {}, true);
             showFailureState(data.message || 'Workflow pipeline failure');
             return;
         }
@@ -1317,7 +1827,7 @@ async function pollStatus() {
             pipelineCompleted = true;
             document.getElementById('loading-card').style.display = 'none';
             document.getElementById('result-section').style.display = 'flex';
-            showResult(data.result);
+            showResultUnified(data.result);
             if (data.result) {
                 renderCaseStatus(data.result.status, data.result.coordinator_notes, data.result.contact_number);
             }

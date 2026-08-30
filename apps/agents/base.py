@@ -75,111 +75,128 @@ class BaseAgent(abc.ABC):
         
         for model in models_to_try:
             logger.info("[BaseAgent] Attempting LLM call with model=%s", model)
-            
+            skip_model = False
             for idx, api_key in enumerate(api_keys, 1):
+                if skip_model:
+                    break
                 masked_key = api_key[:6] + "..." if len(api_key) > 6 else "..."
                 logger.info("[BaseAgent] Using API key index %d (%s)", idx, masked_key)
                 
-                try:
-                    client = Groq(api_key=api_key, max_retries=0)
-                    kwargs = {
-                        "model": model,
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_message},
-                        ],
-                        "temperature": 0.1,
-                        "max_tokens": self.max_tokens,
-                    }
-                    if response_schema is not None:
-                        schema_name = response_schema.__name__.lower()
-                        schema_dict = response_schema.model_json_schema()
-                        kwargs["response_format"] = {
-                            "type": "json_schema",
-                            "json_schema": {
-                                "name": schema_name,
-                                "strict": True,
-                                "schema": schema_dict
-                            }
+                # Retry loop for transient issues (like rate limit 429 or server errors)
+                max_attempts = 3
+                for attempt in range(1, max_attempts + 1):
+                    try:
+                        client = Groq(api_key=api_key, max_retries=0)
+                        kwargs = {
+                            "model": model,
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_message},
+                            ],
+                            "temperature": 0.1,
+                            "max_tokens": self.max_tokens,
                         }
-                    response = client.chat.completions.create(**kwargs)
-                    choice = response.choices[0]
-                    finish_reason = getattr(choice, "finish_reason", None)
-                    logger.info(
-                        "[BaseAgent] Groq response received for model %s. finish_reason: %s",
-                        model, finish_reason
-                    )
-                    if model != self.model:
-                        logger.warning(
-                            "[BaseAgent] Fallback model %s succeeded on key index %d",
-                            model, idx
+                        if response_schema is not None:
+                            schema_name = response_schema.__name__.lower()
+                            schema_dict = response_schema.model_json_schema()
+                            kwargs["response_format"] = {
+                                "type": "json_schema",
+                                "json_schema": {
+                                     "name": schema_name,
+                                     "strict": True,
+                                     "schema": schema_dict
+                                }
+                            }
+                        response = client.chat.completions.create(**kwargs)
+                        choice = response.choices[0]
+                        finish_reason = getattr(choice, "finish_reason", None)
+                        logger.info(
+                            "[BaseAgent] Groq response received for model %s. finish_reason: %s",
+                            model, finish_reason
                         )
-                    return choice.message.content
-                except Exception as exc:
-                    last_exc = exc
-                    status_code = getattr(exc, "status_code", None)
-                    exc_str = str(exc).lower()
-                    
-                    # 1. Authentication / Authorization Failure (401/403)
-                    is_auth_error = (
-                        status_code in (401, 403)
-                        or "401" in str(exc)
-                        or "403" in str(exc)
-                        or "unauthorized" in exc_str
-                        or "forbidden" in exc_str
-                        or "api key" in exc_str
-                    )
-                    if is_auth_error:
+                        if model != self.model:
+                            logger.warning(
+                                "[BaseAgent] Fallback model %s succeeded on key index %d",
+                                model, idx
+                            )
+                        return choice.message.content
+                    except Exception as exc:
+                        last_exc = exc
+                        status_code = getattr(exc, "status_code", None)
+                        exc_str = str(exc).lower()
+                        
+                        # 1. Authentication / Authorization Failure (401/403)
+                        is_auth_error = (
+                            status_code in (401, 403)
+                            or "401" in str(exc)
+                            or "403" in str(exc)
+                            or "unauthorized" in exc_str
+                            or "forbidden" in exc_str
+                            or "api key" in exc_str
+                        )
+                        if is_auth_error:
+                            logger.error(
+                                "[BaseAgent] Authentication failure on API Key index %d for model %s: %s",
+                                idx, model, exc
+                            )
+                            # Break the attempt loop to move to the next key
+                            break
+                        
+                        # 2. Model decommissioned / unavailable
+                        is_model_unavailable = (
+                            status_code == 404
+                            or "decommissioned" in exc_str
+                            or "not found" in exc_str
+                            or "unknown model" in exc_str
+                        )
+                        if is_model_unavailable:
+                            logger.warning(
+                                "[BaseAgent] Model %s is unavailable/decommissioned. Skipping to next model.",
+                                model
+                            )
+                            # Break the attempt loop & signal to break key loop
+                            skip_model = True
+                            break
+                        
+                        # 3. Rate Limit (429) or Server/Network errors (5xx/timeouts) or JSON validation errors
+                        is_retryable = (
+                            status_code == 429
+                            or status_code >= 500
+                            or "429" in str(exc)
+                            or "rate_limit" in exc_str
+                            or "too many requests" in exc_str
+                            or "timeout" in exc_str
+                            or "connection" in exc_str
+                            or "json_validate_failed" in exc_str
+                            or "json_schema" in exc_str
+                            or "schema validation" in exc_str
+                            or "failed to generate json" in exc_str
+                        )
+                        if is_retryable:
+                            if attempt < max_attempts:
+                                import time
+                                sleep_time = 3 * attempt
+                                logger.warning(
+                                    "[BaseAgent] Retryable failure (status=%s) on attempt %d/%d with Key %d on model %s: %s. Sleeping %ds before retry.",
+                                    status_code, attempt, max_attempts, idx, model, exc, sleep_time
+                                )
+                                time.sleep(sleep_time)
+                                continue
+                            else:
+                                logger.warning(
+                                    "[BaseAgent] Retryable failure (status=%s) with Key %d on model %s out of attempts. Trying next key.",
+                                    status_code, idx, model
+                                )
+                                break
+                        
+                        # 4. Standard 400 Bad Request or Programming/Application Error
                         logger.error(
-                            "[BaseAgent] Authentication failure on API Key index %d for model %s: %s",
-                            idx, model, exc
+                             "[BaseAgent] Non-retryable error (status=%s) for model %s: %s. Aborting fallback.",
+                             status_code, model, exc
                         )
-                        # Try next key
-                        continue
-                    
-                    # 2. Model decommissioned / unavailable
-                    is_model_unavailable = (
-                        status_code == 404
-                        or "decommissioned" in exc_str
-                        or "not found" in exc_str
-                        or "unknown model" in exc_str
-                    )
-                    if is_model_unavailable:
-                        logger.warning(
-                            "[BaseAgent] Model %s is unavailable/decommissioned. Skipping to next model.",
-                            model
-                        )
-                        # Skip this model immediately: break key loop to proceed to next model
-                        break
-                    
-                    # 3. Rate Limit (429) or Server/Network errors (5xx/timeouts)
-                    is_retryable = (
-                        status_code == 429
-                        or status_code >= 500
-                        or "429" in str(exc)
-                        or "rate_limit" in exc_str
-                        or "too many requests" in exc_str
-                        or "timeout" in exc_str
-                        or "connection" in exc_str
-                        or "500" in str(exc)
-                        or "502" in str(exc)
-                        or "503" in str(exc)
-                        or "504" in str(exc)
-                    )
-                    if is_retryable:
-                        logger.warning(
-                            "[BaseAgent] Retryable failure (status=%s) with Key %d on model %s: %s",
-                            status_code, idx, model, exc
-                        )
-                        # Try next key
-                        continue
-                    
-                    # 4. Standard 400 Bad Request or Programming/Application Error
-                    logger.error(
-                        "[BaseAgent] Non-retryable error (status=%s) for model %s: %s. Aborting fallback.",
-                        status_code, model, exc
-                    )
-                    raise exc
+                        raise exc
+                if skip_model:
+                    break
         
         raise last_exc or ValueError("All Groq keys and models exhausted")
 

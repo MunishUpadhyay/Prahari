@@ -109,8 +109,17 @@ def citizen_submit(request):
 
         logger.info("[Citizen Portal] Created signal %s, enqueuing Celery task", signal.id)
         
-        # Enqueue the processing task
-        ingest_signal.delay(str(signal.id))
+        # Enqueue the processing task (with synchronous fallback if Redis is down)
+        try:
+            ingest_signal.delay(str(signal.id))
+        except Exception as e:
+            logger.warning("[Citizen Portal] Celery enqueue failed: %s. Invoking synchronously.", e)
+            try:
+                from config.celery import app as celery_app
+                celery_app.conf.task_always_eager = True
+                ingest_signal(str(signal.id))
+            except Exception as sync_exc:
+                logger.error("[Citizen Portal] Synchronous processing failed: %s", sync_exc)
 
         # Redirect using the user-friendly tracking ID format
         date_str = signal.created_at.strftime("%Y%m%d")
@@ -171,7 +180,7 @@ def citizen_signal_status_api(request, signal_id):
     # Stuck pipeline check: if signal.status == 'processing' and is more than 5 minutes old
     from django.utils import timezone
     from datetime import timedelta
-    if signal.status == 'processing' and (timezone.now() - signal.created_at) > timedelta(minutes=5):
+    if signal.status in ['processing', 'classified'] and (timezone.now() - signal.created_at) > timedelta(minutes=5):
         return JsonResponse({
             'status': 'pipeline_error',
             'message': 'Pipeline timed out'

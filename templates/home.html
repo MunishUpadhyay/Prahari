@@ -10,147 +10,174 @@
 {% endblock %}
 
 {% block content %}
-<main style="flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; align-items: center; gap: var(--space-6);">
-    <!-- Hero / Intro -->
-    <section class="readable-container" style="text-align: center; display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-        <span class="section-eyebrow">Prahari Civic System</span>
-        <h2 class="page-title loc-en">Civic Assistance & Emergency Response</h2>
-        <h2 class="page-title loc-hi" lang="hi">तत्काल नागरिक सूचना एवं सहायता प्रणाली</h2>
+<main style="flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-6);">
+    <!-- Hero / Intro Viewport Section -->
+    <section style="text-align: center; display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); margin-bottom: var(--space-4);">
+        <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 3.5rem; font-weight: 800; color: var(--deep-navy); margin: 0; letter-spacing: -0.03em; text-transform: uppercase;">
+            Prahari
+        </h1>
+        <p class="loc-en" style="font-size: 1.25rem; font-weight: 600; color: var(--accent-teal); margin-top: -8px; letter-spacing: 0.05em; text-transform: uppercase;">
+            Real time civic and intelligence system
+        </p>
+        <p class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 1.25rem; font-weight: 600; color: var(--accent-teal); margin-top: -8px; letter-spacing: 0.05em;">
+            तत्काल नागरिक सूचना एवं सहायता प्रणाली
+        </p>
         
-        <p class="body-text loc-en" style="max-width: 60ch; margin: 0 auto; color: var(--text-secondary);">
-            Get clear, actionable guidance for legal, medical, and emergency situations. Prahari analyzes incident reports to identify rights, remedies, and primary response helplines.
+        <p class="body-text loc-en" style="max-width: 65ch; margin: 0 auto; color: var(--text-secondary); font-size: 1.1rem; line-height: 1.65;">
+            Prahari helps citizens understand what to do next during civic, legal, medical, and emergency situations. Get clear, structured decision-support and statutory assistance.
         </p>
-        <p class="body-text loc-hi" lang="hi" style="max-width: 60ch; margin: 0 auto; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">
-            कानूनी, चिकित्सा और आपातकालीन स्थितियों के लिए स्पष्ट, व्यावहारिक मार्गदर्शन प्राप्त करें। प्रहरी अधिकारों, उपचारों और प्राथमिक हेल्पलाइन की पहचान करने के लिए रिपोर्टों का विश्लेषण करता है।
+        <p class="body-text loc-hi" lang="hi" style="max-width: 65ch; margin: 0 auto; color: var(--text-secondary); font-size: 1.1rem; line-height: 1.65; font-family: 'Noto Sans Devanagari', sans-serif;">
+            प्रहरी नागरिकों को नागरिक, कानूनी, चिकित्सा और आपातकालीन स्थितियों के दौरान यह समझने में मदद करता है कि आगे क्या करना है। स्पष्ट, व्यवस्थित निर्णय-समर्थन और वैधानिक सहायता प्राप्त करें।
         </p>
-    </section>
 
-    <!-- Emergency notice banner - Restrained yellow warnings, direct call links -->
-    <section class="report-container">
-        <div class="surface-raised" style="border-color: rgba(255, 204, 51, 0.2); display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4);">
-            <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
-                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 22px; height: 22px; margin-top: 2px;" aria-hidden="true">
-                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                </svg>
-                <div style="font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary);">
-                    <span class="loc-en"><strong>Emergency Alert:</strong> If someone is in immediate physical danger or needs critical resuscitation, always dial national helplines directly. Prahari provides coordination guidance but does not dispatch first responders.</span>
-                    <span class="loc-hi" lang="hi"><strong>आपातकालीन सूचना:</strong> यदि कोई तत्काल शारीरिक खतरे में है या गंभीर चिकित्सा सहायता की आवश्यकता है, तो हमेशा सीधे राष्ट्रीय हेल्पलाइन पर कॉल करें। प्रहरी समन्वय मार्गदर्शन प्रदान करता है लेकिन पुलिस या डॉक्टरों को नहीं भेजता।</span>
+        <!-- Primary Hero Viewport Actions Stack/Grid -->
+        <div style="display: flex; gap: var(--space-4); width: 100%; max-width: 800px; margin: var(--space-4) auto 0 auto; flex-wrap: wrap; justify-content: center; align-items: stretch;">
+            <!-- Report CTA Button -->
+            <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+                <div>
+                    <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px;">Report an Incident</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px;">घटना की रिपोर्ट करें</h3>
+                    <p class="metadata-text loc-en" style="margin: 0; font-size: 0.85rem; line-height: 1.5;">Describe the situation in plain language to generate emergency recommendations, legal provisions, and contact details.</p>
+                    <p class="metadata-text loc-hi" lang="hi" style="margin: 0; font-size: 0.85rem; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन सिफारिशें, कानूनी प्रावधान और संपर्क विवरण प्राप्त करने के लिए सामान्य भाषा में घटना का वर्णन करें।</p>
+                </div>
+                <a href="/submit/" class="btn-primary" style="margin-top: var(--space-4); width: 100%; height: 46px; font-weight: 700; border-radius: var(--radius-inner); display: flex; align-items: center; justify-content: center;">
+                    <span class="loc-en">Report an Incident &rarr;</span>
+                    <span class="loc-hi" lang="hi">घटना की रिपोर्ट करें &rarr;</span>
+                </a>
+            </div>
+
+            <!-- Track CTA Form -->
+            <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+                <div>
+                    <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px;">Track an Existing Report</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px;">रिपोर्ट ट्रैक करें</h3>
+                    <p class="metadata-text loc-en" style="margin: 0; font-size: 0.85rem; line-height: 1.5;">Enter your confidential Signal UUID or Prahari Tracking ID to view live pipeline status and outcomes.</p>
+                    <p class="metadata-text loc-hi" lang="hi" style="margin: 0; font-size: 0.85rem; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">लाइव पाइपलाइन स्थिति और परिणाम देखने के लिए अपनी गोपनीय सिग्नल यूयूआईडी या प्रहरी ट्रैकिंग आईडी दर्ज करें।</p>
+                </div>
+                <div style="margin-top: var(--space-4);">
+                    <form id="tracking-form" onsubmit="event.preventDefault(); navigateToReport();" style="display: flex; gap: var(--space-2); width: 100%;">
+                        <input type="text" id="prahari-id-input" class="form-control" placeholder="e.g., PRAH-20260830-ABCD" required aria-label="Prahari Report ID" style="flex: 1; height: 46px; padding: 0 0.85rem; border: 1px solid var(--border-default); border-radius: var(--radius-inner); background: var(--bg-surface-raised); color: var(--text-primary);" />
+                        <button type="submit" class="btn-secondary" style="height: 46px; padding: 0 1.25rem; font-weight: 700; border-radius: var(--radius-inner); flex-shrink: 0; background: var(--accent-teal); color: #fff; border: none; cursor: pointer;">
+                            <span class="loc-en">Track</span>
+                            <span class="loc-hi">ट्रैक</span>
+                        </button>
+                    </form>
+                    <div id="tracking-error" class="form-error-label" style="display: none; color: var(--critical); font-size: 0.8rem; margin-top: 6px; font-weight: 500;"></div>
                 </div>
             </div>
-            <div style="display: flex; gap: var(--space-2); align-items: center; padding-left: calc(22px + var(--space-3));">
-                <a href="tel:112" class="btn-secondary" style="font-size: 0.85rem; padding: 6px 14px; font-weight: 700; border-color: var(--yellow);">
-                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;" aria-hidden="true">
-                        <path d="M6.62 10.79a15.15 15.15 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.27 11.72 11.72 0 0 0 3.7.59 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.7 1 1 0 0 1-.27 1.11z"/>
-                    </svg>
-                    <span>112 (Police)</span>
-                </a>
-                <a href="tel:108" class="btn-danger" style="font-size: 0.85rem; padding: 6px 14px; font-weight: 700;">
-                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;" aria-hidden="true">
-                        <path d="M6.62 10.79a15.15 15.15 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.27 11.72 11.72 0 0 0 3.7.59 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.7 1 1 0 0 1-.27 1.11z"/>
-                    </svg>
-                    <span>108 (Ambulance)</span>
-                </a>
+        </div>
+
+        <!-- Trust statement notice (Open layout, no bordered card wrapper) -->
+        <div style="margin-top: var(--space-4); color: var(--text-muted); font-size: 0.88rem; font-weight: 500;">
+            <span class="loc-en">🛡️ Your reports are stored securely. Anonymous cases generate private return keys which are never saved on our servers.</span>
+            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">🛡️ आपकी रिपोर्ट सुरक्षित रूप से संग्रहीत की जाती है। गुमनाम रिपोर्टें निजी रिटर्न कुंजी उत्पन्न करती हैं जो हमारे सर्वर पर कभी सहेजी नहीं जाती हैं।</span>
+        </div>
+    </section>
+
+    <!-- Services Overview section — HOW PRAHARI HELPS -->
+    <section style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-5);">
+        <div style="text-align: left;">
+            <span class="section-eyebrow" style="color: var(--accent-teal);">Core Services</span>
+            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy);">How Prahari Helps</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">प्रहरी कैसे मदद करता है</h2>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); width: 100%;">
+            <!-- Legal -->
+            <div style="padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+                <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    ⚖️ Legal Guidance
+                </h3>
+                <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    ⚖️ कानूनी सहायता
+                </h3>
+                <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Understand statutory rights, map legal provisions, and find appropriate grievance avenues against administrative failures.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">वैधानिक अधिकारों को समझें, कानूनी प्रावधानों को मैप करें, और प्रशासनिक विफलताओं के खिलाफ उचित शिकायत मंच खोजें।</p>
+            </div>
+
+            <!-- Medical -->
+            <div style="padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+                <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    🩺 Medical Support
+                </h3>
+                <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    🩺 चिकित्सा सहायता
+                </h3>
+                <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Map golden window timing, handle hospital denials, and receive clear clinical checklists during healthcare access challenges.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">अस्पताल में प्रवेश से इनकार की स्थिति में प्रतिक्रिया कदम उठाएं, आपातकालीन समय सीमा को समझें, और चिकित्सा चेकलिस्ट प्राप्त करें।</p>
+            </div>
+
+            <!-- Emergency -->
+            <div style="padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+                <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    🚨 Emergency Response
+                </h3>
+                <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    🚨 आपातकालीन प्रतिक्रिया
+                </h3>
+                <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Identify active national helplines and locate nearest physical administrative authorities for immediate action.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">सक्रिय राष्ट्रीय हेल्पलाइन नंबरों की पहचान करें और तत्काल शारीरिक सुरक्षा के लिए निकटतम सरकारी अधिकारियों का विवरण प्राप्त करें।</p>
             </div>
         </div>
     </section>
 
-    <!-- Side-by-side Hero Actions: Submit vs Track -->
-    <section class="hero-actions-container" style="display: flex; gap: var(--space-4); width: 100%; max-width: 800px; flex-wrap: wrap; justify-content: center; align-items: stretch;">
-        <!-- Report Action Card -->
-        <div class="surface-card" style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-3); text-align: left;">
-            <div>
-                <h3 class="card-title loc-en">Report an Incident</h3>
-                <h3 class="card-title loc-hi" lang="hi">घटना की रिपोर्ट करें</h3>
-                <p class="metadata-text loc-en" style="margin-top: var(--space-2);">Describe an emergency or civic situation to receive legal rights, medical first-aid, or administrative pathways.</p>
-                <p class="metadata-text loc-hi" lang="hi" style="margin-top: var(--space-2);">त्वरित कानूनी उपचार, चिकित्सा प्राथमिक चिकित्सा, या प्रशासनिक प्रतिक्रिया प्राप्त करने के लिए घटना का विवरण दें।</p>
-            </div>
-            <a href="/submit/" class="btn-primary" style="margin-top: var(--space-3); width: 100%;">
-                <span class="loc-en">Report Incident &rarr;</span>
-                <span class="loc-hi" lang="hi">रिपोर्ट जमा करें &rarr;</span>
-            </a>
+    <!-- Stepper process — HOW IT WORKS -->
+    <section style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-5);">
+        <div style="text-align: left;">
+            <span class="section-eyebrow" style="color: var(--accent-teal);">Process Workflow</span>
+            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy);">How It Works</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">यह कैसे काम करता है</h2>
         </div>
-
-        <!-- Track Action Card -->
-        <div class="surface-card" style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-3); text-align: left;">
-            <div>
-                <h3 class="card-title loc-en">Track Existing Case</h3>
-                <h3 class="card-title loc-hi" lang="hi">मामला ट्रैक करें</h3>
-                <p class="metadata-text loc-en" style="margin-top: var(--space-2);">Enter your private Report ID or access code to view the live status of your coordination file.</p>
-                <p class="metadata-text loc-hi" lang="hi" style="margin-top: var(--space-2);">अपनी फ़ाइल की लाइव स्थिति देखने के लिए अपनी निजी रिपोर्ट आईडी या एक्सेस कोड दर्ज करें।</p>
+        <!-- Stepper process with open visual spacing -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); width: 100%;">
+            <div style="display: flex; flex-direction: column; gap: var(--space-2); text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--accent-teal); line-height: 1;">01</span>
+                <h4 class="card-title loc-en" style="margin: 0;">Tell us what happened</h4>
+                <h4 class="card-title loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">हमें बताएं क्या हुआ</h4>
+                <p class="body-text loc-en" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary);">Describe your situation using our secure, encrypted submit form.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">सुरक्षित और एन्क्रिप्टेड फॉर्म के माध्यम से घटना का विवरण दर्ज करें।</p>
             </div>
-            <form id="tracking-form" onsubmit="event.preventDefault(); navigateToReport();" style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
-                <input type="text" id="prahari-id-input" class="form-control" placeholder="PRAH-20260829-..." required aria-label="Prahari Report ID" />
-                <button type="submit" class="btn-secondary" style="padding: 0 1.25rem;">
-                    <span class="loc-en">Track</span>
-                    <span class="loc-hi">ट्रैक</span>
-                </button>
-            </form>
-            <div id="tracking-error" class="form-error-label" style="display: none;"></div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-2); text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--accent-teal); line-height: 1;">02</span>
+                <h4 class="card-title loc-en" style="margin: 0;">Prahari reviews the info</h4>
+                <h4 class="card-title loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">प्रहरी समीक्षा करता है</h4>
+                <p class="body-text loc-en" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary);">The backend enqueues RAG algorithms to match statutory provisions.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">सिस्टम कानूनी धाराओं और डेटाबेस से मिलान करने के लिए आरएजी एल्गोरिदम चलाता है।</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-2); text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--accent-teal); line-height: 1;">03</span>
+                <h4 class="card-title loc-en" style="margin: 0;">Guidance is prepared</h4>
+                <h4 class="card-title loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">मार्गदर्शन तैयार होता है</h4>
+                <p class="body-text loc-en" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary);">Coordinators verify output to structure a priority checklist and action path.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक आपके लिए एक सटीक और व्यवस्थित चेकलिस्ट तैयार करते हैं।</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-2); text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--accent-teal); line-height: 1;">04</span>
+                <h4 class="card-title loc-en" style="margin: 0;">Know what to do next</h4>
+                <h4 class="card-title loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">अगला कदम जानें</h4>
+                <p class="body-text loc-en" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary);">Return with your Tracking ID at any time to access your report guidance.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.88rem; margin: 0; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">अपनी रिपोर्ट को देखने और पढ़ने के लिए किसी भी समय अपनी आईडी के साथ वापस आएं।</p>
+            </div>
         </div>
     </section>
 
-    <!-- Services Grid - Reusable category cards styled identically -->
-    <section class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); width: 100%; max-width: 1000px; margin-top: var(--space-5);">
-        <!-- Legal Card -->
-        <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-3); text-align: left;">
-            <div style="color: var(--yellow); display: flex; align-items: center; gap: var(--space-2);">
-                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 22px; height: 22px;" aria-hidden="true">
-                    <path d="M12 2S3 5 3 5v6c0 5.5 3.8 10.7 9 12c5.2-1.3 9-6.5 9-12V5s-9-3-9-3zm0 17.9c-2.9-.8-5-3.6-5-6.9V7.1l5-1.7 5 1.7v3.9c0 3.3-2.1 6.1-5 6.9z"/>
-                </svg>
-                <h3 class="card-title loc-en">Legal Assistance</h3>
-                <h3 class="card-title loc-hi" lang="hi">कानूनी सहायता</h3>
-            </div>
-            <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary);">
-                Understand your legal protections, rights in custody, or remedies against administrative failures and eviction.
-            </p>
-            <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">
-                अवैध हिरासत, प्रशासनिक विफलताओं या बेदखली के खिलाफ अपनी कानूनी सुरक्षा, हिरासत में अधिकारों या उपचारों को समझें।
-            </p>
-            <a href="/submit/" style="color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 0.9rem; margin-top: auto; display: inline-flex; align-items: center; gap: var(--space-1);">
-                <span class="loc-en">Get Legal Guidance &rarr;</span>
-                <span class="loc-hi" lang="hi">कानूनी मार्गदर्शन &rarr;</span>
-            </a>
+    <!-- Emergency helpline contacts — EMERGENCY HELP -->
+    <section style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-5); margin-bottom: var(--space-4);">
+        <div style="text-align: left;">
+            <span class="section-eyebrow" style="color: var(--critical);">Emergency hotlines</span>
+            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy);">Emergency Assistance</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन सहायता हेल्पलाइन</h2>
         </div>
-
-        <!-- Medical Card -->
-        <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-3); text-align: left;">
-            <div style="color: var(--yellow); display: flex; align-items: center; gap: var(--space-2);">
-                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 22px; height: 22px;" aria-hidden="true">
-                    <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/>
-                </svg>
-                <h3 class="card-title loc-en">Medical Guidance</h3>
-                <h3 class="card-title loc-hi" lang="hi">चिकित्सा मार्गदर्शन</h3>
-            </div>
-            <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary);">
-                Access guidance on emergency medical treatment, first-aid protocols, and rules regarding hospital admission rights.
-            </p>
-            <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">
-                आपातकालीन चिकित्सा उपचार, प्राथमिक उपचार के प्रोटोकॉल और अस्पताल में प्रवेश के अधिकारों पर आवश्यक मार्गदर्शन प्राप्त करें।
-            </p>
-            <a href="/submit/" style="color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 0.9rem; margin-top: auto; display: inline-flex; align-items: center; gap: var(--space-1);">
-                <span class="loc-en">Get Medical Guidance &rarr;</span>
-                <span class="loc-hi" lang="hi">चिकित्सा मार्गदर्शन &rarr;</span>
+        <!-- Visual open row for hotlines -->
+        <div style="display: flex; gap: var(--space-3); width: 100%; flex-wrap: wrap;">
+            <a href="tel:112" style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 4px; padding: var(--space-4); border: 2px solid var(--critical); border-radius: var(--radius-card); background: rgba(214, 69, 69, 0.05); text-decoration: none; text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--critical); line-height: 1;">112</span>
+                <span style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">National Emergency Number</span>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Police, fire, and general emergency dispatch.</span>
             </a>
-        </div>
-
-        <!-- Emergency Card -->
-        <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-3); text-align: left;">
-            <div style="color: var(--yellow); display: flex; align-items: center; gap: var(--space-2);">
-                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 22px; height: 22px;" aria-hidden="true">
-                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-                </svg>
-                <h3 class="card-title loc-en">Emergency Help</h3>
-                <h3 class="card-title loc-hi" lang="hi">आपातकालीन सहायता</h3>
-            </div>
-            <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary);">
-                Get quick instructions and coordination resources during physical accidents, rescue situations, or building failures.
-            </p>
-            <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">
-                शारीरिक दुर्घटनाओं, बचाव की स्थितियों या इमारत के ढहने के दौरान त्वरित निर्देश और समन्वय संसाधन प्राप्त करें।
-            </p>
-            <a href="/submit/" style="color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 0.9rem; margin-top: auto; display: inline-flex; align-items: center; gap: var(--space-1);">
-                <span class="loc-en">Get Emergency Help &rarr;</span>
-                <span class="loc-hi" lang="hi">आपातकालीन सहायता &rarr;</span>
+            <a href="tel:108" style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 4px; padding: var(--space-4); border: 2px solid var(--critical); border-radius: var(--radius-card); background: rgba(214, 69, 69, 0.05); text-decoration: none; text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--critical); line-height: 1;">108</span>
+                <span style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">Medical & Ambulance Services</span>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Accident rescue, quick medical transport, and triage.</span>
             </a>
         </div>
     </section>

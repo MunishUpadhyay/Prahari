@@ -11,18 +11,18 @@
 
 {% block content %}
 <main style="flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
-    <!-- Citizen Journey Stepper -->
-    <div class="stepper" id="prahari-stepper" aria-label="Incident Submission Progress">
-        <!-- JavaScript will dynamically render steps here -->
-    </div>
-
-    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4);">
-        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1);">
+    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left;">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2);">
             <h2 class="section-title loc-en">Report an Incident</h2>
             <h2 class="section-title loc-hi" lang="hi">घटना की रिपोर्ट करें</h2>
             
-            <p class="metadata-text loc-en">Describe the incident below. Prahari analyzes the description to determine appropriate response steps.</p>
-            <p class="metadata-text loc-hi" lang="hi">नीचे घटना का वर्णन करें। प्रहरी उचित प्रतिक्रिया कदम उठाने के लिए विवरण का विश्लेषण करता है।</p>
+            <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Describe the incident below. Prahari analyzes the description to determine appropriate response steps.</p>
+            <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">नीचे घटना का वर्णन करें। प्रहरी उचित प्रतिक्रिया कदम उठाने के लिए विवरण का विश्लेषण करता है।</p>
+        </div>
+
+        <!-- Unified Stepper inside the Card -->
+        <div class="stepper" id="prahari-stepper" aria-label="Incident Submission Progress" style="background: transparent; border: none; padding: 0; margin-top: 4px; margin-bottom: var(--space-3);">
+            <!-- JavaScript will dynamically render steps here -->
         </div>
 
         <form method="POST" action="/submit/" onsubmit="return validateForm()">
@@ -37,10 +37,10 @@
 
             <!-- 01 What happened? -->
             <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="display: flex; align-items: center; gap: var(--space-2);">
-                    <span class="section-eyebrow" style="color: var(--yellow);">01</span>
-                    <label class="form-label loc-en" for="raw_text">Describe what is happening *</label>
-                    <label class="form-label loc-hi" lang="hi" for="raw_text">वर्णन करें कि क्या हो रहा है *</label>
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">01</span>
+                    <label class="form-label loc-en" for="raw_text" style="font-size: 1rem; font-weight: 600;">What happened? *</label>
+                    <label class="form-label loc-hi" lang="hi" for="raw_text" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">क्या हुआ? *</label>
                 </div>
                 <textarea 
                     name="raw_text" 
@@ -53,10 +53,10 @@
 
             <!-- 02 Where did it happen? -->
             <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="display: flex; align-items: center; gap: var(--space-2);">
-                    <span class="section-eyebrow" style="color: var(--yellow);">02</span>
-                    <label class="form-label loc-en" for="location">Location (City / District)</label>
-                    <label class="form-label loc-hi" lang="hi" for="location">स्थान (शहर / जिला)</label>
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">02</span>
+                    <label class="form-label loc-en" for="location" style="font-size: 1rem; font-weight: 600;">Where did this happen?</label>
+                    <label class="form-label loc-hi" lang="hi" for="location" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">यह कहाँ हुआ?</label>
                 </div>
                 <input 
                     type="text" 
@@ -68,10 +68,10 @@
 
             <!-- 03 How urgent is it? & Anonymous Option -->
             <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);">
-                <div style="display: flex; align-items: center; gap: var(--space-2);">
-                    <span class="section-eyebrow" style="color: var(--yellow);">03</span>
-                    <span class="form-label loc-en">Submission Mode & Updates</span>
-                    <span class="form-label loc-hi" lang="hi">जमा करने का तरीका और अपडेट</span>
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">03</span>
+                    <span class="form-label loc-en" style="font-size: 1rem; font-weight: 600;">How should we contact you?</span>
+                    <span class="form-label loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">हम आपसे कैसे संपर्क करें?</span>
                 </div>
                 
                 <!-- Anonymous toggle -->
@@ -92,10 +92,10 @@
                 <!-- Anonymous warning card -->
                 <div id="anonymous_warning" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); background: var(--bg-surface-raised); border: 1px solid var(--border-default); margin-top: var(--space-2);">
                     <div style="display: flex; gap: var(--space-2); align-items: flex-start;">
-                        <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--yellow); width: 16px; height: 16px; margin-top: 2px;" aria-hidden="true">
+                        <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--caution); width: 16px; height: 16px; margin-top: 2px;" aria-hidden="true">
                             <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
                         </svg>
-                        <div style="font-size: 0.85rem; line-height: 1.5; color: var(--yellow);">
+                        <div style="font-size: 0.85rem; line-height: 1.5; color: var(--caution);">
                             <span class="loc-en"><strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
                             <span class="loc-hi" lang="hi"><strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
                         </div>
@@ -104,8 +104,8 @@
 
                 <!-- SMS updates phone input -->
                 <div id="contact_number_group" class="form-group" style="margin-top: var(--space-2); transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease; overflow: hidden; max-height: 200px; opacity: 1;">
-                    <label class="form-label loc-en" for="contact_number">Contact Number (optional, for SMS updates)</label>
-                    <label class="form-label loc-hi" lang="hi" for="contact_number">संपर्क नंबर (वैकल्पिक, एसएमएस अपडेट के लिए)</label>
+                    <label class="form-label loc-en" for="contact_number" style="font-size: 0.9rem; font-weight: 500;">Contact Number (optional, for SMS updates)</label>
+                    <label class="form-label loc-hi" lang="hi" for="contact_number" style="font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;">संपर्क नंबर (वैकल्पिक, एसएमएस अपडेट के लिए)</label>
                     <input 
                         type="text" 
                         name="contact_number" 
@@ -116,14 +116,19 @@
             </div>
 
             <!-- 04 Review & Submit -->
-            <div style="margin-top: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);">
-                    <span class="section-eyebrow" style="color: var(--yellow);">04</span>
-                    <span class="form-label loc-en">Confirm & Submit</span>
-                    <span class="form-label loc-hi" lang="hi">पुष्टि करें और जमा करें</span>
+            <div style="margin-top: var(--space-6); display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">04</span>
+                    <span class="form-label loc-en" style="font-size: 1rem; font-weight: 600;">Review & Submit</span>
+                    <span class="form-label loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">समीक्षा करें और जमा करें</span>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%;">
+                <div style="padding: var(--space-3); border-radius: var(--radius-inner); background: var(--bg-surface-raised); border: 1px solid var(--border-default); font-size: 0.88rem; line-height: 1.5; color: var(--text-secondary); margin-bottom: 4px;">
+                    <span class="loc-en">🔒 <strong>Your safety is protected:</strong> All submissions are encrypted. If submitting anonymously, we do not log your IP address or browser details.</span>
+                    <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">🔒 <strong>आपकी सुरक्षा संरक्षित है:</strong> सभी सबमिशन एन्क्रिप्टेड हैं। यदि आप गुमनाम रूप से सबमिट करते हैं, तो हम आपका आईपी पता या ब्राउज़र विवरण दर्ज नहीं करते हैं।</span>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; height: 50px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-inner); cursor: pointer; transition: all 0.2s ease;">
                     <span class="loc-en">Submit Report</span>
                     <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
                 </button>

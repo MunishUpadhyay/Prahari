@@ -61,6 +61,16 @@ DATABASES = {
 if "django.contrib.gis" in INSTALLED_APPS:
     INSTALLED_APPS.remove("django.contrib.gis")
 
-# Run Celery tasks asynchronously in development (via worker)
-CELERY_TASK_ALWAYS_EAGER = False
+# Run Celery tasks asynchronously in development (via worker) only if Redis is running
+CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+try:
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.5)
+    s.connect(("localhost", 6379))
+    s.close()
+    CELERY_TASK_ALWAYS_EAGER = False
+    print("[Celery] Local Redis detected. Running tasks asynchronously via worker.")
+except Exception:
+    print("[Celery] Local Redis NOT detected. Falling back to Eager/Synchronous task execution.")
