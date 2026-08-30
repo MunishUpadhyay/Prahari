@@ -3,12 +3,7 @@
 
 {% block title %}Prahari — Report Status{% endblock %}
 
-{% block nav_links %}
-    <a href="/login/" class="btn-secondary">
-        <span class="loc-en">Coordinator Login</span>
-        <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
-    </a>
-{% endblock %}
+
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/prahari.css' %}">
@@ -151,19 +146,12 @@
         <!-- Toolbar Row -->
         <div style="display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: 0.5rem;">
             <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
-                <a id="whatsapp-share-btn" href="#" target="_blank" class="btn-secondary" style="background:#25D366; border-color:#25D366; color:#fff; display:none; align-items:center; gap:.4rem; text-decoration:none;">
-                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
-                        <path d="M12.012 1.985c-5.523 0-10.002 4.48-10.002 10.002 0 1.763.456 3.483 1.323 5.013L2.012 22l5.176-1.357c1.47.8 3.125 1.22 4.82 1.22 5.525 0 10.002-4.48 10.002-10.002 0-5.522-4.477-10.002-10.002-10.002zm0 1.636c4.612 0 8.366 3.754 8.366 8.366 0 4.612-3.754 8.366-8.366 8.366-1.564 0-3.093-.44-4.425-1.272l-.317-.189-3.292.863.878-3.2-.207-.33c-.912-1.454-1.393-3.136-1.393-4.862a8.367 8.367 0 0 1 8.366-8.366z"/>
-                    </svg>
-                    <span class="loc-en">Share on WhatsApp</span>
-                    <span class="loc-hi">WhatsApp पर साझा करें</span>
-                </a>
-                <button id="clipboard-share-btn" class="btn-secondary" onclick="shareReport()">
+                <button class="btn-secondary" onclick="copyReportId()">
                     <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.8 2.04.8 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.3 2.04-.8l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/>
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                     </svg>
-                    <span class="loc-en">Share Report</span>
-                    <span class="loc-hi">रिपोर्ट साझा करें</span>
+                    <span class="loc-en">Copy Report ID</span>
+                    <span class="loc-hi">रिपोर्ट आईडी कॉपी करें</span>
                 </button>
                 <button class="btn-secondary" onclick="window.print()">
                     <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -1596,11 +1584,11 @@ function showResultUnified(result) {
     </div>`;
 
     const contactDirectoryHTML = `
-    <section class="rs-section" aria-label="Who to Contact" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
+    <section class="rs-section" aria-label="Who Should You Contact?" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
         <div class="section-header" style="margin-bottom: var(--space-3); text-align: left;">
             <span class="section-label">Section 5</span>
-            <h2 class="section-title loc-en">Who to Contact</h2>
-            <h2 class="section-title loc-hi" lang="hi">अधिकारी संपर्क विवरण</h2>
+            <h2 class="section-title loc-en">Who Should You Contact?</h2>
+            <h2 class="section-title loc-hi" lang="hi">आपको किससे संपर्क करना चाहिए?</h2>
             <p class="metadata-text loc-en" style="margin: 0;">Use these contact directory cards to escalate or coordinate your situation:</p>
             <p class="metadata-text loc-hi" lang="hi" style="margin: 0;">अपनी स्थिति को हल करने या एस्केलेट करने के लिए इन संपर्क विवरणों का उपयोग करें:</p>
         </div>
@@ -1941,6 +1929,14 @@ function printLegalNotice() {
 
 function closeLegalNoticeModal() {
     document.getElementById('legal-notice-modal').style.display = 'none';
+}
+
+function copyReportId() {
+    navigator.clipboard.writeText(signalId).then(() => {
+        alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट आईडी क्लिपबोर्ड पर कॉपी की गई!' : 'Report ID copied to clipboard!');
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+    });
 }
 
 // ── On Page Load Entry Point ──────────────────────────────

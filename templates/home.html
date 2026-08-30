@@ -2,15 +2,21 @@
 
 {% block title %}Prahari — Civic Assistance & Emergency Response{% endblock %}
 
-{% block nav_links %}
-    <a href="/login/" class="btn-secondary">
-        <span class="loc-en">Coordinator Login</span>
-        <span class="loc-hi" lang="hi" style="display: none; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वयक लॉगिन</span>
-    </a>
-{% endblock %}
+
 
 {% block content %}
 <main style="flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-6);">
+    <!-- Top Emergency Advisory Banner -->
+    <div style="background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); border-radius: var(--radius-card); padding: var(--space-3) var(--space-4); text-align: left; display: flex; gap: var(--space-3); align-items: center;">
+        <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--critical); width: 20px; height: 20px; flex-shrink: 0;" aria-hidden="true">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <p style="font-size: 0.9rem; font-weight: 600; color: var(--critical); margin: 0; line-height: 1.5;">
+            <span class="loc-en">Emergency Advisory: For immediate physical danger or life-threatening medical emergencies, call official emergency services (112 / 108) directly.</span>
+            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन सलाह: तत्काल शारीरिक खतरे या जीवन-धमकी वाली चिकित्सा आपात स्थिति के लिए, सीधे आधिकारिक आपातकालीन सेवाओं (112 / 108) पर कॉल करें।</span>
+        </p>
+    </div>
+
     <!-- Hero / Intro Viewport Section -->
     <section style="text-align: center; display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); margin-bottom: var(--space-4);">
         <h1 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 3.5rem; font-weight: 800; color: var(--deep-navy); margin: 0; letter-spacing: -0.03em; text-transform: uppercase;">
@@ -47,7 +53,7 @@
             </div>
 
             <!-- Track CTA Form -->
-            <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
+            <div id="track" style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); text-align: left;">
                 <div>
                     <h3 class="card-title loc-en" style="color: var(--deep-navy); margin-bottom: 8px;">Track an Existing Report</h3>
                     <h3 class="card-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin-bottom: 8px;">रिपोर्ट ट्रैक करें</h3>
@@ -166,6 +172,15 @@
             <span class="section-eyebrow" style="color: var(--critical);">Emergency hotlines</span>
             <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy);">Emergency Assistance</h2>
             <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन सहायता हेल्पलाइन</h2>
+        </div>
+        <div style="background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); border-radius: var(--radius-card); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-1); color: var(--critical); font-size: 0.95rem; font-weight: 600; text-align: left; display: flex; gap: var(--space-3); align-items: center;">
+            <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--critical); width: 20px; height: 20px; flex-shrink: 0;" aria-hidden="true">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <p style="margin: 0; line-height: 1.5;">
+                <span class="loc-en">For immediate physical danger or life-threatening medical emergencies, please call official emergency services (112 / 108) directly.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">तत्काल शारीरिक खतरे या जीवन-धमकी वाली चिकित्सा आपात स्थिति के लिए, कृपया सीधे आधिकारिक आपातकालीन सेवाओं (112 / 108) पर कॉल करें।</span>
+            </p>
         </div>
         <!-- Visual open row for hotlines -->
         <div style="display: flex; gap: var(--space-3); width: 100%; flex-wrap: wrap;">

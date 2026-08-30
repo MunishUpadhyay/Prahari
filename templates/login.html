@@ -12,6 +12,16 @@
             <p class="metadata-text loc-en">Authorized Prahari staff only.</p>
             <p class="metadata-text loc-hi" lang="hi">केवल अधिकृत प्रहरी कर्मी।</p>
         </div>
+        <!-- Authorized Personnel Warning Banner -->
+        <div style="background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); border-radius: var(--radius-inner); padding: var(--space-3); text-align: left; display: flex; gap: var(--space-2); align-items: flex-start; margin-bottom: 4px;">
+            <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--critical); width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0;" aria-hidden="true">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div style="font-size: 0.85rem; line-height: 1.4; color: var(--critical); font-weight: 600;">
+                <span class="loc-en"><strong>Warning:</strong> Authorized personnel only. Citizen reports must be filed through the public <a href="/submit/" style="color: var(--accent-teal); text-decoration: underline;">Reporting Form</a>.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;"><strong>चेतावनी:</strong> केवल अधिकृत कर्मचारियों के लिए। नागरिकों की रिपोर्ट केवल सार्वजनिक <a href="/submit/" style="color: var(--accent-teal); text-decoration: underline;">रिपोर्टिंग फ़ॉर्म</a> के माध्यम से जमा की जानी चाहिए।</span>
+            </div>
+        </div>
 
         <form method="POST" action="/login/">
             {% csrf_token %}

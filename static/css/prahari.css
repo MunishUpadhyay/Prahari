@@ -249,6 +249,68 @@ header {
     line-height: 1.1;
 }
 
+/* Navigation link tabs in the header */
+.header-nav {
+    display: none;
+    gap: var(--space-3);
+    align-items: center;
+    margin-left: var(--space-4);
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    .header-nav {
+        display: flex;
+    }
+}
+
+.header-nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-inner);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.header-nav-link:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface-hover);
+}
+
+.header-nav-link.active {
+    color: var(--accent-teal);
+    background: rgba(22, 140, 140, 0.08);
+    border-color: rgba(22, 140, 140, 0.15);
+}
+
+/* Authorized access label / coordinator portal button in the header */
+.btn-coordinator {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--deep-navy) !important;
+    background: rgba(23, 50, 77, 0.04) !important;
+    border: 1px solid rgba(23, 50, 77, 0.15) !important;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-inner);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.btn-coordinator:hover {
+    background: rgba(23, 50, 77, 0.08) !important;
+    border-color: rgba(23, 50, 77, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
 .nav-right {
     display: flex;
     align-items: center;
@@ -480,7 +542,7 @@ html[lang="hi"] div.loc-hi {
 }
 
 .lang-pill.active {
-    background: var(--yellow);
+    background: var(--deep-navy);
     color: #FFFFFF;
     font-weight: 700;
 }

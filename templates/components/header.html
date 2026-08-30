@@ -9,7 +9,28 @@
             <span class="logo-subtitle loc-hi" lang="hi">तत्काल नागरिक सूचना एवं सहायता प्रणाली</span>
         </div>
     </a>
+    <!-- Central Application Tabs/Navigation -->
+    <nav class="header-nav" aria-label="Application Navigation">
+        <a href="/" class="header-nav-link" id="nav-link-home">
+            <span class="loc-en">Home</span>
+            <span class="loc-hi" lang="hi">मुख्य पृष्ठ</span>
+        </a>
+        <a href="/submit/" class="header-nav-link" id="nav-link-submit">
+            <span class="loc-en">Report an Incident</span>
+            <span class="loc-hi" lang="hi">घटना रिपोर्ट</span>
+        </a>
+        <a href="/#track" class="header-nav-link" id="nav-link-track">
+            <span class="loc-en">Track Report</span>
+            <span class="loc-hi" lang="hi">रिपोर्ट ट्रैक</span>
+        </a>
+    </nav>
     <div class="nav-right">
+        {% if not user.is_authenticated %}
+        <a href="/login/" class="btn-coordinator" id="nav-coordinator-link">
+            <span class="loc-en">Authorized Personnel</span>
+            <span class="loc-hi" lang="hi">अधिकृत कर्मचारी</span>
+        </a>
+        {% endif %}
         {% block nav_links %}{% endblock %}
         <div class="lang-selector-bar" role="navigation" aria-label="Language Selector">
             <button type="button" class="lang-pill" data-lang="english" onclick="changeLanguage('english')" aria-label="Switch to English">English</button>

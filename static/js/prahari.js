@@ -80,3 +80,27 @@ function changeLanguage(lang) {
 }
 
 window.addEventListener('DOMContentLoaded', initLanguage);
+
+function highlightNav() {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    
+    // Clear all active classes first
+    const links = document.querySelectorAll('.header-nav-link');
+    links.forEach(l => l.classList.remove('active'));
+    
+    const homeLink = document.getElementById('nav-link-home');
+    const submitLink = document.getElementById('nav-link-submit');
+    const trackLink = document.getElementById('nav-link-track');
+    
+    if (path === '/submit/') {
+        if (submitLink) submitLink.classList.add('active');
+    } else if (hash === '#track' || path.startsWith('/report/')) {
+        if (trackLink) trackLink.classList.add('active');
+    } else if (path === '/' || path === '') {
+        if (homeLink) homeLink.classList.add('active');
+    }
+}
+
+window.addEventListener('DOMContentLoaded', highlightNav);
+window.addEventListener('hashchange', highlightNav);
