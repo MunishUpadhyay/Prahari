@@ -780,12 +780,16 @@ input:checked + .slider:before {
     transition: color 0.3s;
 }
 
-.progress-step.active {
+.progress-step.active, .progress-step.running {
     color: var(--text-primary);
 }
 
-.progress-step.done {
+.progress-step.done, .progress-step.completed {
     color: var(--text-secondary);
+}
+
+.progress-step.failed {
+    color: var(--critical);
 }
 
 .progress-step .step-icon {
@@ -802,16 +806,22 @@ input:checked + .slider:before {
     color: var(--text-muted);
 }
 
-.progress-step.active .step-icon {
+.progress-step.active .step-icon, .progress-step.running .step-icon {
     border-color: var(--yellow);
     color: var(--yellow);
     box-shadow: 0 0 8px rgba(255, 204, 51, 0.2);
 }
 
-.progress-step.done .step-icon {
+.progress-step.done .step-icon, .progress-step.completed .step-icon {
     border-color: var(--success);
     background: rgba(34, 197, 94, 0.1);
     color: var(--success);
+}
+
+.progress-step.failed .step-icon {
+    border-color: var(--critical);
+    background: rgba(214, 69, 69, 0.1);
+    color: var(--critical);
 }
 
 /* Report Status Page Styling */

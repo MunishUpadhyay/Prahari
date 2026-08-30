@@ -95,38 +95,38 @@
         </div>
         <ul class="progress-list" style="text-align: left;">
             <li id="step-received" class="progress-step pending">
-                <span class="step-icon">⏱</span>
+                <span class="step-icon">○</span>
                 <div>
-                    <span class="loc-en">Report received</span>
-                    <span class="loc-hi" lang="hi">रिपोर्ट प्राप्त हुई</span>
+                    <span class="loc-en">Report Ingestion</span>
+                    <span class="loc-hi" lang="hi">रिपोर्ट अंतर्ग्रहण (Ingestion)</span>
                 </div>
             </li>
             <li id="step-classified" class="progress-step pending">
-                <span class="step-icon">⏱</span>
+                <span class="step-icon">○</span>
                 <div>
-                    <span class="loc-en">Classifying domain</span>
-                    <span class="loc-hi" lang="hi">घटना क्षेत्र वर्गीकरण</span>
+                    <span class="loc-en">Domain Classification</span>
+                    <span class="loc-hi" lang="hi">घटना क्षेत्र वर्गीकरण (Classification)</span>
                 </div>
             </li>
             <li id="step-analyzed" class="progress-step pending">
-                <span class="step-icon">⏱</span>
+                <span class="step-icon">○</span>
                 <div>
-                    <span class="loc-en">RAG analysis & statutory mapping</span>
-                    <span class="loc-hi" lang="hi">RAG विश्लेषण और वैधानिक मैपिंग</span>
+                    <span class="loc-en">Agent Routing (RAG & Statutory Mapping)</span>
+                    <span class="loc-hi" lang="hi">एजेंट रूटिंग (RAG और वैधानिक मैपिंग)</span>
                 </div>
             </li>
             <li id="step-coordinated" class="progress-step pending">
-                <span class="step-icon">⏱</span>
+                <span class="step-icon">○</span>
                 <div>
-                    <span class="loc-en">Structuring coordinator guidance</span>
-                    <span class="loc-hi" lang="hi">मार्गदर्शन ढांचा तैयार करना</span>
+                    <span class="loc-en">Coordination Synthesis</span>
+                    <span class="loc-hi" lang="hi">समन्वय संश्लेषण (Coordination)</span>
                 </div>
             </li>
             <li id="step-translated" class="progress-step pending">
-                <span class="step-icon">⏱</span>
+                <span class="step-icon">○</span>
                 <div>
-                    <span class="loc-en">Translating & final verification</span>
-                    <span class="loc-hi" lang="hi">अनुवाद और अंतिम सत्यापन</span>
+                    <span class="loc-en">Verification & Translation</span>
+                    <span class="loc-hi" lang="hi">सत्यापन और अनुवाद (Translation/Push)</span>
                 </div>
             </li>
         </ul>
@@ -315,11 +315,11 @@ function shareReport() {
 function updateChecklistUI(steps, isFailed = false) {
     const pipelineOrder = ['received', 'classified', 'analyzed', 'coordinated', 'translated'];
     const labels = {
-        received: { en: 'Report received', hi: 'रिपोर्ट प्राप्त हुई' },
-        classified: { en: 'Classifying domain', hi: 'घटना क्षेत्र वर्गीकरण' },
-        analyzed: { en: 'RAG analysis & statutory mapping', hi: 'RAG विश्लेषण और वैधानिक मैपिंग' },
-        coordinated: { en: 'Structuring coordinator guidance', hi: 'मार्गदर्शन ढांचा तैयार करना' },
-        translated: { en: 'Translating & final verification', hi: 'अनुवाद और अंतिम सत्यापन' }
+        received: { en: 'Report Ingestion', hi: 'रिपोर्ट अंतर्ग्रहण' },
+        classified: { en: 'Domain Classification', hi: 'घटना क्षेत्र वर्गीकरण' },
+        analyzed: { en: 'Agent Routing (RAG & Statutory Mapping)', hi: 'एजेंट रूटिंग (RAG और वैधानिक मैपिंग)' },
+        coordinated: { en: 'Coordination Synthesis', hi: 'समन्वय संश्लेषण' },
+        translated: { en: 'Verification & Translation', hi: 'सत्यापन और अनुवाद' }
     };
 
     let runningIndex = -1;
@@ -335,7 +335,7 @@ function updateChecklistUI(steps, isFailed = false) {
         if (!el) return;
 
         let state = 'pending';
-        let icon = '⏱';
+        let icon = '○';
         
         if (steps[key]) {
             state = 'completed';
@@ -343,11 +343,14 @@ function updateChecklistUI(steps, isFailed = false) {
         } else if (idx === runningIndex) {
             if (isFailed) {
                 state = 'failed';
-                icon = '✗';
+                icon = '!';
             } else {
                 state = 'running';
                 icon = '⟳';
             }
+        } else if (isFailed && idx > runningIndex) {
+            state = 'pending';
+            icon = '○';
         }
 
         el.className = `progress-step ${state}`;
@@ -1694,17 +1697,19 @@ function showResultUnified(result) {
     if (evidenceToCollect.length > 0) {
         const evidenceCards = evidenceToCollect.map((e, i) => {
             const eHi = (result.evidence_to_collect_hi || [])[i] || {};
-            const whyEn = e.importance_reason || '';
-            const whyHi = eHi.importance_reason || whyEn;
-            const howEn = e.collection_method || '';
-            const howHi = eHi.collection_method || howEn;
+            const itemNameEn = e.evidence_name || e.item || '';
+            const itemNameHi = eHi.evidence_name || eHi.item || itemNameEn;
+            const whyEn = e.importance_reason || e.why_important || '';
+            const whyHi = eHi.importance_reason || eHi.why_important || whyEn;
+            const howEn = e.collection_method || e.how_to_collect || '';
+            const howHi = eHi.collection_method || eHi.how_to_collect || howEn;
 
             return `
             <div class="evidence-item-card" style="padding: var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-inner); background: var(--bg-surface); display: flex; gap: var(--space-2); align-items: flex-start; text-align: left;">
                 <input type="checkbox" id="evidence-check-${i}" style="width: 18px; height: 18px; accent-color: var(--accent-teal); cursor: pointer; margin-top: 2px;" aria-label="Evidence check item" />
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span class="card-title loc-en" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0;">${e.evidence_name || ''}</span>
-                    <span class="card-title loc-hi" lang="hi" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">${eHi.evidence_name || e.evidence_name || ''}</span>
+                    <span class="card-title loc-en" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0;">${itemNameEn}</span>
+                    <span class="card-title loc-hi" lang="hi" style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">${itemNameHi}</span>
                     
                     ${whyEn ? `
                     <p class="loc-en" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;"><span style="font-weight: 600; color: var(--accent-teal); margin-right: 0.35rem;">Importance:</span>${whyEn}</p>
@@ -1831,12 +1836,6 @@ async function pollStatus() {
             if (data.result) {
                 renderCaseStatus(data.result.status, data.result.coordinator_notes, data.result.contact_number);
             }
-        } else {
-            if (pollAttempts >= maxPollAttempts) {
-                clearInterval(pollTimer);
-                document.getElementById('timeout-message').style.display = 'block';
-                document.getElementById('pulsing-progress').style.display = 'none';
-            }
         }
     } catch (e) {
         // Log silently
@@ -1848,8 +1847,8 @@ function showFailureState(msg) {
     const container = document.getElementById('case-status-container');
     if (container) {
         container.innerHTML = `
-        <div class="surface-card" style="border-color: var(--critical); text-align: left;">
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.5rem;">
+        <div class="surface-card" style="border-color: var(--critical); text-align: left; display: flex; flex-direction: column; gap: var(--space-3);">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
                 <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--critical);" aria-hidden="true">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                 </svg>
@@ -1858,10 +1857,20 @@ function showFailureState(msg) {
                     <span class="loc-hi">विश्लेषण प्रक्रिया असफल</span>
                 </h3>
             </div>
-            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary);">
-                <span class="loc-en">We couldn't complete the RAG analysis. Your report has been safely logged in databases. You can return later or try re-submitting. Details: ${msg}</span>
-                <span class="loc-hi" lang="hi">हम रिपोर्ट का विश्लेषण पूरा नहीं कर सके। आपकी रिपोर्ट डेटाबेस में सुरक्षित रूप से दर्ज कर ली गई है। आप बाद में पुनः प्रयास कर सकते हैं। विवरण: ${msg}</span>
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                <span class="loc-en">We could not complete the automated analysis of your incident at this time. Your report is safely saved in our database. You can try refreshing to check again or submit a new report.</span>
+                <span class="loc-hi" lang="hi">हम इस समय आपकी घटना का स्वचालित विश्लेषण पूरा नहीं कर सके। आपकी रिपोर्ट हमारे डेटाबेस में सुरक्षित रूप से सहेजी गई है। आप पुनः प्रयास करने के लिए पृष्ठ को ताज़ा कर सकते हैं या नई रिपोर्ट सबमिट कर सकते हैं।</span>
             </p>
+            <div style="display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2);">
+                <button onclick="window.location.reload()" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+                    <span class="loc-en">Retry Analysis Check</span>
+                    <span class="loc-hi">पुनः प्रयास करें</span>
+                </button>
+                <a href="/submit/" class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+                    <span class="loc-en">Submit New Report</span>
+                    <span class="loc-hi">नई रिपोर्ट सबमिट करें</span>
+                </a>
+            </div>
         </div>`;
         container.style.display = 'block';
     }
