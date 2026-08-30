@@ -92,9 +92,17 @@ function highlightNav() {
     const homeLink = document.getElementById('nav-link-home');
     const submitLink = document.getElementById('nav-link-submit');
     const trackLink = document.getElementById('nav-link-track');
+    const profileLink = document.getElementById('nav-link-profile');
+    const loginLink = document.getElementById('nav-link-login');
+    const accountLink = document.getElementById('nav-link-account');
     
     if (path === '/submit/') {
         if (submitLink) submitLink.classList.add('active');
+    } else if (path === '/profile/') {
+        if (profileLink) profileLink.classList.add('active');
+        if (accountLink) accountLink.classList.add('active');
+    } else if (path === '/citizen/login/' || path === '/citizen/register/') {
+        if (loginLink) loginLink.classList.add('active');
     } else if (hash === '#track' || path.startsWith('/report/')) {
         if (trackLink) trackLink.classList.add('active');
     } else if (path === '/' || path === '') {

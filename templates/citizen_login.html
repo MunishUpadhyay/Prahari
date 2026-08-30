@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Prahari — Citizen Log In{% endblock %}
+
+{% block content %}
+<main style="flex: 1; max-width: 440px; width: 100%; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left;">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
+            <span class="section-eyebrow" style="color: var(--accent-teal);">Citizen Portal</span>
+            <h2 class="section-title loc-en" style="color: var(--deep-navy);">Citizen Log In</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">नागरिक लॉगिन</h2>
+            <p class="metadata-text loc-en" style="margin: 0;">Log in to access your saved reports history.</p>
+            <p class="metadata-text loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">अपने सहेजे गए रिपोर्ट इतिहास को देखने के लिए लॉगिन करें।</p>
+        </div>
+
+        {% if error %}
+            <div class="form-error-label" style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-inner); font-weight: 600; font-size: 0.88rem; background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); color: var(--critical);">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'citizen_login' %}" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label loc-en" for="email">Email Address</label>
+                <label class="form-label loc-hi" lang="hi" for="email">ईमेल पता</label>
+                <input type="email" name="email" id="email" class="form-control" required placeholder="you@example.com" style="height: 44px; border-radius: var(--radius-inner);">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label loc-en" for="password">Password</label>
+                <label class="form-label loc-hi" lang="hi" for="password">पासवर्ड</label>
+                <input type="password" name="password" id="password" class="form-control" required placeholder="••••••••" style="height: 44px; border-radius: var(--radius-inner);">
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; height: 46px; font-weight: 700; border-radius: var(--radius-inner);">
+                <span class="loc-en">Log In</span>
+                <span class="loc-hi" lang="hi">लॉगिन करें</span>
+            </button>
+        </form>
+
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3); font-size: 0.88rem; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
+            <div>
+                <span class="loc-en">Don't have an account?</span>
+                <span class="loc-hi" lang="hi">खाता नहीं है?</span>
+                <a href="{% url 'citizen_register' %}" style="color: var(--accent-teal); font-weight: 600; text-decoration: underline;">
+                    <span class="loc-en">Register</span>
+                    <span class="loc-hi" lang="hi">पंजीकरण करें</span>
+                </a>
+            </div>
+            <div>
+                <a href="/" style="color: var(--text-muted); text-decoration: none;">
+                    <span class="loc-en">&larr; Continue without an account</span>
+                    <span class="loc-hi" lang="hi">&larr; बिना खाता बनाए जारी रखें</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

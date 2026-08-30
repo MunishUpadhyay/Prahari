@@ -224,7 +224,7 @@ def test_incident_resolved_dashboard_audit(client):
     )
 
     from django.contrib.auth.models import User
-    user = User.objects.create_user(username="coordinator_alice", password="password")
+    user = User.objects.create_user(username="coordinator_alice", password="password", is_staff=True)
     client.force_login(user)
 
     # Post to dashboard resolve URL

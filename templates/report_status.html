@@ -11,6 +11,7 @@
 
 {% block content %}
 <main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
+    {% if verified %}
     <!-- Private Key banner if anonymous (Improvement A) -->
     {% if anonymous_access_code %}
     <div class="surface-card" style="border-color: rgba(22, 140, 140, 0.2); padding: var(--space-4) var(--space-5); margin-bottom: 0.5rem;">
@@ -207,6 +208,69 @@
             </button>
         </div>
     </div>
+    {% else %}
+    <!-- Verification Code Required Form Card -->
+    <div id="verification-card" class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); max-width: 480px; margin: 2rem auto; text-align: left; width: 100%;">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
+            <span class="section-eyebrow" style="color: var(--critical);">Confidential Access</span>
+            <h2 class="section-title loc-en">Verification Required</h2>
+            <h2 class="section-title loc-hi" lang="hi">सत्यापन आवश्यक है</h2>
+            <p class="metadata-text loc-en" style="margin: 0;">This report is anonymous and secure. Please enter the 6-character Private Return Key to access it.</p>
+            <p class="metadata-text loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">यह रिपोर्ट गोपनीय है। इसे देखने के लिए 6-अक्षरों की निजी रिटर्न कुंजी दर्ज करें।</p>
+        </div>
+
+        <form id="verification-form" onsubmit="submitVerification(event)" style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <div class="form-group">
+                <label class="form-label loc-en" for="verification-code-input">Private Return Key</label>
+                <label class="form-label loc-hi" lang="hi" for="verification-code-input">निजी रिटर्न कुंजी</label>
+                <input type="text" id="verification-code-input" class="form-control" placeholder="e.g. 3B9X7A" required style="height: 44px; border-radius: var(--radius-inner); font-family: monospace; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;" />
+                <div id="verification-error" style="display: none; color: var(--critical); font-size: 0.85rem; font-weight: 600; margin-top: 6px;"></div>
+            </div>
+            <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; border-radius: var(--radius-inner);">
+                <span class="loc-en">Verify & Access</span>
+                <span class="loc-hi" lang="hi">सत्यापित करें और देखें</span>
+            </button>
+        </form>
+    </div>
+    <script>
+    async function submitVerification(event) {
+        event.preventDefault();
+        const input = document.getElementById('verification-code-input');
+        const errDiv = document.getElementById('verification-error');
+        if (!input || !errDiv) return;
+
+        const code = input.value.trim().toUpperCase();
+        errDiv.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/signals/{{ signal_id }}/verify-code/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ code: code })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.valid) {
+                    window.location.reload();
+                } else {
+                    errDiv.style.display = 'block';
+                    const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
+                    errDiv.textContent = isHindi ? 'अमान्य रिटर्न कुंजी। कृपया पुनः प्रयास करें।' : 'Invalid Return Key. Please try again.';
+                }
+            } else {
+                errDiv.style.display = 'block';
+                errDiv.textContent = 'Server error. Please try again later. / सर्वर त्रुटि। बाद में प्रयास करें।';
+            }
+        } catch (e) {
+            errDiv.style.display = 'block';
+            errDiv.textContent = 'Connection failed. / कनेक्शन विफल।';
+        }
+    }
+    </script>
+    {% endif %}
 </main>
 {% endblock %}
 

@@ -18,6 +18,15 @@ from apps.signals.citizen_views import (
     citizen_report_status,
     citizen_signal_status_api,
 )
+from apps.signals.citizen_auth_views import (
+    citizen_register,
+    citizen_login,
+    citizen_logout_view,
+)
+from apps.signals.profile_views import (
+    citizen_profile,
+    link_existing_report,
+)
 from apps.incidents.coordinator_views import (
     coordinator_login,
     coordinator_logout,
@@ -33,6 +42,11 @@ urlpatterns = [
     path("submit/", citizen_submit, name="citizen_submit"),
     path("report/<str:signal_id>/", citizen_report_status, name="citizen_report_status"),
     path("report/<str:signal_id>/status/", citizen_signal_status_api, name="citizen_signal_status_api"),
+    path("citizen/register/", citizen_register, name="citizen_register"),
+    path("citizen/login/", citizen_login, name="citizen_login"),
+    path("citizen/logout/", citizen_logout_view, name="citizen_logout"),
+    path("profile/", citizen_profile, name="citizen_profile"),
+    path("profile/link/", link_existing_report, name="link_existing_report"),
 
     # Coordinator Portal
     path("login/", coordinator_login, name="login"),

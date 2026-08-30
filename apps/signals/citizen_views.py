@@ -85,6 +85,11 @@ def citizen_submit(request):
             if contact_number:
                 metadata["contact_number"] = contact_number
 
+        # Resolve user if logged in and NOT submitting anonymously
+        sig_user = None
+        if request.user.is_authenticated and not request.user.is_staff and not anonymous:
+            sig_user = request.user
+
         # Create Signal directly in DB
         signal = Signal.objects.create(
             tenant=tenant,
@@ -92,7 +97,8 @@ def citizen_submit(request):
             source_type="text",
             contact_number=contact_number,
             preferred_language=preferred_language,
-            metadata=metadata
+            metadata=metadata,
+            user=sig_user
         )
 
         if anonymous:
@@ -147,6 +153,15 @@ def citizen_report_status(request, signal_id):
     # Check if this signal is anonymous
     is_anonymous = signal.metadata and 'anonymous_code' in signal.metadata
     
+    # Enforce access authorization
+    verified = True
+    if signal.user is not None:
+        if not request.user.is_authenticated or (request.user != signal.user and not request.user.is_staff):
+            raise Http404("Report not found")
+    else:
+        # Anonymous report: check session verification
+        verified = bool(request.session.get(f"verified_{signal.id}"))
+    
     # Retrieve raw code from session if it was just set during redirect
     session_key = f"anon_code_{signal.id}"
     raw_code = request.session.pop(session_key, None)
@@ -158,6 +173,7 @@ def citizen_report_status(request, signal_id):
         "preferred_language": signal.preferred_language or "hindi",
         "is_anonymous": is_anonymous,
         "anonymous_access_code": raw_code,
+        "verified": verified,
     })
 
 
@@ -168,14 +184,19 @@ def citizen_signal_status_api(request, signal_id):
     """
     signal = resolve_signal(signal_id)
     
-    # Enforce access code verification backend check for anonymous signals
-    stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
-    if stored_hash:
-        if not request.session.get(f"verified_{signal.id}"):
-            return JsonResponse({
-                "status": "unauthorized",
-                "message": "Anonymous access code verification required."
-            }, status=403)
+    # Enforce access checks
+    if signal.user is not None:
+        if not request.user.is_authenticated or (request.user != signal.user and not request.user.is_staff):
+            return JsonResponse({"status": "unauthorized", "message": "Access denied."}, status=403)
+    else:
+        # Anonymous: check code verification
+        stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
+        if stored_hash:
+            if not request.session.get(f"verified_{signal.id}"):
+                return JsonResponse({
+                    "status": "unauthorized",
+                    "message": "Anonymous access code verification required."
+                }, status=403)
     
     # Stuck pipeline check: if signal.status in ['processing', 'classified']
     from django.utils import timezone

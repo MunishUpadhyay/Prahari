@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Prahari — My Account & Report History{% endblock %}
+
+{% block content %}
+<main style="flex: 1; max-width: 960px; width: 100%; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-5);">
+    
+    <!-- Messages Alert box -->
+    {% if messages %}
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        {% for message in messages %}
+        <div style="padding: var(--space-3) var(--space-4); border-radius: var(--radius-inner); font-weight: 600; font-size: 0.9rem; 
+            {% if message.tags == 'success' %}
+                background: rgba(22, 140, 140, 0.05); border: 1px solid var(--accent-teal); color: var(--accent-teal);
+            {% else %}
+                background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); color: var(--critical);
+            {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upper Section: User Details & Link card side-by-side -->
+    <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: stretch; text-align: left;">
+        
+        <!-- User Account card -->
+        <div class="surface-card" style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-4);">
+            <div>
+                <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: var(--space-3);">
+                    <span class="section-eyebrow" style="color: var(--accent-teal);">Account Details</span>
+                    <h2 class="section-title loc-en" style="font-size: 1.3rem; margin: 4px 0 0 0; color: var(--deep-navy);">My Account</h2>
+                    <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.3rem; margin: 4px 0 0 0; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">मेरा खाता</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.95rem; color: var(--text-primary);">
+                    <div><strong>Email:</strong> {{ user.email }}</div>
+                    <div><strong>Created:</strong> {{ user.date_joined|date:"F d, Y" }}</div>
+                </div>
+            </div>
+            <div style="margin-top: var(--space-4);">
+                <a href="{% url 'citizen_logout' %}" class="btn-secondary" style="height: 38px; border-radius: var(--radius-inner); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; border-color: var(--border-default); color: var(--text-secondary); width: 100%;">
+                    <span class="loc-en">Sign Out</span>
+                    <span class="loc-hi" lang="hi">लॉगआउट</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Link Report card -->
+        <div class="surface-card" style="flex: 1.5; min-width: 300px; padding: var(--space-4);">
+            <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: var(--space-3);">
+                <span class="section-eyebrow" style="color: var(--accent-teal);">Report Association</span>
+                <h2 class="section-title loc-en" style="font-size: 1.3rem; margin: 4px 0 0 0; color: var(--deep-navy);">Link an Existing Report</h2>
+                <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.3rem; margin: 4px 0 0 0; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">पिछली रिपोर्ट लिंक करें</h2>
+            </div>
+            
+            <form method="POST" action="{% url 'link_existing_report' %}" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                {% csrf_token %}
+                <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 180px;">
+                        <label class="form-label loc-en" for="tracking_id">Report Tracking ID</label>
+                        <label class="form-label loc-hi" lang="hi" for="tracking_id">रिपोर्ट ट्रैकिंग आईडी</label>
+                        <input type="text" name="tracking_id" id="tracking_id" class="form-control" placeholder="e.g. PRAH-20260831-ABCD" required style="height: 40px; border-radius: var(--radius-inner);">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 180px;">
+                        <label class="form-label loc-en" for="return_key">Private Return Key</label>
+                        <label class="form-label loc-hi" lang="hi" for="return_key">निजी रिटर्न कुंजी</label>
+                        <input type="text" name="return_key" id="return_key" class="form-control" placeholder="6-character key" required style="height: 40px; border-radius: var(--radius-inner);">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="height: 40px; font-weight: 700; border-radius: var(--radius-inner); align-self: flex-start; min-width: 160px; margin-top: 4px;">
+                    <span class="loc-en">Link Report</span>
+                    <span class="loc-hi" lang="hi">रिपोर्ट लिंक करें</span>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Lower Section: Reports list table -->
+    <div class="surface-card" style="padding: var(--space-4); text-align: left;">
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: var(--space-3);">
+            <span class="section-eyebrow" style="color: var(--accent-teal);">History</span>
+            <h2 class="section-title loc-en" style="font-size: 1.4rem; margin: 4px 0 0 0; color: var(--deep-navy);">My Reports</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.4rem; margin: 4px 0 0 0; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">मेरी रिपोर्ट सूची</h2>
+        </div>
+
+        {% if reports %}
+        <div style="overflow-x: auto; width: 100%;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-default); color: var(--text-secondary); font-weight: bold;">
+                        <th style="padding: 12px 8px;">
+                            <span class="loc-en">Report ID</span>
+                            <span class="loc-hi">रिपोर्ट आईडी</span>
+                        </th>
+                        <th style="padding: 12px 8px;">
+                            <span class="loc-en">Date Submitted</span>
+                            <span class="loc-hi">जमा तिथि</span>
+                        </th>
+                        <th style="padding: 12px 8px;">
+                            <span class="loc-en">Domain</span>
+                            <span class="loc-hi">घटना क्षेत्र</span>
+                        </th>
+                        <th style="padding: 12px 8px;">
+                            <span class="loc-en">Status</span>
+                            <span class="loc-hi">स्थिति</span>
+                        </th>
+                        <th style="padding: 12px 8px; text-align: right;">
+                            <span class="loc-en">Actions</span>
+                            <span class="loc-hi">कार्रवाई</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rep in reports %}
+                    <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-surface-raised)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 12px 8px; font-weight: bold; color: var(--deep-navy);">{{ rep.tracking_id }}</td>
+                        <td style="padding: 12px 8px; color: var(--text-secondary);">{{ rep.created_at|date:"M d, Y" }}</td>
+                        <td style="padding: 12px 8px;">
+                            <span class="badge" style="background: var(--bg-surface-raised); color: var(--deep-navy); font-size: 0.72rem; padding: 3px 6px; border: 1px solid var(--border-default); border-radius: 4px; font-weight: bold;">
+                                {{ rep.domain|upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <span class="badge" style="background: {% if rep.status == 'processed' %}rgba(22, 140, 140, 0.1){% else %}rgba(197, 138, 34, 0.1){% endif %}; color: {% if rep.status == 'processed' %}var(--accent-teal){% else %}var(--caution){% endif %}; font-size: 0.72rem; padding: 3px 6px; border-radius: 4px; font-weight: bold;">
+                                {{ rep.status|upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 8px; text-align: right;">
+                            <a href="/report/{{ rep.tracking_id }}/" class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem; text-decoration: none; border-radius: var(--radius-inner); display: inline-flex; align-items: center; justify-content: center; height: 28px;">
+                                <span class="loc-en">View Report</span>
+                                <span class="loc-hi">रिपोर्ट देखें</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: var(--space-5); text-align: center; color: var(--text-muted);">
+            <span class="loc-en">You haven't linked or submitted any reports yet.</span>
+            <span class="loc-hi" lang="hi">आपने अभी तक कोई रिपोर्ट लिंक या सबमिट नहीं की है।</span>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+{% endblock %}

@@ -78,6 +78,17 @@
                     <span class="body-text" style="font-size: 0.95rem; font-weight: 500;">Submit Anonymously / गुमनाम रूप से जमा करें</span>
                 </div>
                 
+                <!-- Account ownership message -->
+                <div id="ownership_message" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1);">
+                    {% if request.user.is_authenticated %}
+                        <span class="loc-en" style="color: var(--accent-teal); font-weight: 600;">✓ This report will be saved to your account and visible in My Reports.</span>
+                        <span class="loc-hi" lang="hi" style="color: var(--accent-teal); font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">✓ यह रिपोर्ट आपके खाते में सहेजी जाएगी और मेरी रिपोर्ट सूची में दिखाई देगी।</span>
+                    {% else %}
+                        <span class="loc-en">Creating an account is optional. You can register/login later to link your reports.</span>
+                        <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">खाता बनाना वैकल्पिक है। अपनी रिपोर्ट लिंक करने के लिए आप बाद में पंजीकरण/लॉगिन कर सकते हैं।</span>
+                    {% endif %}
+                </div>
+                
                 <!-- Anonymous description -->
                 <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1);">
                     <span class="loc-en">Your identity will not be recorded. You will receive a Private Return Key to access your report later.</span>
@@ -241,6 +252,7 @@
             const anonToggle = document.getElementById('anonymous_toggle');
             const contactGroup = document.getElementById('contact_number_group');
             const anonMessage = document.getElementById('anonymous_message');
+            const ownershipMessage = document.getElementById('ownership_message');
             const anonWarning = document.getElementById('anonymous_warning');
             const contactInput = document.getElementById('contact_number');
 
@@ -258,6 +270,7 @@
                         contactGroup.style.pointerEvents = 'none';
                         if (contactInput) contactInput.value = '';
                         anonMessage.style.display = 'block';
+                        if (ownershipMessage) ownershipMessage.style.display = 'none';
                         if (anonWarning) anonWarning.style.display = 'block';
                     } else {
                         contactGroup.style.maxHeight = '200px';
@@ -265,6 +278,7 @@
                         contactGroup.style.marginTop = 'var(--space-2)';
                         contactGroup.style.pointerEvents = 'auto';
                         anonMessage.style.display = 'none';
+                        if (ownershipMessage) ownershipMessage.style.display = 'block';
                         if (anonWarning) anonWarning.style.display = 'none';
                     }
                 });

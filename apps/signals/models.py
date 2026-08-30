@@ -35,6 +35,14 @@ class Signal(models.Model):
         on_delete=models.CASCADE,
         related_name="signals",
     )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="signals",
+        help_text="The citizen account that owns this signal report."
+    )
     raw_text = models.TextField(
         blank=True,
         help_text="Raw text content of the signal.",

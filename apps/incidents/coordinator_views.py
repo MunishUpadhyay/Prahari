@@ -52,6 +52,8 @@ def coordinator_dashboard(request):
     GET /coordinator/dashboard/
     Renders the live incidents dashboard (login protected).
     """
+    if not request.user.is_staff:
+        return redirect("/")
     from apps.tenants.utils import get_authorized_tenant
     tenant = get_authorized_tenant(request)
     today = timezone.now().date()
@@ -143,6 +145,8 @@ def coordinator_incident_detail(request, incident_id):
     GET /coordinator/incident/<id>/
     Renders detailed tabbed view of a single incident.
     """
+    if not request.user.is_staff:
+        return redirect("/")
     from apps.tenants.utils import get_authorized_tenant
     tenant = get_authorized_tenant(request)
     incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant).select_related("signal"), id=incident_id)
@@ -233,6 +237,8 @@ def coordinator_resolve_incident(request, incident_id):
     POST /coordinator/incident/<id>/resolve/
     Marks the incident as resolved.
     """
+    if not request.user.is_staff:
+        return JsonResponse({"status": "error", "message": "Access denied."}, status=403)
     if request.method == "POST":
         from apps.tenants.utils import get_authorized_tenant
         tenant = get_authorized_tenant(request)
