@@ -113,19 +113,26 @@ def citizen_submit(request):
             request.session[f"anon_code_{signal.id}"] = code
             request.session[f"verified_{signal.id}"] = True
 
-        logger.info("[Citizen Portal] Created signal %s, enqueuing Celery task", signal.id)
-        
-        # Enqueue the processing task (with synchronous fallback if Redis is down)
+        # Enqueue the processing task
         try:
             ingest_signal.delay(str(signal.id))
         except Exception as e:
-            logger.warning("[Citizen Portal] Celery enqueue failed: %s. Invoking synchronously.", e)
-            try:
-                from config.celery import app as celery_app
-                celery_app.conf.task_always_eager = True
-                ingest_signal(str(signal.id))
-            except Exception as sync_exc:
-                logger.error("[Citizen Portal] Synchronous processing failed: %s", sync_exc)
+            logger.error("[Citizen Portal] Celery enqueue failed for signal %s: %s", signal.id, e)
+            if getattr(settings, "DEBUG", False):
+                # Development fallback: Execute synchronously only in local DEBUG mode
+                try:
+                    from config.celery import app as celery_app
+                    celery_app.conf.task_always_eager = True
+                    ingest_signal(str(signal.id))
+                except Exception as sync_exc:
+                    logger.error("[Citizen Portal] Synchronous development processing failed: %s", sync_exc)
+            else:
+                # Production mode: Record clean failure state without mutating global celery config or blocking HTTP thread
+                signal.status = 'failed'
+                if not isinstance(signal.metadata, dict):
+                    signal.metadata = {}
+                signal.metadata['error'] = 'Processing service temporarily unavailable. Please retry later.'
+                signal.save(update_fields=['status', 'metadata'])
 
         # Redirect using the user-friendly tracking ID format
         date_str = signal.created_at.strftime("%Y%m%d")
@@ -311,10 +318,7 @@ def citizen_signal_status_api(request, signal_id):
                 "contact_number": signal.metadata.get("contact_number", ""),
                 "coordinator_status": incident.coordinator_status,
                 "coordinator_notes": incident.coordinator_notes,
-                "timing": outputs.get("timing", {}),
-                "language_outputs": outputs.get("language", {}),
-                "preferred_language": signal.preferred_language,
-                "agent_outputs": outputs
+                "preferred_language": signal.preferred_language
             }
 
     # Signal status mapper
@@ -330,7 +334,23 @@ def citizen_signal_status_api(request, signal_id):
         "steps": steps,
         "result": result,
         "preferred_language": signal.preferred_language,
-        "agent_outputs": incident.agent_outputs if incident else {},
-        "coordination": incident.agent_outputs.get("coordination", {}) if incident and incident.agent_outputs else {},
-        "language": incident.agent_outputs.get("language", {}) if incident and incident.agent_outputs else {},
     })
+
+
+def health_check(request):
+    """
+    GET /health/ or /api/health/
+    Lightweight health check endpoint for production orchestrators.
+    """
+    from django.db import connection
+    db_ok = True
+    try:
+        connection.ensure_connection()
+    except Exception:
+        db_ok = False
+
+    status_code = 200 if db_ok else 503
+    return JsonResponse({
+        "status": "healthy" if db_ok else "unhealthy",
+        "database": "connected" if db_ok else "disconnected",
+    }, status=status_code)

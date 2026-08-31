@@ -17,6 +17,7 @@ from apps.signals.citizen_views import (
     citizen_submit,
     citizen_report_status,
     citizen_signal_status_api,
+    health_check,
 )
 from apps.signals.citizen_auth_views import (
     citizen_register,
@@ -37,6 +38,10 @@ from apps.incidents.coordinator_views import (
 from apps.signals.utils import rate_limit_ip
 
 urlpatterns = [
+    # Health check endpoints for production orchestrators
+    path("health/", health_check, name="health_check"),
+    path("api/health/", health_check, name="api_health_check"),
+
     # Citizen Portal
     path("", citizen_home, name="citizen_home"),
     path("submit/", citizen_submit, name="citizen_submit"),

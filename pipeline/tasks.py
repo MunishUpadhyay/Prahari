@@ -80,12 +80,12 @@ def handle_incident_task_failure(incident_id: str, exc: Exception):
 # 1. Ingest
 # ---------------------------------------------------------------------------
 
-@shared_task(name="pipeline.ingest_signal")
-def ingest_signal(signal_id: str):
+@shared_task(bind=True, max_retries=3, default_retry_delay=2, name="pipeline.ingest_signal")
+def ingest_signal(self, signal_id: str):
     """
     Step 1 — Entry point for the processing pipeline.
     """
-    logger.info("[ingest_signal] Processing signal_id=%s", signal_id)
+    logger.info("[Pipeline: %s] [ingest_signal] Processing signal", signal_id)
     from apps.signals.models import Signal
     try:
         signal = Signal.objects.get(id=signal_id)
@@ -93,20 +93,26 @@ def ingest_signal(signal_id: str):
         signal.save(update_fields=['status'])
         return classify_domain.delay(signal_id)
     except Exception as exc:
-        handle_task_failure(signal_id, exc)
-        raise exc
+        retries_exhausted = self.request.retries >= self.max_retries
+        if is_retryable_exception(exc) and not retries_exhausted:
+            logger.warning("[Pipeline: %s] [ingest_signal] Retryable error: %s. Retrying attempt %d/%d...", 
+                           signal_id, exc, self.request.retries + 1, self.max_retries)
+            raise self.retry(exc=exc, countdown=2 * (2 ** self.request.retries))
+        else:
+            handle_task_failure(signal_id, exc)
+            raise exc
 
 
 # ---------------------------------------------------------------------------
 # 2. Classify
 # ---------------------------------------------------------------------------
 
-@shared_task(name="pipeline.classify_domain")
-def classify_domain(signal_id: str):
+@shared_task(bind=True, max_retries=3, default_retry_delay=5, name="pipeline.classify_domain")
+def classify_domain(self, signal_id: str):
     """
     Step 2 — Domain classification.
     """
-    logger.info("[classify_domain] Classifying signal_id=%s", signal_id)
+    logger.info("[Pipeline: %s] [classify_domain] Classifying signal", signal_id)
     from apps.signals.models import Signal
     from apps.agents.agents import SentinelAgent
     
@@ -115,7 +121,7 @@ def classify_domain(signal_id: str):
         
         # Idempotency check: if already classified, skip running SentinelAgent again
         if signal.domain and signal.status in ['classified', 'processed']:
-            logger.info("[classify_domain] Signal %s already classified (domain=%s). Resuming chain.", signal_id, signal.domain)
+            logger.info("[Pipeline: %s] [classify_domain] Signal already classified (domain=%s). Resuming chain.", signal_id, signal.domain)
             sentinel_result = {
                 'domain': signal.domain,
                 'requires_immediate_action': True,
@@ -147,8 +153,15 @@ def classify_domain(signal_id: str):
         
         return route_to_agents.delay(signal_id, result)
     except Exception as exc:
-        handle_task_failure(signal_id, exc)
-        raise exc
+        retries_exhausted = self.request.retries >= self.max_retries
+        if is_retryable_exception(exc) and not retries_exhausted:
+            logger.warning("[Pipeline: %s] [classify_domain] Retryable error: %s. Retrying attempt %d/%d...", 
+                           signal_id, exc, self.request.retries + 1, self.max_retries)
+            raise self.retry(exc=exc, countdown=5 * (2 ** self.request.retries))
+        else:
+            logger.error("[Pipeline: %s] [classify_domain] Terminal failure or retries exhausted for signal: %s", signal_id, exc)
+            handle_task_failure(signal_id, exc)
+            raise exc
 
 
 # ---------------------------------------------------------------------------
@@ -720,3 +733,41 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
             logger.error("[push_to_websocket] Non-retryable error encountered or retries exhausted.")
             handle_incident_task_failure(incident_id, exc)
             raise exc
+
+
+# ---------------------------------------------------------------------------
+# 6. Periodic Maintenance & Cleanup
+# ---------------------------------------------------------------------------
+
+@shared_task(name="pipeline.cleanup_stale_signals")
+def cleanup_stale_signals(timeout_minutes: int = 15):
+    """
+    Periodic maintenance task to clean up signals stuck in 'processing' or 'classified'
+    state for longer than `timeout_minutes` without recent updates.
+    """
+    from datetime import timedelta
+    from django.utils import timezone
+    from apps.signals.models import Signal
+    
+    threshold = timezone.now() - timedelta(minutes=timeout_minutes)
+    stuck_signals = Signal.objects.filter(
+        status__in=['pending', 'processing', 'classified'],
+        created_at__lt=threshold
+    )
+    
+    cleaned_count = 0
+    for signal in stuck_signals:
+        incident = getattr(signal, "incident", None)
+        # Check if there is an active incident that was updated recently
+        if incident and incident.updated_at and incident.updated_at >= threshold:
+            continue
+        
+        signal.status = 'failed'
+        if not isinstance(signal.metadata, dict):
+            signal.metadata = {}
+        signal.metadata['error'] = 'Pipeline processing timed out'
+        signal.save(update_fields=['status', 'metadata'])
+        logger.info("[Pipeline: %s] [cleanup] Stale signal marked as failed due to inactivity.", signal.id)
+        cleaned_count += 1
+        
+    return cleaned_count

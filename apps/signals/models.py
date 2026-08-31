@@ -117,6 +117,7 @@ class Signal(models.Model):
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["domain"]),
+            models.Index(fields=["user", "-created_at"]),
         ]
 
     def __str__(self):

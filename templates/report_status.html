@@ -1941,7 +1941,7 @@ function extractRemedy(relevance) {
 // Close Return Key Session and Go Home (Improvement C)
 async function closeSessionAndGoHome() {
     try {
-        await fetch('/api/session/close/', {
+        await fetch(`/api/signals/${signalId}/close-session/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',

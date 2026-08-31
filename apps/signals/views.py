@@ -66,33 +66,66 @@ from .models import Signal
 
 from .citizen_views import resolve_signal
 
-@method_decorator(rate_limit_ip(limit=5, period=60, key_prefix="verify"), name="dispatch")
+from django.core.cache import cache
+
+@method_decorator(rate_limit_ip(limit=10, period=60, key_prefix="verify_ip"), name="dispatch")
 class SignalVerifyCodeView(APIView):
     """
     POST /api/signals/<signal_id>/verify-code/
     Body: {"code": "XK7P2M"}
-    Response: {"valid": true} or {"valid": false}
+    Response: {"valid": true} or {"valid": false, "locked": bool, "message": str}
     """
     authentication_classes = [SessionAuthentication]
     permission_classes = []  # Public endpoint
 
     def post(self, request, signal_id):
         signal = resolve_signal(signal_id)
+        
+        lock_key = f"verify_lock_{signal.id}"
+        failed_key = f"verify_failed_attempts_{signal.id}"
+        
+        # Check if report is locked due to brute-force attempts
+        if cache.get(lock_key):
+            return Response({
+                "valid": False,
+                "locked": True,
+                "message": "Too many failed attempts. Verification for this report is locked for 15 minutes. / बहुत अधिक असफल प्रयास। यह रिपोर्ट 15 मिनट के लिए लॉक है।"
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
         code = request.data.get("code", "").strip().upper()
         
         stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
         if not stored_hash:
             # Not an anonymous signal, or code not set
-            return Response({"valid": False}, status=status.HTTP_200_OK)
+            return Response({"valid": False, "message": "Report is not an anonymous signal."}, status=status.HTTP_200_OK)
             
         # Hash the entered code
         entered_hash = hashlib.sha256(code.encode()).hexdigest()
         
         if entered_hash == stored_hash:
+            # Clear failed attempts counter upon successful verification
+            cache.delete(failed_key)
             request.session[f"verified_{signal.id}"] = True
             return Response({"valid": True}, status=status.HTTP_200_OK)
         else:
-            return Response({"valid": False}, status=status.HTTP_200_OK)
+            attempts = cache.get(failed_key, 0) + 1
+            if attempts >= 5:
+                # Lock for 15 minutes (900 seconds)
+                cache.set(lock_key, True, timeout=900)
+                cache.delete(failed_key)
+                return Response({
+                    "valid": False,
+                    "locked": True,
+                    "message": "Too many failed attempts. Verification for this report is locked for 15 minutes. / बहुत अधिक असफल प्रयास। यह रिपोर्ट 15 मिनट के लिए लॉक है।"
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            else:
+                cache.set(failed_key, attempts, timeout=900)
+                return Response({
+                    "valid": False,
+                    "locked": False,
+                    "attempts_remaining": 5 - attempts,
+                    "message": f"Invalid Return Key. {5 - attempts} attempts remaining. / अमान्य रिटर्न कुंजी। {5 - attempts} प्रयास शेष हैं।"
+                }, status=status.HTTP_200_OK)
 
 
 @method_decorator(rate_limit_ip(limit=10, period=60, key_prefix="close_session"), name="dispatch")
