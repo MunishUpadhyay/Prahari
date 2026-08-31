@@ -225,3 +225,98 @@ def test_coordinator_dashboard_isolation(client, tenant, citizen_a, coordinator)
     client.login(username=coordinator.username, password="password123")
     response = client.get("/coordinator/dashboard/")
     assert response.status_code == 200
+
+
+# --- Phase 4L.2 Report Verification & Access Lifecycle Tests ---
+
+@pytest.mark.django_db
+def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
+    client.login(username=citizen_a.username, password="password123")
+
+    # Post identified report
+    response = client.post("/submit/", {
+        "raw_text": "Identified incident report",
+        "location": "Mumbai",
+        "contact_number": "+919876543210",
+        "preferred_language": "english"
+    }, follow=True)
+
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # Must NOT ask for verification code
+    assert "Verification Required" not in content
+    # Report ID should be visible
+    assert "Report ID" in content
+
+    # Signal in DB must be owned by citizen_a
+    signal = Signal.objects.latest("created_at")
+    assert signal.user == citizen_a
+
+
+@pytest.mark.django_db
+def test_anonymous_submission_immediate_access_and_subsequent_verification(client, tenant):
+    # 1. Unauthenticated visitor submits report
+    response = client.post("/submit/", {
+        "raw_text": "Anonymous incident report",
+        "location": "Delhi",
+        "preferred_language": "hindi"
+    }, follow=True)
+
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # Report was created as anonymous
+    signal = Signal.objects.latest("created_at")
+    assert signal.user is None
+    assert "anonymous_code" in signal.metadata
+
+    # 2. Immediately after submission: Citizen receives Return Key banner and NOT blocked by verification card
+    assert "Private Return Key" in content
+    assert "Verification Required" not in content
+
+    tracking_id = f"PRAH-{signal.created_at.strftime('%Y%m%d')}-{str(signal.id)[:4].upper()}"
+
+    # 3. New browser client accesses the report without session authorization
+    fresh_client = Client()
+    resp_fresh = fresh_client.get(f"/report/{tracking_id}/")
+    assert resp_fresh.status_code == 200
+    fresh_content = resp_fresh.content.decode()
+
+    # Fresh client MUST be challenged with Verification Required
+    assert "Verification Required" in fresh_content
+
+    # 4. Status API is also blocked for unauthorized client
+    status_resp = fresh_client.get(f"/report/{tracking_id}/status/")
+    assert status_resp.status_code == 403
+
+    # 5. Entering invalid Return Key fails
+    verify_resp_invalid = fresh_client.post(
+        f"/api/signals/{signal.id}/verify-code/",
+        {"code": "WRONGK"},
+        content_type="application/json"
+    )
+    assert verify_resp_invalid.status_code == 200
+    assert verify_resp_invalid.json()["valid"] is False
+
+    # 6. We can retrieve the valid code from raw test helper for verification
+    # Signal metadata stored SHA-256; let's simulate the user having their code
+    # We test with a known code:
+    code = "7X9K2M"
+    code_hash = hashlib.sha256(code.encode()).hexdigest()
+    signal.metadata["anonymous_code"] = code_hash
+    signal.save(update_fields=["metadata"])
+
+    verify_resp_valid = fresh_client.post(
+        f"/api/signals/{signal.id}/verify-code/",
+        {"code": code},
+        content_type="application/json"
+    )
+    assert verify_resp_valid.status_code == 200
+    assert verify_resp_valid.json()["valid"] is True
+
+    # 7. Subsequent page reload on fresh_client now grants full access
+    resp_unlocked = fresh_client.get(f"/report/{tracking_id}/")
+    assert resp_unlocked.status_code == 200
+    assert "Verification Required" not in resp_unlocked.content.decode()
+

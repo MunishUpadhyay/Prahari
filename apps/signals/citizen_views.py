@@ -101,16 +101,24 @@ def citizen_submit(request):
             user=sig_user
         )
 
-        if anonymous:
+        # An unowned report is anonymous and requires a Return Key
+        is_anonymous_signal = (sig_user is None)
+
+        if is_anonymous_signal:
             import secrets
             import hashlib
             code = secrets.token_urlsafe(4)[:6].upper()
             code_hash = hashlib.sha256(code.encode()).hexdigest()
+            if not isinstance(signal.metadata, dict):
+                signal.metadata = {}
             signal.metadata['anonymous_code'] = code_hash
             signal.save(update_fields=['metadata'])
             
             # Pass code to redirect page via session
             request.session[f"anon_code_{signal.id}"] = code
+            request.session[f"verified_{signal.id}"] = True
+        else:
+            # Authenticated user submitting identified report
             request.session[f"verified_{signal.id}"] = True
 
         # Enqueue the processing task
@@ -158,12 +166,14 @@ def citizen_report_status(request, signal_id):
     tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
     
     # Check if this signal is anonymous
-    is_anonymous = signal.metadata and 'anonymous_code' in signal.metadata
+    is_anonymous = (signal.user is None)
     
     # Enforce access authorization
-    verified = True
+    verified = False
     if signal.user is not None:
-        if not request.user.is_authenticated or (request.user != signal.user and not request.user.is_staff):
+        if request.user.is_authenticated and (request.user == signal.user or request.user.is_staff):
+            verified = True
+        else:
             raise Http404("Report not found")
     else:
         # Anonymous report: check session verification
@@ -174,7 +184,7 @@ def citizen_report_status(request, signal_id):
     raw_code = request.session.pop(session_key, None)
     
     return render(request, "report_status.html", {
-        "signal_id": signal_id,
+        "signal_id": str(signal.id),
         "tracking_id": tracking_id,
         "site_url": settings.SITE_URL,
         "preferred_language": signal.preferred_language or "hindi",

@@ -319,9 +319,12 @@ def test_anonymous_submission_flow_and_session(client):
 @pytest.mark.django_db
 def test_regular_submission_flow(client):
     tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    from django.contrib.auth.models import User
+    user = User.objects.create_user(username="reg_user@example.com", email="reg_user@example.com", password="password123")
+    client.login(username="reg_user@example.com", password="password123")
     url = reverse("citizen_submit")
     
-    # POST regular submission (non-anonymous)
+    # POST regular identified submission (non-anonymous)
     response = client.post(url, {
         "raw_text": "Regular incident description",
         "location": "Test City"
@@ -334,12 +337,12 @@ def test_regular_submission_flow(client):
     from apps.signals.citizen_views import resolve_signal
     signal = resolve_signal(signal_tracking_id)
     
-    # 6. Regular submission does not create an anonymous credential
+    # 6. Regular identified submission is owned by user and does not create an anonymous credential
+    assert signal.user == user
     assert "anonymous_code" not in signal.metadata
     
-    # 7. Regular submission does not expose Return Key UI (session keys empty)
+    # 7. Regular submission does not expose Return Key UI (session anon_code empty)
     assert f"anon_code_{signal.id}" not in client.session
-    assert client.session.get(f"verified_{signal.id}") is None
 
 
 @pytest.mark.django_db

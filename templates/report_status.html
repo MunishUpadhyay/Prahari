@@ -12,17 +12,36 @@
 {% block content %}
 <main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
     {% if verified %}
-    <!-- Private Key banner if anonymous (Improvement A) -->
+    <!-- Private Return Key Presentation Banner (shown immediately upon anonymous creation) -->
     {% if anonymous_access_code %}
-    <div class="surface-card" style="border-color: rgba(22, 140, 140, 0.2); padding: var(--space-4) var(--space-5); margin-bottom: 0.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
-            <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
-                <span class="loc-en" style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-teal); font-weight: 700; display: block;">Private Return Key (Confidential)</span>
-                <span class="loc-hi" lang="hi" style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-teal); font-weight: 700; display: block;">निजी रिटर्न कुंजी (गोपनीय)</span>
-                <code id="raw-access-code" style="font-family: monospace; font-size: 1.25rem; font-weight: bold; color: var(--accent-teal); letter-spacing: 0.05em;">{{ anonymous_access_code }}</code>
+    <div id="anonymous-key-banner" class="surface-card" style="border: 2px solid var(--accent-teal); background: var(--bg-surface-raised); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-3); text-align: left;">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap;">
+                <div>
+                    <span class="section-eyebrow" style="color: var(--accent-teal); display: block; margin-bottom: 2px;">
+                        <span class="loc-en">Save Your Credentials (Confidential)</span>
+                        <span class="loc-hi" lang="hi">अपनी साख सुरक्षित करें (गोपनीय)</span>
+                    </span>
+                    <h3 class="card-title loc-en" style="margin: 0; color: var(--deep-navy);">Private Return Key Issued</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="margin: 0; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">निजी रिटर्न कुंजी जारी की गई</h3>
+                </div>
+                <button onclick="document.getElementById('anonymous-key-banner').style.display='none'" class="btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                    <span class="loc-en">Dismiss Banner ✕</span>
+                    <span class="loc-hi">छुपाएं ✕</span>
+                </button>
             </div>
-            <div>
-                <button id="copy-return-key-btn" onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-secondary" style="font-size: 0.9rem; font-weight: 700; min-width: 140px;">
+
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                <span class="loc-en"><strong>Important:</strong> Because this report is anonymous, this 6-character Return Key is shown only once. You will need your <strong>Report ID</strong> and <strong>Return Key</strong> to access this report from another device or browser.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;"><strong>महत्वपूर्ण:</strong> चूंकि यह रिपोर्ट गुमनाम है, यह 6-अक्षरों की रिटर्न कुंजी केवल एक बार दिखाई जाती है। किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट तक पहुँचने के लिए आपको अपनी <strong>रिपोर्ट आईडी</strong> और <strong>रिटर्न कुंजी</strong> की आवश्यकता होगी।</span>
+            </p>
+
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; background: var(--bg-surface); padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default);">
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Private Return Key</div>
+                    <code id="raw-access-code" style="font-family: monospace; font-size: 1.35rem; font-weight: 800; color: var(--accent-teal); letter-spacing: 0.08em;">{{ anonymous_access_code }}</code>
+                </div>
+                <button id="copy-return-key-btn" onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.5rem 1.25rem; flex-shrink: 0;">
                     <span class="loc-en">Copy Return Key</span>
                     <span class="loc-hi">रिटर्न कुंजी कॉपी करें</span>
                 </button>
@@ -210,26 +229,35 @@
     </div>
     {% else %}
     <!-- Verification Code Required Form Card -->
-    <div id="verification-card" class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); max-width: 480px; margin: 2rem auto; text-align: left; width: 100%;">
+    <div id="verification-card" class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); max-width: 480px; margin: 2.5rem auto; text-align: left; width: 100%; border: 1px solid var(--border-default);">
         <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
-            <span class="section-eyebrow" style="color: var(--critical);">Confidential Access</span>
-            <h2 class="section-title loc-en">Verification Required</h2>
-            <h2 class="section-title loc-hi" lang="hi">सत्यापन आवश्यक है</h2>
-            <p class="metadata-text loc-en" style="margin: 0;">This report is anonymous and secure. Please enter the 6-character Private Return Key to access it.</p>
-            <p class="metadata-text loc-hi" lang="hi" style="margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">यह रिपोर्ट गोपनीय है। इसे देखने के लिए 6-अक्षरों की निजी रिटर्न कुंजी दर्ज करें।</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="section-eyebrow" style="color: var(--accent-teal);">Confidential Report</span>
+                <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">{{ tracking_id }}</span>
+            </div>
+            <h2 class="section-title loc-en" style="margin: 4px 0 0 0;">Verification Required</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="margin: 4px 0 0 0; font-family: 'Noto Sans Devanagari', sans-serif;">सत्यापन आवश्यक है</h2>
+            <p class="metadata-text loc-en" style="margin-top: 4px;">This anonymous report is confidential. Please enter the 6-character Private Return Key issued when this report was created.</p>
+            <p class="metadata-text loc-hi" lang="hi" style="margin-top: 4px; font-family: 'Noto Sans Devanagari', sans-serif;">यह रिपोर्ट गोपनीय है। इस रिपोर्ट को बनाते समय जारी की गई 6-अक्षरों की निजी रिटर्न कुंजी दर्ज करें।</p>
         </div>
 
         <form id="verification-form" onsubmit="submitVerification(event)" style="display: flex; flex-direction: column; gap: var(--space-3);">
             <div class="form-group">
-                <label class="form-label loc-en" for="verification-code-input">Private Return Key</label>
-                <label class="form-label loc-hi" lang="hi" for="verification-code-input">निजी रिटर्न कुंजी</label>
-                <input type="text" id="verification-code-input" class="form-control" placeholder="e.g. 3B9X7A" required style="height: 44px; border-radius: var(--radius-inner); font-family: monospace; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;" />
-                <div id="verification-error" style="display: none; color: var(--critical); font-size: 0.85rem; font-weight: 600; margin-top: 6px;"></div>
+                <label class="form-label loc-en" for="verification-code-input" style="font-weight: 600;">Private Return Key</label>
+                <label class="form-label loc-hi" lang="hi" for="verification-code-input" style="font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">निजी रिटर्न कुंजी</label>
+                <input type="text" id="verification-code-input" class="form-control" placeholder="e.g. 3B9X7A" maxlength="6" required style="height: 48px; border-radius: var(--radius-inner); font-family: monospace; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;" />
+                <div id="verification-error" style="display: none; color: var(--critical); font-size: 0.85rem; font-weight: 600; margin-top: 6px; line-height: 1.4;"></div>
             </div>
-            <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; border-radius: var(--radius-inner);">
-                <span class="loc-en">Verify & Access</span>
-                <span class="loc-hi" lang="hi">सत्यापित करें और देखें</span>
+            <button type="submit" class="btn-primary" style="height: 46px; font-weight: 700; font-size: 1rem; border-radius: var(--radius-inner);">
+                <span class="loc-en">Verify & Access Report →</span>
+                <span class="loc-hi" lang="hi">सत्यापित करें और रिपोर्ट देखें →</span>
             </button>
+            <div style="text-align: center; margin-top: 4px;">
+                <a href="/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">
+                    <span class="loc-en">← Back to Prahari Home</span>
+                    <span class="loc-hi" lang="hi">← मुख्य पृष्ठ पर वापस जाएं</span>
+                </a>
+            </div>
         </form>
     </div>
     <script>
@@ -251,22 +279,19 @@
                 },
                 body: JSON.stringify({ code: code })
             });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.valid) {
-                    window.location.reload();
-                } else {
-                    errDiv.style.display = 'block';
-                    const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
-                    errDiv.textContent = isHindi ? 'अमान्य रिटर्न कुंजी। कृपया पुनः प्रयास करें।' : 'Invalid Return Key. Please try again.';
-                }
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && data.valid) {
+                window.location.reload();
+            } else if (response.status === 429 || data.locked) {
+                errDiv.style.display = 'block';
+                errDiv.textContent = data.message || (localStorage.getItem('prahari_lang') === 'hindi' ? 'बहुत अधिक असफल प्रयास। यह रिपोर्ट 15 मिनट के लिए लॉक है।' : 'Too many failed attempts. Verification is locked for 15 minutes.');
             } else {
                 errDiv.style.display = 'block';
-                errDiv.textContent = 'Server error. Please try again later. / सर्वर त्रुटि। बाद में प्रयास करें।';
+                errDiv.textContent = data.message || (localStorage.getItem('prahari_lang') === 'hindi' ? 'अमान्य रिटर्न कुंजी। कृपया पुनः प्रयास करें।' : 'Invalid Return Key. Please try again.');
             }
         } catch (e) {
             errDiv.style.display = 'block';
-            errDiv.textContent = 'Connection failed. / कनेक्शन विफल।';
+            errDiv.textContent = localStorage.getItem('prahari_lang') === 'hindi' ? 'कनेक्शन त्रुटि। कृपया पुनः प्रयास करें।' : 'Connection failed. Please try again.';
         }
     }
     </script>
