@@ -30,9 +30,11 @@ services:
         sync: false
       - key: ALLOWED_HOSTS
         sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
       - key: SITE_URL
         sync: false
-    healthCheckPath: /api/docs/
+    healthCheckPath: /health/
 
   # Celery worker service
   - type: worker

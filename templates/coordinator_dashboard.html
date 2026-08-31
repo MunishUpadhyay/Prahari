@@ -45,28 +45,56 @@
             </div>
         </section>
 
-        <!-- Filter Bar -->
-        <section class="filter-bar">
-            <button class="filter-btn active" onclick="applyFilter('all')">
-                <span class="loc-en">All Incidents</span>
-                <span class="loc-hi">सभी घटनाएं</span>
-            </button>
-            <button class="filter-btn" onclick="applyFilter('legal')">
-                <span class="loc-en">Legal</span>
-                <span class="loc-hi">कानूनी</span>
-            </button>
-            <button class="filter-btn" onclick="applyFilter('health')">
-                <span class="loc-en">Health</span>
-                <span class="loc-hi">स्वास्थ्य</span>
-            </button>
-            <button class="filter-btn" onclick="applyFilter('emergency')">
-                <span class="loc-en">Emergency</span>
-                <span class="loc-hi">आपातकालीन</span>
-            </button>
-            <button class="filter-btn" onclick="applyFilter('critical')">
-                <span class="loc-en">Critical Only</span>
-                <span class="loc-hi">केवल गंभीर</span>
-            </button>
+        <!-- Filter & Search Control Bar -->
+        <section class="surface-card" style="padding: var(--space-4); margin-bottom: var(--space-4); border: 1px solid var(--border-default); display: flex; flex-direction: column; gap: var(--space-3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+                <!-- Status Filter Pills -->
+                <div class="filter-bar" style="margin: 0; padding: 0; background: transparent; border: none;">
+                    <button class="filter-btn {% if not current_status_filter or current_status_filter == 'all' %}active{% endif %}" onclick="applyStatusFilter('')">
+                        <span class="loc-en">All Statuses</span>
+                        <span class="loc-hi">सभी स्थितियां</span>
+                    </button>
+                    <button class="filter-btn {% if current_status_filter == 'pending' %}active{% endif %}" onclick="applyStatusFilter('pending')">
+                        <span class="loc-en">Pending</span>
+                        <span class="loc-hi">लंबित</span>
+                    </button>
+                    <button class="filter-btn {% if current_status_filter == 'under_review' %}active{% endif %}" onclick="applyStatusFilter('under_review')">
+                        <span class="loc-en">Under Review</span>
+                        <span class="loc-hi">समीक्षाधीन</span>
+                    </button>
+                    <button class="filter-btn {% if current_status_filter == 'action_taken' %}active{% endif %}" onclick="applyStatusFilter('action_taken')">
+                        <span class="loc-en">Action Taken</span>
+                        <span class="loc-hi">कार्रवाई की गई</span>
+                    </button>
+                    <button class="filter-btn {% if current_status_filter == 'resolved' %}active{% endif %}" onclick="applyStatusFilter('resolved')">
+                        <span class="loc-en">Resolved</span>
+                        <span class="loc-hi">हल हो गया</span>
+                    </button>
+                </div>
+
+                <!-- Tracking ID / Keyword Search Bar -->
+                <form id="coordinator-search-form" method="GET" action="/coordinator/dashboard/" style="display: flex; gap: 8px; flex: 1; max-width: 400px; min-width: 260px;">
+                    {% if current_status_filter %}
+                        <input type="hidden" name="status" value="{{ current_status_filter }}">
+                    {% endif %}
+                    <input 
+                        type="text" 
+                        name="search" 
+                        id="search-input" 
+                        class="form-control" 
+                        placeholder="Search Tracking ID (e.g. PRAH-...)" 
+                        value="{{ current_search }}"
+                        style="height: 38px; font-size: 0.88rem; font-family: monospace; border-radius: var(--radius-inner); padding: 0 10px;"
+                    />
+                    <button type="submit" class="btn-primary" style="height: 38px; padding: 0 14px; font-size: 0.85rem; font-weight: 700; border-radius: var(--radius-inner); flex-shrink: 0;">
+                        <span class="loc-en">Search</span>
+                        <span class="loc-hi">खोजें</span>
+                    </button>
+                    {% if current_search %}
+                        <a href="/coordinator/dashboard/{% if current_status_filter %}?status={{ current_status_filter }}{% endif %}" class="btn-secondary" style="height: 38px; padding: 0 10px; display: inline-flex; align-items: center; font-size: 0.8rem; border-radius: var(--radius-inner); text-decoration: none;">✕ Clear</a>
+                    {% endif %}
+                </form>
+            </div>
         </section>
 
         <!-- Feed List -->
@@ -260,13 +288,14 @@
             if (pendingEl) pendingEl.textContent = pendingCount;
         }
 
-        function applyFilter(filter) {
-            activeFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-            renderFeed();
+        function applyStatusFilter(statusVal) {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (statusVal) {
+                urlParams.set('status', statusVal);
+            } else {
+                urlParams.delete('status');
+            }
+            window.location.href = `/coordinator/dashboard/?${urlParams.toString()}`;
         }
 
         // Render incident feed
@@ -277,22 +306,12 @@
             const activeLang = localStorage.getItem('prahari_lang') || 'english';
             const isHindi = activeLang === 'hindi';
 
-            // Filter incidents
             let filtered = incidents;
-            if (activeFilter === 'legal') {
-                filtered = incidents.filter(i => i.domain === 'legal' || i.domain === 'cross');
-            } else if (activeFilter === 'health') {
-                filtered = incidents.filter(i => i.domain === 'health' || i.domain === 'cross');
-            } else if (activeFilter === 'emergency') {
-                filtered = incidents.filter(i => i.domain === 'emergency');
-            } else if (activeFilter === 'critical') {
-                filtered = incidents.filter(i => i.severity_label.toLowerCase() === 'critical');
-            }
 
             if (filtered.length === 0) {
                 feed.innerHTML = `
-                    <div class="empty-feed">
-                        <span>${isHindi ? 'इस श्रेणी में कोई घटना नहीं मिली।' : 'No incidents found in this category.'}</span>
+                    <div class="empty-feed" style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-card);">
+                        <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">${isHindi ? 'इस फिल्टर / खोज में कोई घटना नहीं मिली।' : 'No incidents found matching this status or search criteria.'}</span>
                     </div>
                 `;
                 return;
@@ -301,6 +320,7 @@
             feed.innerHTML = '';
             filtered.forEach(inc => {
                 const id = inc.incident_id;
+                const trackingId = inc.tracking_id || 'PRAH-REPORT';
                 const severityLabel = inc.severity_label.toLowerCase();
                 const severityScore = inc.severity;
                 
@@ -361,6 +381,9 @@
                     <div class="severity-indicator"></div>
                     <div class="card-header">
                         <div class="title-block">
+                            <div style="font-family: monospace; font-size: 0.85rem; font-weight: 800; color: var(--accent-teal); letter-spacing: 0.04em; margin-bottom: 2px;">
+                                ${trackingId}
+                            </div>
                             <div class="incident-title-en">${titleText}</div>
                         </div>
                         <div class="badge-row">
@@ -376,10 +399,10 @@
 
                     ${actionsHTML}
 
-                    <div class="coordinator-status-control" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:0.75rem;border-top:1px solid rgba(255,255,255,0.03);padding-top:1rem;padding-left:0.5rem;margin-bottom:0.5rem;">
+                    <div class="coordinator-status-control" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:0.75rem;border-top:1px solid var(--border-subtle);padding-top:1rem;margin-bottom:0.5rem;">
                         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
                             <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">${isHindi ? 'स्थिति:' : 'STATUS:'}</label>
-                            <select onchange="updateStatus(event, '${id}')" style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.25rem .5rem;font-size:0.8rem;font-weight:600;">
+                            <select onchange="updateStatus(event, '${id}')" style="background:var(--bg-surface-raised);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-inner);padding:.35rem .65rem;font-size:0.82rem;font-weight:600;">
                                 <option value="pending" ${inc.coordinator_status === 'pending' ? 'selected' : ''}>${isHindi ? 'लंबित' : 'Pending'}</option>
                                 <option value="under_review" ${inc.coordinator_status === 'under_review' ? 'selected' : ''}>${isHindi ? 'समीक्षा के तहत' : 'Under Review'}</option>
                                 <option value="action_taken" ${inc.coordinator_status === 'action_taken' ? 'selected' : ''}>${isHindi ? 'कार्रवाई की गई' : 'Action Taken'}</option>
@@ -388,7 +411,7 @@
                         </div>
                         <div style="display:flex;flex-direction:column;gap:.35rem;">
                             <label style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">${isHindi ? 'समन्वयक की टिप्पणी:' : 'COORDINATOR NOTES:'}</label>
-                            <textarea onblur="updateNotes(event, '${id}')" placeholder="${isHindi ? 'नागरिक के लिए अपडेट नोट्स जोड़ें...' : 'Add update notes for the citizen...'}" style="background:#0f172a;color:#fff;border:1px solid var(--border-color);border-radius:6px;padding:.5rem;font-size:0.85rem;resize:vertical;min-height:60px;">${inc.coordinator_notes || ''}</textarea>
+                            <textarea onblur="updateNotes(event, '${id}')" placeholder="${isHindi ? 'नागरिक के लिए अपडेट नोट्स जोड़ें...' : 'Add update notes for the citizen...'}" style="background:var(--bg-surface-raised);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-inner);padding:.5rem;font-size:0.85rem;resize:vertical;min-height:60px;">${inc.coordinator_notes || ''}</textarea>
                         </div>
                     </div>
 

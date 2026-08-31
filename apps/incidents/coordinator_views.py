@@ -51,6 +51,7 @@ def coordinator_dashboard(request):
     """
     GET /coordinator/dashboard/
     Renders the live incidents dashboard (login protected).
+    Supports status filter (?status=pending|under_review|action_taken|resolved) and tracking ID search (?search=PRAH-...).
     """
     if not request.user.is_staff:
         return redirect("/")
@@ -66,8 +67,45 @@ def coordinator_dashboard(request):
         "pending": Incident.objects.filter(signal__tenant=tenant, created_at__date=today, is_resolved=False).count(),
     }
 
-    # Fetch last 50 incidents to populate the list on load
-    incidents = Incident.objects.filter(signal__tenant=tenant).select_related("signal").order_by("-created_at")[:50]
+    # Query filtering
+    status_filter = request.GET.get("status", "").strip().lower()
+    search_query = request.GET.get("search", "").strip()
+
+    qs = Incident.objects.filter(signal__tenant=tenant).select_related("signal")
+
+    if status_filter in ["pending", "under_review", "action_taken", "resolved"]:
+        qs = qs.filter(coordinator_status=status_filter)
+
+    if search_query:
+        if search_query.upper().startswith("PRAH-"):
+            parts = search_query.upper().split("-")
+            if len(parts) >= 3:
+                date_part = parts[1]
+                uuid_prefix = parts[2]
+                try:
+                    year = int(date_part[:4])
+                    month = int(date_part[4:6])
+                    day = int(date_part[6:8])
+                    qs = qs.filter(
+                        created_at__year=year,
+                        created_at__month=month,
+                        created_at__day=day,
+                        signal__id__istartswith=uuid_prefix.lower()
+                    )
+                except Exception:
+                    qs = qs.filter(signal__id__icontains=search_query)
+            else:
+                qs = qs.filter(signal__id__icontains=search_query)
+        else:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(id__icontains=search_query) |
+                Q(signal__id__icontains=search_query) |
+                Q(signal__raw_text__icontains=search_query)
+            )
+
+    # Fetch top 50 matching incidents
+    incidents = qs.order_by("-created_at")[:50]
 
     # Convert incidents to list of dicts for JSON representation in JS
     incidents_data = []
@@ -96,8 +134,13 @@ def coordinator_dashboard(request):
         if isinstance(lang, dict):
             title_hi = lang.get("situation_title", "")
         
+        date_str = inc.signal.created_at.strftime("%Y%m%d")
+        uuid_first_4 = str(inc.signal.id)[:4].upper()
+        tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
+
         incidents_data.append({
             "incident_id": str(inc.id),
+            "tracking_id": tracking_id,
             "severity": inc.severity_score,
             "severity_label": inc.severity_label,
             "domain": inc.domain,
@@ -113,7 +156,7 @@ def coordinator_dashboard(request):
             "signal_raw_text": inc.signal.raw_text,
         })
 
-    # Pass tenant_id to connect to correct websocket group (first active tenant is default fallback)
+    # Pass tenant_id to connect to correct websocket group
     tenant_id = str(tenant.id) if tenant else "default"
 
     # Generate last 7 days daily counts for trend visualization
@@ -135,6 +178,8 @@ def coordinator_dashboard(request):
         "tenant_id": tenant_id,
         "jwt_token": jwt_token,
         "daily_counts": daily_counts,
+        "current_status_filter": status_filter,
+        "current_search": search_query,
     }
     return render(request, "coordinator_dashboard.html", context)
 
@@ -143,7 +188,7 @@ def coordinator_dashboard(request):
 def coordinator_incident_detail(request, incident_id):
     """
     GET /coordinator/incident/<id>/
-    Renders detailed tabbed view of a single incident.
+    Renders detailed view of a single incident.
     """
     if not request.user.is_staff:
         return redirect("/")
@@ -192,7 +237,6 @@ def coordinator_incident_detail(request, incident_id):
         else:
             rights["confidence_pct"] = 90
 
-        # Calculate case_strength_pct
         case_strength = rights.get("case_strength")
         if case_strength is not None:
             try:
@@ -201,6 +245,10 @@ def coordinator_incident_detail(request, incident_id):
                 rights["case_strength_pct"] = rights["confidence_pct"]
         else:
             rights["case_strength_pct"] = rights["confidence_pct"]
+
+    date_str = incident.signal.created_at.strftime("%Y%m%d")
+    uuid_first_4 = str(incident.signal.id)[:4].upper()
+    tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
 
     # Calculate complete steps for timeline
     is_processed = incident.signal.status == 'processed'
@@ -216,8 +264,11 @@ def coordinator_incident_detail(request, incident_id):
     pref_lang = lang_full.get("preferred", incident.signal.preferred_language or "hindi")
     lang_sub = lang_full.get(pref_lang) if isinstance(lang_full, dict) else {}
 
+    audit_logs = incident.audit_logs.all().order_by("-timestamp")
+
     context = {
         "incident": incident,
+        "tracking_id": tracking_id,
         "outputs": outputs,
         "sentinel": sentinel,
         "rights": outputs.get("rights"),
@@ -227,6 +278,7 @@ def coordinator_incident_detail(request, incident_id):
         "pref_lang": pref_lang,
         "timeline": timeline,
         "timing": outputs.get("timing"),
+        "audit_logs": audit_logs,
     }
     return render(request, "coordinator_detail.html", context)
 

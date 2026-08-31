@@ -610,11 +610,15 @@
             <!-- Banner / Header -->
             <div class="detail-header">
                 <div class="title-block">
-                    <div class="loc-en" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ coordination.situation_title|default:incident.situation_brief }}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span class="section-eyebrow" style="color: var(--accent-teal); font-weight: 700;">Report ID:</span>
+                        <span style="font-family: monospace; font-size: 1.1rem; font-weight: 800; color: var(--deep-navy); letter-spacing: 0.05em;">{{ tracking_id }}</span>
+                    </div>
+                    <div class="loc-en" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--deep-navy);">{{ coordination.situation_title|default:incident.situation_brief }}</div>
                     {% if language.situation_title %}
-                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ language.situation_title }}</div>
+                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--deep-navy);">{{ language.situation_title }}</div>
                     {% else %}
-                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ coordination.situation_title|default:incident.situation_brief }}</div>
+                        <div class="loc-hi" style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--deep-navy);">{{ coordination.situation_title|default:incident.situation_brief }}</div>
                     {% endif %}
                     <div class="badge-row">
                         <span class="badge {{ incident.severity_label|lower }}">

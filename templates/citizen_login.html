@@ -29,8 +29,16 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label loc-en" for="password">Password</label>
-                <label class="form-label loc-hi" lang="hi" for="password">पासवर्ड</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <div>
+                        <label class="form-label loc-en" for="password" style="margin: 0;">Password</label>
+                        <label class="form-label loc-hi" lang="hi" for="password" style="margin: 0;">पासवर्ड</label>
+                    </div>
+                    <a href="{% url 'citizen_password_reset' %}" style="font-size: 0.8rem; color: var(--accent-teal); font-weight: 600; text-decoration: none;">
+                        <span class="loc-en">Forgot password?</span>
+                        <span class="loc-hi" lang="hi">पासवर्ड भूल गए?</span>
+                    </a>
+                </div>
                 <input type="password" name="password" id="password" class="form-control" required placeholder="••••••••" style="height: 44px; border-radius: var(--radius-inner);">
             </div>
 

@@ -320,3 +320,113 @@ def test_anonymous_submission_immediate_access_and_subsequent_verification(clien
     assert resp_unlocked.status_code == 200
     assert "Verification Required" not in resp_unlocked.content.decode()
 
+
+# --- Phase 4M.1 Password Reset & Coordinator Search/Filter Tests ---
+
+@pytest.mark.django_db
+def test_password_reset_flow_and_enumeration_safety(client, citizen_a, mailoutbox):
+    # 1. Nonexistent email request -> enumeration safe redirect to done page
+    resp_nonexistent = client.post("/citizen/password-reset/", {"email": "nonexistent@example.com"})
+    assert resp_nonexistent.status_code == 302
+    assert resp_nonexistent.url == "/citizen/password-reset/done/"
+    assert len(mailoutbox) == 0
+
+    # 2. Existing citizen email request -> enumeration safe redirect + email sent
+    resp_exist = client.post("/citizen/password-reset/", {"email": citizen_a.email})
+    assert resp_exist.status_code == 302
+    assert resp_exist.url == "/citizen/password-reset/done/"
+    assert len(mailoutbox) == 1
+    
+    email_msg = mailoutbox[0]
+    assert citizen_a.email in email_msg.to
+    assert "/citizen/password-reset-confirm/" in email_msg.body
+
+    # Extract uidb64 and token from email link
+    import re
+    match = re.search(r"/citizen/password-reset-confirm/([^/]+)/([^/]+)/", email_msg.body)
+    assert match is not None
+    uidb64, token = match.group(1), match.group(2)
+
+    # 3. GET confirm page with valid token
+    resp_confirm_get = client.get(f"/citizen/password-reset-confirm/{uidb64}/{token}/")
+    assert resp_confirm_get.status_code == 200
+    assert "Set New Password" in resp_confirm_get.content.decode()
+
+    # 4. POST new password with mismatch -> fails
+    resp_mismatch = client.post(f"/citizen/password-reset-confirm/{uidb64}/{token}/", {
+        "password": "newpassword123",
+        "confirm_password": "differentpassword"
+    })
+    assert resp_mismatch.status_code == 200
+    assert "Passwords do not match" in resp_mismatch.content.decode()
+
+    # 5. POST valid new password -> succeeds and redirects to complete page
+    resp_success = client.post(f"/citizen/password-reset-confirm/{uidb64}/{token}/", {
+        "password": "newpassword123",
+        "confirm_password": "newpassword123"
+    })
+    assert resp_success.status_code == 302
+    assert resp_success.url == "/citizen/password-reset/complete/"
+
+    # 6. Verify login with NEW password works
+    login_resp = client.post("/citizen/login/", {
+        "email": citizen_a.email,
+        "password": "newpassword123"
+    })
+    assert login_resp.status_code == 302
+    assert login_resp.url == "/profile/"
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_invalid_and_expired_tokens(client, citizen_a):
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    
+    uidb64 = urlsafe_base64_encode(force_bytes(citizen_a.pk))
+
+    # Invalid token -> displays invalid/expired error state
+    resp_invalid = client.get(f"/citizen/password-reset-confirm/{uidb64}/invalid-token-123/")
+    assert resp_invalid.status_code == 200
+    assert "invalid or has expired" in resp_invalid.content.decode()
+
+    # Invalid uidb64 -> displays invalid/expired error state
+    resp_invalid_uid = client.get("/citizen/password-reset-confirm/invaliduid/invalid-token/")
+    assert resp_invalid_uid.status_code == 200
+    assert "invalid or has expired" in resp_invalid_uid.content.decode()
+
+
+@pytest.mark.django_db
+def test_coordinator_dashboard_filtering_and_search(client, tenant, coordinator):
+    from apps.signals.models import Signal
+    from apps.incidents.models import Incident, SeverityLevel
+
+    client.login(username=coordinator.username, password="password123")
+
+    sig1 = Signal.objects.create(tenant=tenant, raw_text="First test signal")
+    inc1 = Incident.objects.create(signal=sig1, severity_score=0.9, severity_label=SeverityLevel.CRITICAL, coordinator_status="pending")
+    
+    sig2 = Signal.objects.create(tenant=tenant, raw_text="Second test signal")
+    inc2 = Incident.objects.create(signal=sig2, severity_score=0.2, severity_label=SeverityLevel.LOW, coordinator_status="resolved", is_resolved=True)
+
+    tracking_id_1 = f"PRAH-{sig1.created_at.strftime('%Y%m%d')}-{str(sig1.id)[:4].upper()}"
+
+    # 1. Filter by status=pending
+    resp_pending = client.get("/coordinator/dashboard/?status=pending")
+    assert resp_pending.status_code == 200
+    assert tracking_id_1 in resp_pending.content.decode()
+
+    # 2. Filter by status=resolved
+    resp_resolved = client.get("/coordinator/dashboard/?status=resolved")
+    assert resp_resolved.status_code == 200
+    assert tracking_id_1 not in resp_resolved.content.decode()
+
+    # 3. Search by exact Tracking ID
+    resp_search = client.get(f"/coordinator/dashboard/?search={tracking_id_1}")
+    assert resp_search.status_code == 200
+    assert tracking_id_1 in resp_search.content.decode()
+
+    # 4. Search by nonexistent Tracking ID
+    resp_empty = client.get("/coordinator/dashboard/?search=PRAH-99999999-XXXX")
+    assert resp_empty.status_code == 200
+    assert "No incidents found" in resp_empty.content.decode()
+

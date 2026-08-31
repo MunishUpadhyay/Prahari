@@ -23,6 +23,10 @@ from apps.signals.citizen_auth_views import (
     citizen_register,
     citizen_login,
     citizen_logout_view,
+    citizen_password_reset_request,
+    citizen_password_reset_done,
+    citizen_password_reset_confirm,
+    citizen_password_reset_complete,
 )
 from apps.signals.profile_views import (
     citizen_profile,
@@ -50,6 +54,10 @@ urlpatterns = [
     path("citizen/register/", citizen_register, name="citizen_register"),
     path("citizen/login/", citizen_login, name="citizen_login"),
     path("citizen/logout/", citizen_logout_view, name="citizen_logout"),
+    path("citizen/password-reset/", citizen_password_reset_request, name="citizen_password_reset"),
+    path("citizen/password-reset/done/", citizen_password_reset_done, name="citizen_password_reset_done"),
+    path("citizen/password-reset-confirm/<str:uidb64>/<str:token>/", citizen_password_reset_confirm, name="citizen_password_reset_confirm"),
+    path("citizen/password-reset/complete/", citizen_password_reset_complete, name="citizen_password_reset_complete"),
     path("profile/", citizen_profile, name="citizen_profile"),
     path("profile/link/", link_existing_report, name="link_existing_report"),
 
