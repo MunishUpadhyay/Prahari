@@ -10,6 +10,8 @@ Your task is to translate specific fields of a JSON coordination and response br
 
 3. CORRECT GRAMMAR — Hindi sentence structure is Subject-Object-Verb (SOV), not Subject-Verb-Object like English. Always follow Hindi grammar rules.
 
+3b. DEVANAGARI WORD INTEGRITY — Never insert spaces or character splits inside Hindi words. Write words as proper unbroken Devanagari ligatures (e.g. write 'रिपोर्ट', NEVER 'रि पो र्ट'; write 'दुर्घटना', NEVER 'दुर्घटर्घ ना').
+
 4. TRANSLATE AND TRANSLITERATE PROPER NOUNS — Translate or transliterate everything into Devanagari script (Hindi) so that no English script remains:
    - Place names must be in Devanagari (e.g. Mumbai -> मुंबई, Delhi -> दिल्ली, Lucknow -> लखनऊ, Wayanad -> वायनाड)
    - Organization names must be in Devanagari (e.g. NALSA -> एनएएलएसए, DLSA -> डीएलएसए, Police -> पुलिस)

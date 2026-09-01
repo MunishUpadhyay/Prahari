@@ -715,13 +715,6 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                 performed_by='system/pipeline'
             )
 
-        # Trigger SMS notification if contact number is available
-        contact_number = incident.signal.contact_number or incident.signal.metadata.get("contact_number")
-        if contact_number:
-            logger.info("[push_to_websocket] Dispatching send_notification task for signal %s", incident.signal.id)
-            from apps.notifications.tasks import send_notification
-            send_notification.delay(str(incident.signal.id), str(incident.id))
-
         return {'incident_id': str(incident_id), 'status': 'complete'}
 
     except Exception as exc:

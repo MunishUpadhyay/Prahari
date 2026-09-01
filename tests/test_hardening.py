@@ -262,3 +262,50 @@ def test_citizen_report_history_indexed_query(client, tenant, citizen):
     content = resp.content.decode()
     assert "My Reports" in content
     assert "Report 0" not in content  # Text is private, only metadata/tracking id is listed
+
+
+# ---------------------------------------------------------------------------
+# 6. Phase 4N.4 Remediation Regression Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_phone_sms_workflow_completely_removed(client, tenant):
+    # 1. GET /submit/ HTML should not contain phone input or SMS updates text
+    resp_submit_get = client.get("/submit/")
+    assert resp_submit_get.status_code == 200
+    html = resp_submit_get.content.decode()
+    assert "Identity &amp; Report Access" in html or "Identity & Report Access" in html
+    assert "Contact Number (optional, for SMS updates)" not in html
+    assert "contact_number" not in html
+    assert "so coordinators can message you" not in html
+
+    # 2. POST /submit/ ignoring any posted contact_number field
+    post_resp = client.post("/submit/", {
+        "raw_text": "Pothole hazard on main street road",
+        "location": "Central Delhi",
+        "contact_number": "+919876543210"
+    }, follow=True)
+    assert post_resp.status_code == 200
+
+    sig = Signal.objects.latest("created_at")
+    assert not hasattr(sig, "contact_number")
+    assert "contact_number" not in sig.metadata
+
+    # 3. Status API payload must not contain contact_number
+    tracking_id = f"PRAH-{sig.created_at.strftime('%Y%m%d')}-{str(sig.id)[:4].upper()}"
+    status_resp = client.get(f"/report/{tracking_id}/status/")
+    assert status_resp.status_code == 200
+    data = status_resp.json()
+    assert "contact_number" not in data
+    if data.get("result"):
+        assert "contact_number" not in data["result"]
+
+
+@pytest.mark.django_db
+def test_privacy_claims_accurate_wording(client):
+    resp = client.get("/submit/")
+    assert resp.status_code == 200
+    html = resp.content.decode()
+    assert "Submissions are encrypted in transit over HTTPS" in html
+    assert "we do not log your IP address or browser details" not in html
+

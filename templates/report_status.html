@@ -7,6 +7,12 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/prahari.css' %}">
+    <style>
+        [lang="hi"], .loc-hi {
+            letter-spacing: normal !important;
+            font-feature-settings: "kern" 1, "liga" 1, "clig" 1;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -1402,11 +1408,62 @@ function showResultUnified(result) {
         </div>`;
     }
 
+    // Domain & Category Label Resolution (No contradictory priority strings)
+    let categoryLabelEn = domain.toUpperCase();
+    let categoryLabelHi = domain.toUpperCase();
+    if (domain === 'general' || domain === 'civic' || domain === 'infrastructure') {
+        categoryLabelEn = 'CIVIC / PUBLIC HAZARD';
+        categoryLabelHi = 'नागरिक / सार्वजनिक जोखिम';
+    } else if (domain === 'emergency') {
+        categoryLabelEn = 'DISASTER / SAFETY CRISIS';
+        categoryLabelHi = 'आपदा / सुरक्षा संकट';
+    } else if (domain === 'health') {
+        categoryLabelEn = 'HEALTH / MEDICAL';
+        categoryLabelHi = 'स्वास्थ्य / चिकित्सा';
+    } else if (domain === 'legal') {
+        categoryLabelEn = 'LEGAL / RIGHTS';
+        categoryLabelHi = 'कानूनी / अधिकार';
+    } else if (domain === 'cross' || domain === 'cross_domain') {
+        categoryLabelEn = 'CROSS-DOMAIN EMERGENCY';
+        categoryLabelHi = 'क्रॉस-डोमेन आपातकाल';
+    }
+
+    const rawSev = (result.severity_label || 'medium').toLowerCase();
+    const sevLabelEn = rawSev.toUpperCase() + ' PRIORITY';
+    const sevLabelHi = (rawSev === 'critical' ? 'अत्यंत गंभीर' : rawSev === 'high' ? 'उच्च' : rawSev === 'medium' ? 'मध्यम' : 'सामान्य') + ' प्राथमिकता';
+
+    // ── 01 — CASE OVERVIEW (ID, Status, Urgency, Domain, Summary) ───────────────────
+    const statusLabelMap = {
+        'pending': { en: 'Needs Action', hi: 'कार्रवाई की आवश्यकता' },
+        'under_review': { en: 'Under Review', hi: 'समीक्षा के तहत' },
+        'action_taken': { en: 'Action Taken', hi: 'कार्रवाई की गई' },
+        'resolved': { en: 'Resolved', hi: 'हल हो गया' }
+    };
+    const statusLabels = statusLabelMap[result.status] || statusLabelMap['pending'];
+    const briefEn = result.brief_en || result.what_is_happening_en || result.situation_brief || '';
+    const briefHi = result.brief_hi || result.what_is_happening_hi || (result.language_outputs && result.language_outputs.hindi ? result.language_outputs.hindi.situation_brief : '') || briefEn;
+    
+    const notes = result.coordinator_notes || '';
+    let notesHTML = '';
+    if (notes && notes.trim() !== '') {
+        notesHTML = `
+        <div style="margin-top:0.75rem; padding:0.75rem; background: var(--bg-surface-raised); border-radius: var(--radius-inner); border-left: 4px solid var(--accent-teal); font-size:0.9rem;">
+            <div class="loc-en" style="color:var(--text-secondary);"><strong>Coordinator update:</strong> ${notes}</div>
+            <div class="loc-hi" lang="hi" style="color:var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;"><strong>समन्वयक का अपडेट:</strong> ${notes}</div>
+        </div>`;
+    }
+
     const caseOverviewHTML = `
     <section class="rs-section" aria-label="Case Overview" style="border-bottom: 2px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
         <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-3);">
-            <span class="badge" style="background: var(--bg-surface-raised); color: var(--deep-navy); font-weight: 700; border: 1px solid var(--border-default); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">${domain.toUpperCase()}</span>
-            <span class="badge" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: #fff; background: ${triageSev === 'immediate' || triageSev === 'critical' ? 'var(--critical)' : 'var(--caution)'};">${result.severity_label ? result.severity_label.toUpperCase() : 'NORMAL'} PRIORITY</span>
+            <span class="badge" style="background: var(--bg-surface-raised); color: var(--deep-navy); font-weight: 700; border: 1px solid var(--border-default); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">
+                <span class="loc-en">${categoryLabelEn}</span>
+                <span class="loc-hi" lang="hi">${categoryLabelHi}</span>
+            </span>
+            <span class="badge" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: #fff; background: ${triageSev === 'immediate' || rawSev === 'critical' ? 'var(--critical)' : 'var(--caution)'};">
+                <span class="loc-en">${sevLabelEn}</span>
+                <span class="loc-hi" lang="hi">${sevLabelHi}</span>
+            </span>
             <span class="badge" style="background: var(--accent-teal); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
                 <span class="loc-en">${statusLabels.en}</span>
                 <span class="loc-hi" lang="hi">${statusLabels.hi}</span>
@@ -1514,7 +1571,7 @@ function showResultUnified(result) {
         </section>`;
     }
 
-    // ── 04 — IMPORTANT DEADLINES / WARNINGS (Deadlines, Avoids) ───────────────────
+    // ── 04 — IMPORTANT DEADLINES / WARNINGS (Continuous Section 4) ───────────────────
     let goldenWindowHTML = '';
     if (isHealth && result.golden_window && result.golden_window.time_remaining) {
         const isImm = (result.golden_window.time_remaining || '').toLowerCase().includes('immediate');
@@ -1579,38 +1636,45 @@ function showResultUnified(result) {
         </div>`;
     }
 
-    let warningsHTML = '';
+    let warningsContentInner = '';
     if (goldenWindowHTML || priorityNoticeHTML || whatNotToDoHTML) {
-        warningsHTML = `
-        <section class="rs-section" aria-label="Deadlines and Warnings" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
-            <div class="section-header" style="margin-bottom: var(--space-3);">
-                <span class="section-label">Section 4</span>
-                <h2 class="section-title loc-en">Important Deadlines & Warnings</h2>
-                <h2 class="section-title loc-hi" lang="hi">महत्वपूर्ण समय सीमा और चेतावनियां</h2>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                ${goldenWindowHTML}
-                ${priorityNoticeHTML}
-                ${whatNotToDoHTML}
-            </div>
-        </section>`;
+        warningsContentInner = `${goldenWindowHTML}${priorityNoticeHTML}${whatNotToDoHTML}`;
+    } else {
+        warningsContentInner = `
+        <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); font-size: 0.9rem; color: var(--text-secondary); text-align: left;">
+            <span class="loc-en">✓ Standard Civic Response Window — No emergency life-safety warnings active for this incident.</span>
+            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">✓ मानक नागरिक प्रतिक्रिया समय सीमा — इस घटना के लिए कोई आपातकालीन जीवन-सुरक्षा चेतावनी सक्रिय नहीं है।</span>
+        </div>`;
     }
 
-    // ── 05 — WHO TO CONTACT (Helplines / Directories) ───────────────────
+    const warningsHTML = `
+    <section class="rs-section" aria-label="Deadlines and Warnings" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
+        <div class="section-header" style="margin-bottom: var(--space-3); text-align: left;">
+            <span class="section-label">Section 4</span>
+            <h2 class="section-title loc-en">Important Deadlines & Warnings</h2>
+            <h2 class="section-title loc-hi" lang="hi">महत्वपूर्ण समय सीमा और चेतावनियां</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            ${warningsContentInner}
+        </div>
+    </section>`;
+
+    // ── 05 — WHO TO CONTACT (Contact Routing per Domain) ───────────────────
     let helplinesHTML = '';
     const helplineButtons = [];
     
-    if (isHealth || domain === 'emergency') {
+    if (isHealth) {
         helplineButtons.push(`
             <a href="tel:108" class="emergency-card e-108" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--critical); border-radius:var(--radius-inner); background:rgba(214,69,69,0.05); text-decoration:none; color:var(--critical); text-align:left;">
                 <span style="font-weight:bold; font-size:0.95rem;">📞 108 — Ambulance</span>
-                <span style="font-size:0.75rem; color:var(--text-secondary);">Resuscitation & Transport</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">Resuscitation & Hospital Transport</span>
             </a>
         `);
+    } else if (domain === 'emergency' || isCross) {
         helplineButtons.push(`
             <a href="tel:112" class="emergency-card e-112" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
-                <span style="font-weight:bold; font-size:0.95rem;">📞 112 — National Help</span>
-                <span style="font-size:0.75rem; color:var(--text-secondary);">Police Dispatch Center</span>
+                <span style="font-weight:bold; font-size:0.95rem;">📞 112 — Emergency Help</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">Disaster & Safety Control</span>
             </a>
         `);
     } else if (isLegal) {
@@ -1632,16 +1696,24 @@ function showResultUnified(result) {
             helplineButtons.push(`
                 <a href="tel:1915" class="emergency-card" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-decoration:none; color:var(--accent-teal); text-align:left;">
                     <span style="font-weight:bold; font-size:0.95rem;">📞 1915 — Consumer Helpline</span>
-                    <span style="font-size:0.75rem; color:var(--text-secondary);">Fraud & grievance helpline</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">Grievance helpline</span>
                 </a>
             `);
         }
+    } else {
+        // Civic infrastructure / general hazard helpline
+        helplineButtons.push(`
+            <div class="emergency-card" style="display:flex; flex-direction:column; gap:4px; padding:var(--space-3); border:1px solid var(--accent-teal); border-radius:var(--radius-inner); background:rgba(22,140,140,0.05); text-align:left;">
+                <span style="font-weight:bold; font-size:0.95rem; color:var(--accent-teal);">🏛️ Civic Helpline — Municipal Public Works</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">Local Municipal Corporation Control Room</span>
+            </div>
+        `);
     }
 
     if (helplineButtons.length > 0) {
         helplinesHTML = `
         <div style="margin-bottom: var(--space-3);">
-            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; text-align: left;">Direct Hotlines</div>
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; text-align: left;">Recommended Contact Directory</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-2);">
                 ${helplineButtons.join('')}
             </div>
@@ -1649,8 +1721,8 @@ function showResultUnified(result) {
     }
 
     let authorityCardHTML = '';
-    const authorityType = result.nearest_authority_type || 'DLSA';
-    const authorityDesc = result.authority_to_contact || 'National Legal Services Authority (NALSA)';
+    const authorityType = result.nearest_authority_type || (isLegal ? 'DLSA' : 'Municipal Corporation / PWD');
+    const authorityDesc = result.authority_to_contact || (isLegal ? 'National Legal Services Authority (NALSA)' : 'Public Works Department (PWD) / Municipal Control Room');
     const titleText = result.title_en || '';
     const titleTextHi = result.title_hi || titleText || '';
     
@@ -1687,7 +1759,7 @@ function showResultUnified(result) {
         </div>
     </section>`;
 
-    // ── 06 — YOUR RIGHTS / RELEVANT PROVISIONS (Accordions) ───────────────────
+    // ── 06 — YOUR RIGHTS / RELEVANT PROVISIONS (Continuous Section 6) ───────────────────
     let rightsProvisionsHTML = '';
     if (isLegal && provisions.length > 0) {
         const accItems = provisions.map((p, idx) => {
@@ -1766,9 +1838,22 @@ function showResultUnified(result) {
                 </button>
             </div>
         </section>`;
+    } else {
+        rightsProvisionsHTML = `
+        <section class="rs-section" aria-label="Your Rights and Provisions" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
+            <div class="section-header" style="margin-bottom: var(--space-3);">
+                <span class="section-label">Section 6</span>
+                <h2 class="section-title loc-en">Your Statutory Rights & Provisions</h2>
+                <h2 class="section-title loc-hi" lang="hi">आपके वैधानिक अधिकार और प्रावधान</h2>
+            </div>
+            <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); font-size: 0.9rem; color: var(--text-secondary);">
+                <span class="loc-en">ℹ️ Statutory Rights Guidance Notice — This is a standard civic infrastructure report. No legal dispute or statutory violation proceedings are currently active.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">ℹ️ वैधानिक अधिकार मार्गदर्शन - यह एक मानक नागरिक बुनियादी ढांचा रिपोर्ट है। वर्तमान में कोई कानूनी विवाद सक्रिय नहीं है।</span>
+            </div>
+        </section>`;
     }
 
-    // ── 07 — DOCUMENTS / CHECKLIST (Local checklist, custom indicator count) ───────────────────
+    // ── 07 — DOCUMENTS / CHECKLIST (Continuous Section 7) ───────────────────
     let documentsChecklistHTML = '';
     const evidenceToCollect = result.evidence_to_collect || [];
     if (evidenceToCollect.length > 0) {
@@ -1818,25 +1903,36 @@ function showResultUnified(result) {
                 <button class="btn-secondary" onclick="clearChecklistState()" style="font-size: 0.85rem; padding: 6px 14px; cursor: pointer; border-radius: var(--radius-inner);">Clear Checklist</button>
             </div>
         </section>`;
+    } else {
+        documentsChecklistHTML = `
+        <section class="rs-section" aria-label="Evidence to Collect" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
+            <div class="section-header" style="margin-bottom: var(--space-3);">
+                <span class="section-label">Section 7</span>
+                <h2 class="section-title loc-en">Evidence & Personal Checklist</h2>
+                <h2 class="section-title loc-hi" lang="hi">आवश्यक साक्ष्य और चेकलिस्ट</h2>
+            </div>
+            <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); font-size: 0.9rem; color: var(--text-secondary);">
+                <span class="loc-en">✓ No specialized evidence collection required. Follow municipal tracking status in Section 1.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">✓ किसी विशेष साक्ष्य संग्रह की आवश्यकता नहीं है। अनुभाग 1 में नगर निगम ट्रैकिंग स्थिति का पालन करें।</span>
+            </div>
+        </section>`;
     }
 
-    // ── 08 — ADDITIONAL REFERENCES (Audit logs & system references) ───────────────────
+    // ── 08 — ADDITIONAL REFERENCES (Citizen Public Reference Record) ───────────────────
     const additionalReferencesHTML = `
     <section class="rs-section" aria-label="Additional References" style="margin-bottom: var(--space-4); text-align: left;">
         <div class="section-header" style="margin-bottom: var(--space-2);">
             <span class="section-label">Section 8</span>
-            <h2 class="section-title loc-en">Additional References & Audit Log</h2>
-            <h2 class="section-title loc-hi" lang="hi">अतिरिक्त संदर्भ और ऑडिट लॉग</h2>
+            <h2 class="section-title loc-en">Additional References & Audit Record</h2>
+            <h2 class="section-title loc-hi" lang="hi">अतिरिक्त संदर्भ और ऑडिट रिकॉर्ड</h2>
         </div>
         <div style="background: var(--bg-surface-raised); padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default);">
             <div id="outcome-stats-card" style="margin-bottom: var(--space-3); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle);">
                 <!-- Statistics will load here dynamically -->
             </div>
             <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-                <div><strong>System Signal ID:</strong> ${result.signal_id || result.incident_id || 'N/A'}</div>
-                <div><strong>Ingestion Time:</strong> ${result.created_at || 'N/A'}</div>
-                <div><strong>Pipeline Model Version:</strong> Prahari RAG-Agent v2.1</div>
-                <div><strong>Verification Status:</strong> Verified against Indian statutory codes</div>
+                <div><strong>Official Registration Timestamp:</strong> ${result.created_at || 'N/A'}</div>
+                <div><strong>Public Guidance Notice:</strong> Guidance generated based on Indian statutory framework & public safety protocols.</div>
             </div>
         </div>
     </section>`;

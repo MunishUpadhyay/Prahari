@@ -59,7 +59,6 @@ def citizen_submit(request):
     if request.method == "POST":
         raw_text = request.POST.get("raw_text", "").strip()
         location = request.POST.get("location", "").strip()
-        contact_number = request.POST.get("contact_number", "").strip()
         preferred_language = request.POST.get("preferred_language", "hindi").strip()
         anonymous = request.POST.get("anonymous") == "on"
 
@@ -74,16 +73,10 @@ def citizen_submit(request):
                 defaults={"api_key_hash": Tenant.hash_api_key("default_key")}
             )
 
-        # Save metadata containing location and contact number
+        # Save metadata containing location
         metadata = {}
         if location:
             metadata["location"] = location
-
-        if anonymous:
-            contact_number = ""
-        else:
-            if contact_number:
-                metadata["contact_number"] = contact_number
 
         # Resolve user if logged in and NOT submitting anonymously
         sig_user = None
@@ -95,7 +88,6 @@ def citizen_submit(request):
             tenant=tenant,
             raw_text=raw_text,
             source_type="text",
-            contact_number=contact_number,
             preferred_language=preferred_language,
             metadata=metadata,
             user=sig_user
@@ -325,7 +317,6 @@ def citizen_signal_status_api(request, signal_id):
                 "resources_needed_hi": lang_out.get("resources_needed", []),
                 "evidence_to_collect": coord_out.get("evidence_to_collect", []),
                 "evidence_to_collect_hi": lang_out.get("evidence_to_collect") or coord_out.get("evidence_to_collect", []),
-                "contact_number": signal.metadata.get("contact_number", ""),
                 "coordinator_status": incident.coordinator_status,
                 "coordinator_notes": incident.coordinator_notes,
                 "preferred_language": signal.preferred_language

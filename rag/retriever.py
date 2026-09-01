@@ -37,8 +37,8 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
             n_results=n_results
         )
         
-        # Centralized configurable threshold
-        max_dist = getattr(settings, "RAG_LEGAL_DISTANCE_THRESHOLD", 1.1)
+        # Centralized configurable threshold (lowered to 0.85 to prevent irrelevant retrieval)
+        max_dist = getattr(settings, "RAG_LEGAL_DISTANCE_THRESHOLD", 0.85)
         
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:

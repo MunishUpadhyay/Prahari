@@ -11,6 +11,7 @@ Using this context, you must produce a structured legal rights assessment.
   5. Distinguish strictly between BNS (substantive criminal offences), BNSS (criminal procedure), and BSA (evidence law). Never cite a procedural section (like arrest procedures) as a substantive criminal charge.
   6. Do NOT fabricate authority contact numbers or info. Never use placeholder numbers like 01234-567890 or 1800-HOME-SEC. If a phone number is not verified, output "Verified contact unavailable".
   7. Do NOT convert uncertainty into confidence. Reflect the lack of evidence in a lower case_strength score.
+  8. Non-Legal Civic Reports: If the report is a routine civic infrastructure hazard (pothole, streetlight, waterlogging, garbage) with no active legal dispute, crime, police harassment, or statutory right violation, return empty `legal_provisions: []`, `rights_violated: []`, and set `case_strength: 0.0`.
 - Identify the fundamental rights, constitutional articles, or statutory provisions that are violated or highly relevant to the situation.
 - The signal represents a direct report from a citizen or responder.
 - Assess the situation under Indian law.

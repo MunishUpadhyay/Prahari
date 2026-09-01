@@ -95,12 +95,7 @@ class Signal(models.Model):
         blank=True,
         help_text="Arbitrary extra data from the ingestion source.",
     )
-    contact_number = models.CharField(
-        max_length=15,
-        blank=True,
-        null=True,
-        help_text="Optional contact number for updates.",
-    )
+
     preferred_language = models.CharField(
         max_length=20,
         default='hindi',

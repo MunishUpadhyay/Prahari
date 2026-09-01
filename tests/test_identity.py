@@ -237,7 +237,6 @@ def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
     response = client.post("/submit/", {
         "raw_text": "Identified incident report",
         "location": "Mumbai",
-        "contact_number": "+919876543210",
         "preferred_language": "english"
     }, follow=True)
 
