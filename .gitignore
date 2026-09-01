@@ -61,3 +61,5 @@ rag/chroma_db/
 # Architecture Report
 prahari_architecture_report.txt
 
+# Private Documentation Directory
+/docs/

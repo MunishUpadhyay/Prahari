@@ -1,221 +1,245 @@
-# Prahari 🛡️ — Real-time Civic Intelligence & Response
+# Prahari 🛡️ — Real-Time Autonomous Emergency Response & Civic Intelligence Platform
 
-Prahari is a real-time civic intelligence and incident management platform designed to empower citizens, support NGOs, and assist operations coordinators. It ingests raw civic signals (text, SMS, webhooks), processes them sequentially through a **5-Agent AI Pipeline** backed by **Retrieval-Augmented Generation (RAG)** over Indian legal databases and emergency medical protocols, and translates the output dynamically into English or Hindi. Live incident alerts are streamed in real time to a WebSocket-powered operations dashboard for coordinator intervention, notice generation, and resolution tracking.
+[![Build & Test Status](https://img.shields.io/badge/pytest-78%2F78%20passing-brightgreen)](https://github.com/MunishUpadhyay/Prahari)
+[![Framework](https://img.shields.io/badge/Django-5.0.6-092E20?logo=django)](https://www.djangoproject.com/)
+[![Database](https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql)](https://supabase.com/)
+[![Deployment](https://img.shields.io/badge/Render-ASGI%20%2B%20Celery-46E3B7?logo=render)](https://render.com/)
 
-**Live Deployment URL**: [https://prahari-zbgm.onrender.com](https://prahari-zbgm.onrender.com)
+Prahari is a multi-tenant, autonomous emergency response platform that ingests raw civic signals (distress reports, medical emergencies, crime signals), processes them through a sequential **5-Agent AI pipeline** backed by **Retrieval-Augmented Generation (RAG)** over legal and medical knowledge bases, and streams real-time updates to an operations coordinator dashboard.
 
 ---
 
-## Pictorial Flowchart (Interconnection Architecture)
+## 📌 Problem Statement
 
-Below is the complete data flow pipeline from the starting point of signal ingestion to the WebSocket operations dashboard and the citizen status page:
+During civic emergencies or law-and-order incidents, citizens often face severe bottlenecks:
+- **Delayed Intervention**: High signal volume overwhelms human operators, causing critical triage delays.
+- **Privacy & Safety Concerns**: Victims often hesitate to file reports due to fear of identity exposure or lack of anonymous reporting options.
+- **Legal & Medical Information Gap**: First responders and citizens lack immediate access to statutory provisions (BNS/BNSS/IPC) or golden-hour medical protocols.
+
+Prahari solves these challenges by combining automated AI triage, strict privacy-first anonymous report tracking (via hashed Return Keys), legal/medical RAG retrieval, and real-time WebSocket dashboard streaming for emergency coordinators.
+
+---
+
+## ✨ Key Capabilities
+
+1. **Autonomous 5-Agent AI Processing Pipeline**: Sequential pipeline categorizes domain/severity, extracts legal rights & statutory provisions, evaluates medical urgency, synthesizes actionable coordination plans, and translates outputs to the citizen's preferred language (English or Hindi).
+2. **Retrieval-Augmented Generation (RAG)**: Integrates ChromaDB vector store with Sentence Transformers (`all-MiniLM-L6-v2`) to query Indian statutory codes (BNS, BNSS, IPC, CrPC) and emergency medical trauma protocols.
+3. **Anonymous Reporting & Hashed Return Keys**: Citizens can file anonymous distress signals and receive a high-entropy Return Key (`PRAH-XXXX-...`) hashed using SHA-256 for secure future status lookup without revealing identity.
+4. **Citizen Account Recovery & Password Reset**: Secure Django-native token-based account recovery with enumeration protection (always returning a neutral response to prevent account harvesting).
+5. **Real-Time Operations Dashboard**: Coordinator portal featuring WebSocket live updates, tracking ID search (`PRAH-YYYYMMDD-XXXX`), status filters (`Pending`, `Under Review`, `Action Taken`, `Resolved`), and responsive mobile card layout.
+6. **Production Hardening**: Rate-limited endpoints (brute-force protection on Return Keys and tokens), WhiteNoise static asset serving, HSTS, secure cookies, and Supabase IPv4 Supavisor connection pooling for Render compatibility.
+
+---
+
+## 🏗️ High-Level System Architecture
 
 ```mermaid
 graph TD
-    classDef start fill:#4f46e5,stroke:#818cf8,stroke-width:2px,color:#fff;
-    classDef database fill:#1e293b,stroke:#475569,stroke-width:2px,color:#f8fafc;
+    classDef citizen fill:#4f46e5,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef django fill:#090d16,stroke:#6366f1,stroke-width:2px,color:#fff;
     classDef celery fill:#06b6d4,stroke:#22d3ee,stroke-width:2px,color:#fff;
     classDef rag fill:#10b981,stroke:#34d399,stroke-width:2px,color:#fff;
-    classDef ui fill:#090d16,stroke:#6366f1,stroke-width:2px,color:#fff;
+    classDef db fill:#1e293b,stroke:#475569,stroke-width:2px,color:#f8fafc;
 
-    Start1["Citizen Form Submit (/submit/)"]:::start --> SigSave["Save Signal Database Record"]:::database
-    Start2["API Ingestion (POST /api/signals/)"]:::start --> SigSave
-    
-    SigSave --> CeleryTrigger["Enqueue Celery Task: ingest_signal"]:::celery
-    
-    subgraph Celery Pipeline Tasks
-        CeleryTrigger --> Agent1["Sentinel Agent: Domain & Severity Classify"]:::celery
-        Agent1 --> DomainCheck{"Check Domain"}
+    CitizenIn["Citizen Web / API Signal Ingestion"]:::citizen --> DjangoWeb["Django ASGI Server (Daphne)"]:::django
+    DjangoWeb --> SaveDB["Save Signal to PostgreSQL"]:::db
+    SaveDB --> EnqueueCelery["Enqueue Asynchronous Celery Task"]:::celery
+
+    subgraph AI Pipeline Execution
+        EnqueueCelery --> Sentinel["1. Sentinel Agent: Domain & Severity Triage"]:::celery
+        Sentinel --> Rights["2. Rights Agent: Legal Provision Audit"]:::celery
+        Sentinel --> Triage["3. Triage Agent: Emergency Medical Audit"]:::celery
         
-        DomainCheck -- "Legal / Cross" --> Agent2["Rights Agent: Legal Audit"]:::celery
-        DomainCheck -- "Health / Emergency / Cross" --> Agent3["Triage Agent: Medical Protocol Audit"]:::celery
+        Rights --> LegalRAG["ChromaDB Legal Vector Search"]:::rag
+        Triage --> MedicalRAG["ChromaDB Medical Vector Search"]:::rag
         
-        Agent2 --> RAG1["ChromaDB Legal RAG Query"]:::rag
-        Agent3 --> RAG2["ChromaDB Medical RAG Query"]:::rag
+        LegalRAG --> Coord["4. Coordination Agent: Action Plan Synthesis"]:::celery
+        MedicalRAG --> Coord
         
-        RAG1 --> Agent4["Coordination Agent: Synthesize Action Plan"]:::celery
-        RAG2 --> Agent4
-        
-        Agent4 --> Agent5["Language Agent: English & Hindi Translation"]:::celery
-        Agent5 --> EndPipeline["Update Signal Status & Commit DB"]:::database
+        Coord --> Lang["5. Language Agent: EN/HI Translation"]:::celery
     end
-    
-    EndPipeline --> WS["WebSocket Broadcast (Channels/Redis)"]:::ui
-    EndPipeline --> APIStatus["Polled status API returns data"]:::ui
-    
-    WS --> Dashboard["Live Operations Dashboard (Coordinator)"]:::ui
-    APIStatus --> ReportPage["Report Status Page (Citizen)"]:::ui
-    
-    Dashboard --> Action["Coordinator Resolves Incident or Generates Legal Notice"]:::ui
+
+    Lang --> CommitDB["Update DB & Emit Audit Log"]:::db
+    CommitDB --> WSBroadcast["Broadcast WebSocket (Channels / Redis)"]:::django
+    WSBroadcast --> CoordDashboard["Coordinator Operations Dashboard"]:::django
+    CommitDB --> CitizenStatus["Citizen Tracking Timeline"]:::citizen
 ```
 
 ---
 
-## Project Folder Structure
+## 🛠️ Technology Stack
 
-The repository is structured as a modular Django application. Below is the directory map:
+| Layer | Component / Technology | Purpose in Prahari |
+| :--- | :--- | :--- |
+| **Backend Core** | Django 5.0.6 & DRF 3.15 | Core MVC architecture, REST API, authentication & session management |
+| **ASGI / Real-Time** | Django Channels 4.1 & Daphne 4.1 | Asynchronous WebSocket server for live incident dashboard updates |
+| **Task Queue** | Celery 5.4 & Redis 5.0 | Background queue executing the 5-agent AI pipeline asynchronously |
+| **Database** | PostgreSQL 16 (via Supabase) | Primary relational database storing signals, incidents, users, audit logs |
+| **Connection Pooler** | Supavisor (Session Pooler) | IPv4-compatible connection pooler routing Render traffic to Supabase |
+| **Vector Database** | ChromaDB 0.6.3 | Local vector store executing cosine similarity search over legal/medical texts |
+| **Embeddings** | `sentence-transformers/all-MiniLM-L6-v2` | Generating dense 384-dimensional vector embeddings |
+| **AI LLM Engine** | Groq API (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`) | High-speed LLM inference with automatic multi-model and key failover |
+| **Static Serving** | WhiteNoise 6.7 | Compressed manifest static asset delivery in production |
+| **Testing** | pytest 8.3 & pytest-django 4.8 | Automated test suite validating API, identity, celery, RAG, and hardening |
+
+---
+
+## 👥 User Workflows
+
+### 1. Citizen Workflow
+- **Signal Submission**: Submit emergency signals with title, description, location, domain (Legal, Health, Crime, General), and optional images.
+- **Anonymous Reporting**: Toggle anonymous mode to submit without registering. Receive a high-entropy Return Key (`PRAH-XXXX-...`) to track status privately.
+- **Identified Reporting**: Authenticated citizens view a consolidated history of all past signals and linked anonymous reports under `/profile/`.
+- **Account Recovery**: Secure password reset flow (`/citizen/password-reset/`) using Django token generators with enumeration safety.
+
+### 2. Coordinator Workflow
+- **Dashboard Overview**: Monitor incoming incidents streamed live via WebSockets.
+- **Status Filter Controls**: Filter incidents by status (`All`, `Pending`, `Under Review`, `Action Taken`, `Resolved`).
+- **Tracking ID Search**: Locate incidents using human-readable tracking IDs (`PRAH-YYYYMMDD-XXXX`).
+- **Incident Resolution**: Review AI-generated legal provisions, medical triage recommendations, and action plans, attach coordinator notes, and resolve incidents.
+
+---
+
+## 🔒 Security & Privacy Features
+
+- **Return Key Hashing**: Return Keys are stored using SHA-256 hashes. Raw keys are displayed only once upon submission.
+- **Brute-Force Protection**: Return Key lookup and token endpoints are protected by Redis/cache rate limiting (5 attempts / 15-minute lockout).
+- **Account Enumeration Protection**: Password reset requests always return neutral success responses regardless of email existence.
+- **Sanitized Public APIs**: Internal LLM reasoning logs, raw prompt templates, and coordinator notes are stripped from public citizen responses.
+- **Production Hardening**: Enforced SSL redirects, HSTS (`SECURE_HSTS_SECONDS=31536000`), `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SESSION_COOKIE_HTTPONLY`, and `SameSite=Lax`.
+
+---
+
+## 📁 Project Directory Structure
 
 ```text
 Prahari/
 ├── apps/
-│   ├── agents/             # Core multi-agent AI system logic and LLM orchestration
-│   │   ├── management/     # Seed management command scripts to generate dummy alerts
-│   │   ├── agents.py       # Individual implementations of Sentinel, Rights, Triage, Coord, Lang agents
-│   │   ├── apps.py         # App initialization & startup configuration hooks
-│   │   └── base.py         # Parent BaseAgent wrapper defining API retry rules & Fallback LLaMA logic
-│   ├── audit/              # Operations log audit module tracking agent tasks timings and latency
-│   ├── incidents/          # Incidents backend handling coordinators actions, notifications and WebSockets
-│   │   ├── consumers.py    # Django Channels WebSocket connection consumer (Dashboard updates)
-│   │   ├── coordinator_views.py # Backoffice Dashboard controllers and incident resolution actions
-│   │   ├── models.py       # DB schema for Incident cases, resolving outcomes and coordinators updates
-│   │   ├── routing.py      # WebSocket URL routing patterns for operational feeds
-│   │   └── views.py        # Legal Notice creation APIs and statistics outcomes controllers
-│   ├── signals/            # Public-facing ingest interfaces and citizen search trackers
-│   │   ├── citizen_views.py # Views rendering status timelines and submitting citizen incidents
-│   │   ├── models.py       # Signal ingestion database schema
-│   │   ├── urls.py         # Sub-paths for API code verification and manual ingest endpoints
-│   │   └── views.py        # Public Signal creation APIs
-│   ├── resources/          # Resource directory tracking nearby equipment pools
-│   └── tenants/            # Tenant isolation layer mapping developer domains and access API keys
-├── config/                 # Main Django config module containing project settings
-│   ├── settings/           # Settings configurations (dev.py, production.py)
-│   ├── asgi.py             # ASGI interface configuration (enables live WebSockets via Daphne)
-│   ├── routing.py          # Root Django Channels ASGI WebSocket channel routes
-│   └── urls.py             # Root URL patterns mapping views and REST framework routes
-├── pipeline/               # Celery processing task queue and sequence coordinator
-│   └── tasks.py            # Tasks enqueued on Redis managing the sequential execution of AI Agents
-├── prompts/                # Plaintext system instruction prompt templates loaded by LLM Agents
-│   ├── sentinel.txt        # System guidelines classifying domains & severities
-│   ├── rights.txt          # Guidelines for RAG context extraction and constitutional audits
-│   ├── triage.txt          # Rules determining medical urgency, golden windows and hospital denials
-│   ├── coordination.txt    # Synthesizer creating measuring demands and resources needed
-│   └── language.txt        # Translation prompt matching preferred citizen language (English/Hindi)
-├── rag/                    # Retrieval-Augmented Generation retrieval engines
-│   ├── chroma_db/          # SQLite vector binary database directory containing index embeddings
-│   ├── ingest.py           # Embeds legal provisions (CrPC, IPC, BNSS, BNS) and trauma guidelines
-│   └── retriever.py        # Retrieval helper querying vector spaces using cosine similarity
-├── templates/              # HTML layout files utilizing Django Template Inheritance
-│   ├── base.html           # Parent template layout defining CSS variables, headers, and footer
-│   ├── home.html           # Citizen landing containing the case search bar and hero actions
-│   ├── submit.html         # Incident reporting form utilizing anonymous toggle actions
-│   ├── report_status.html  # Status timelines, case reports, notice modals and closure tools
-│   ├── login.html          # Coordinator authentication card
-│   ├── coordinator_dashboard.html # Operations monitor featuring WebSocket updates
-│   ├── coordinator_detail.html    # Resolution forms, RAG outputs tabs, and legal notices actions
-│   └── dashboard.html      # Full-screen live OPERATIONS radar feed
-├── manage.py               # Django operations entry point wrapper
-├── requirements.txt        # Virtual Environment dependencies requirements list
-└── README.md               # Complete architecture walkthrough
+│   ├── agents/             # 5-Agent AI pipeline logic, LLM wrappers & fallbacks
+│   ├── audit/              # Operations audit log tracking pipeline execution latency
+│   ├── incidents/          # Incidents backend, coordinator views, WebSocket routing
+│   ├── notifications/      # Notification dispatchers
+│   ├── resources/          # Resource directory & equipment pools
+│   ├── signals/            # Signal ingestion, citizen views, profile & password reset
+│   └── tenants/            # Multi-tenant isolation layer
+├── config/                 # Django settings (base.py, dev.py, prod.py), ASGI, Celery, URLs
+├── docs/                   # System documentation & postman collections (audits archived locally)
+├── pipeline/               # Celery processing queue tasks and task coordinator
+├── prompts/                # Plaintext system prompts loaded by AI Agents
+├── rag/                    # ChromaDB vector store ingestion & retriever logic
+├── static/                 # CSS & JavaScript assets
+├── templates/              # HTML layout templates (glassmorphism UI)
+├── tests/                  # Automated pytest test suite (78 tests)
+├── DEPLOYMENT.md           # Production deployment & operations guide
+├── manage.py               # Django CLI entrypoint
+├── render.yaml             # Render Infrastructure-as-Code Blueprint
+└── requirements.txt        # Python package dependencies
 ```
 
 ---
 
-## Technical Stack
+## 💻 Local Development Setup
 
-- **Backend Framework**: Django 5 + Django REST Framework (DRF)
-- **Real-Time Pipelines**: Django Channels 4 (ASGI Server: Daphne)
-- **Message Broker & Channel Layer**: Redis 7
-- **Task Queue Runner**: Celery 5
-- **Database Engine**: PostgreSQL 16 + PostGIS 3.4 (Geospatial lookup and GIS distance metrics support)
-- **Vector Embeddings Store**: ChromaDB
-- **Retrieval Sentence Embedder**: `sentence-transformers/all-MiniLM-L6-v2`
-- **Primary LLM**: Groq `openai/gpt-oss-120b`
-- **Fallback LLM**: Groq `openai/gpt-oss-20b` (fallback routing when primary LLM encounters a 429 rate limit or model-unavailable exception)
-- **Authorization Layer**: JSON Web Tokens (JWT)
+### Prerequisites
+- Python 3.10+
+- Redis Server (local or Docker)
+- PostgreSQL (optional for dev, SQLite supported in dev mode)
 
----
-
-## Application Screenshots (Visual Gallery)
-
-<div align="center">
-
-<table>
-<tr>
-<td width="50%" align="center">
-
-### Citizen Portal — Submission Page
-
-<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20040520.png" alt="Citizen Submission Page" width="100%"/>
-
-</td>
-
-<td width="50%" align="center">
-
-### Citizen Portal — Tracking Progress
-
-<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190358.png" alt="Citizen Progress Tracking" width="100%"/>
-
-</td>
-</tr>
-
-<tr>
-<td width="50%" align="center">
-
-### Operations Dashboard — WebSocket Live Feed
-
-<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190909.png" alt="Coordinator Dashboard" width="100%"/>
-
-</td>
-
-<td width="50%" align="center">
-
-### Operations Dashboard — Legal RAG Audit
-
-<img src="https://raw.githubusercontent.com/MunishUpadhyay/Materials/refs/heads/main/Screenshot%202026-06-07%20190753.png" alt="Legal Audit Dashboard" width="100%"/>
-
-</td>
-</tr>
-</table>
-
-</div>
-
----
-
-## Setup & Local Running Instructions
+### Installation Steps
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/MunishUpadhyay/Prahari.git
    cd Prahari
    ```
-2. **Copy `.env.example` to `.env` and fill the variables**:
+
+2. **Create and activate virtual environment**:
    ```bash
-   cp .env.example .env
+   python -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # Linux/macOS:
+   source .venv/bin/activate
    ```
-3. **Start local infrastructure (Docker Compose)**:
-   ```bash
-   docker compose up -d
-   ```
-4. **Install Python dependencies**:
+
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
-5. **Run DB Migrations**:
+
+4. **Configure Environment Variables**:
+   Copy `.env.example` to `.env` and fill in your keys:
+   ```bash
+   cp .env.example .env
+   ```
+
+5. **Run Database Migrations**:
    ```bash
    python manage.py migrate
    ```
-6. **Ingest legal & medical databases into ChromaDB**:
+
+6. **Initialize Knowledge Base (RAG Ingestion)**:
    ```bash
    python manage.py ingest_knowledge_base
    ```
-7. **Populate demo alerts & trigger analysis pipelines**:
+
+7. **Run Automated Tests**:
    ```bash
-   python manage.py seed_demo
+   pytest
    ```
-8. **Start Celery worker queue** (Terminal 2):
-   ```bash
-   celery -A config worker --loglevel=info --pool=solo
-   ```
-9. **Start Daphne ASGI Web Server** (Terminal 3):
-   ```bash
-   daphne -b 0.0.0.0 -p 8000 config.asgi:application
-   ```
+
+8. **Start Application Servers**:
+   - **Terminal 1 (Daphne Web Server)**:
+     ```bash
+     daphne -b 127.0.0.1 -p 8000 config.asgi:application
+     ```
+   - **Terminal 2 (Celery Worker)**:
+     ```bash
+     celery -A config worker --loglevel=info --pool=solo
+     ```
 
 ---
 
-## Recent Updates (June 2026)
+## 🔑 Environment Variables Reference
 
-- **Browser Tab Switching Fix**: Resolved `ReferenceError: event is not defined` inside `switchTab()` on the coordinator detail page by passing the element context (`this`) to the function.
-- **Private Browsing Protection**: Wrapped all `localStorage` access in safe helper functions (`getSavedLang`, `saveLang`) with `try-catch` blocks to prevent template crashes when cookie/storage policies are restrictive.
-- **Fallback LLM Quality Upgrades**: Reordered LLM fallbacks to prioritize the `openai/gpt-oss-120b` (120B parameter) model over smaller 20B/8B models, and completely removed the decommissioned `llama-3.1-8b-instant` model from the routing list.
+Configure the following environment variables in production:
 
+| Variable | Description | Example / Placeholder |
+| :--- | :--- | :--- |
+| `DJANGO_SETTINGS_MODULE` | Active settings module | `config.settings.prod` |
+| `SECRET_KEY` | Secret key for cryptographic signing | `your-production-secret-key` |
+| `DATABASE_URL` | PostgreSQL connection URL | `postgres://user:pass@aws-0-region.pooler.supabase.com:6543/postgres` |
+| `REDIS_URL` | Redis broker and cache URL | `redis://default:pass@redis-host:6379/0` |
+| `ALLOWED_HOSTS` | Allowed HTTP host domain names | `prahari.onrender.com` |
+| `CSRF_TRUSTED_ORIGINS` | Trusted origins for HTTPS forms | `https://prahari.onrender.com` |
+| `SITE_URL` | Base application URL | `https://prahari.onrender.com` |
+| `GROQ_API_KEY` | Primary Groq AI API Key | `gsk_your_primary_key` |
+| `GROQ_API_KEY_2` | Secondary Groq API Key (Failover) | `gsk_your_secondary_key` |
+
+---
+
+## 🚀 Production Deployment Overview
+
+Prahari is packaged for deployment on **Render** using [`render.yaml`](file:///d:/My%20Projects/Django/Prahari/render.yaml):
+
+- **Web Service (`prahari-web`)**: Daphne ASGI server handling HTTP & WebSockets with WhiteNoise static serving.
+- **Worker Service (`prahari-celery`)**: Celery background worker processing AI pipelines.
+- **Database**: External Supabase PostgreSQL connected via Supavisor Session Pooler (port `6543`) for dual-stack IPv4 compatibility.
+- **Health Checks**: Live orchestrator health probes configured at `/health/` and `/api/health/`.
+
+For step-by-step deployment instructions, refer to [`DEPLOYMENT.md`](file:///d:/My%20Projects/Django/Prahari/DEPLOYMENT.md).
+
+---
+
+## ⚠️ Important Limitations & Scope Notes
+
+- **Transactional Email**: Password reset tokens and notification dispatches currently log to console/stub backend in development. Production deployments require configuring standard SMTP environment variables.
+- **Geospatial Queries**: Nearby resource searches use bounding-box math fallbacks when native PostGIS extension is not enabled on the host database.
+- **Supabase Free Tier**: Free tier Supabase databases pause after 7 days of inactivity; production deployment requires periodic pinging or Pro tier to maintain continuous uptime.
+
+---
+
+## 📄 Verification & License
+
+- **Test Suite Status**: **78 / 78 passing tests** (`pytest`).
+- **License**: MIT License.

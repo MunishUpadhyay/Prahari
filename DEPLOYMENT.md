@@ -78,6 +78,8 @@ services:
   - type: web
     name: prahari-web
     runtime: python
+    branch: main
+    autoDeploy: true
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
@@ -90,9 +92,7 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.prod
       - key: DATABASE_URL
-        fromDatabase:
-          name: prahari-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
         sync: false
       - key: SECRET_KEY
@@ -110,6 +110,8 @@ services:
   - type: worker
     name: prahari-celery
     runtime: python
+    branch: main
+    autoDeploy: true
     buildCommand: pip install -r requirements.txt
     startCommand: >
       celery -A config worker
@@ -119,19 +121,13 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.prod
       - key: DATABASE_URL
-        fromDatabase:
-          name: prahari-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
         sync: false
       - key: SECRET_KEY
         sync: false
       - key: GROQ_API_KEY
         sync: false
-
-databases:
-  - name: prahari-db
-    plan: free
 ```
 
 ---
