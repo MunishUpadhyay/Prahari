@@ -26,10 +26,16 @@ def rate_limit_ip(limit=10, period=3600, key_prefix="ingest"):
             else:
                 ip = request.META.get("REMOTE_ADDR")
 
-            # Check request timestamps in Cache
+            # Check request timestamps in Cache with exception safety
             key = f"rate_limit_{key_prefix}_{ip}"
-            request_timestamps = cache.get(key, [])
-            
+            try:
+                request_timestamps = cache.get(key, [])
+                if not isinstance(request_timestamps, list):
+                    request_timestamps = []
+            except Exception as exc:
+                logger.warning("Rate limit cache get failed (failing open): %s", exc)
+                request_timestamps = []
+
             now = time.time()
             # Retain only timestamps within the current sliding window
             request_timestamps = [t for t in request_timestamps if now - t < period]
@@ -43,7 +49,10 @@ def rate_limit_ip(limit=10, period=3600, key_prefix="ingest"):
 
             # Record current request timestamp
             request_timestamps.append(now)
-            cache.set(key, request_timestamps, period)
+            try:
+                cache.set(key, request_timestamps, period)
+            except Exception as exc:
+                logger.warning("Rate limit cache set failed: %s", exc)
 
             return view_func(request, *args, **kwargs)
         return _wrapped_view

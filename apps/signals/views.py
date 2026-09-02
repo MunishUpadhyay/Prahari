@@ -68,6 +68,9 @@ from .citizen_views import resolve_signal
 
 from django.core.cache import cache
 
+from drf_spectacular.utils import extend_schema
+
+@extend_schema(request=None, responses={200: None})
 @method_decorator(rate_limit_ip(limit=10, period=60, key_prefix="verify_ip"), name="dispatch")
 class SignalVerifyCodeView(APIView):
     """
@@ -85,7 +88,12 @@ class SignalVerifyCodeView(APIView):
         failed_key = f"verify_failed_attempts_{signal.id}"
         
         # Check if report is locked due to brute-force attempts
-        if cache.get(lock_key):
+        try:
+            is_locked = cache.get(lock_key)
+        except Exception:
+            is_locked = False
+
+        if is_locked:
             return Response({
                 "valid": False,
                 "locked": True,
@@ -104,22 +112,35 @@ class SignalVerifyCodeView(APIView):
         
         if entered_hash == stored_hash:
             # Clear failed attempts counter upon successful verification
-            cache.delete(failed_key)
+            try:
+                cache.delete(failed_key)
+            except Exception:
+                pass
             request.session[f"verified_{signal.id}"] = True
             return Response({"valid": True}, status=status.HTTP_200_OK)
         else:
-            attempts = cache.get(failed_key, 0) + 1
+            try:
+                attempts = cache.get(failed_key, 0)
+            except Exception:
+                attempts = 0
+            attempts += 1
             if attempts >= 5:
                 # Lock for 15 minutes (900 seconds)
-                cache.set(lock_key, True, timeout=900)
-                cache.delete(failed_key)
+                try:
+                    cache.set(lock_key, True, timeout=900)
+                    cache.delete(failed_key)
+                except Exception:
+                    pass
                 return Response({
                     "valid": False,
                     "locked": True,
                     "message": "Too many failed attempts. Verification for this report is locked for 15 minutes. / बहुत अधिक असफल प्रयास। यह रिपोर्ट 15 मिनट के लिए लॉक है।"
                 }, status=status.HTTP_429_TOO_MANY_REQUESTS)
             else:
-                cache.set(failed_key, attempts, timeout=900)
+                try:
+                    cache.set(failed_key, attempts, timeout=900)
+                except Exception:
+                    pass
                 return Response({
                     "valid": False,
                     "locked": False,
@@ -128,6 +149,7 @@ class SignalVerifyCodeView(APIView):
                 }, status=status.HTTP_200_OK)
 
 
+@extend_schema(request=None, responses={200: None})
 @method_decorator(rate_limit_ip(limit=10, period=60, key_prefix="close_session"), name="dispatch")
 class SignalCloseSessionView(APIView):
     """

@@ -51,10 +51,7 @@ CELERY_RESULT_BACKEND = REDIS_URL
 # Static files with WhiteNoise
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = (
-    'whitenoise.storage'
-    '.CompressedManifestStaticFilesStorage'
-)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Security
 SECURE_BROWSER_XSS_FILTER = True

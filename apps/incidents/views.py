@@ -89,6 +89,9 @@ class IncidentDetailView(RetrieveUpdateAPIView):
             serializer.save()
 
 
+from drf_spectacular.utils import extend_schema
+
+@extend_schema(request=None, responses={200: None})
 class SimilarIncidentsView(APIView):
     """
     GET /api/incidents/<uuid:id>/similar/
@@ -195,6 +198,7 @@ class SimilarIncidentsView(APIView):
 
 from apps.agents.agents import LegalNoticeAgent
 
+@extend_schema(request=None, responses={200: None})
 class LegalNoticeView(APIView):
     """
     GET /api/incidents/<uuid:id>/legal-notice/

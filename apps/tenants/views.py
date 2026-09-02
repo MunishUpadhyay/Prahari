@@ -14,9 +14,12 @@ from rest_framework.views import APIView
 
 from .serializers import WebhookRegisterSerializer
 
+from drf_spectacular.utils import extend_schema
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(request=WebhookRegisterSerializer, responses={200: None})
 class WebhookRegisterView(APIView):
     """
     POST /api/webhooks/register/
@@ -26,6 +29,7 @@ class WebhookRegisterView(APIView):
     Saves the webhook URL against the tenant.  Prahari will POST incident
     update payloads to this URL whenever a new Incident is finalised.
     """
+    serializer_class = WebhookRegisterSerializer
 
     permission_classes = [IsAuthenticated]
 

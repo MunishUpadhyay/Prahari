@@ -309,3 +309,56 @@ def test_privacy_claims_accurate_wording(client):
     assert "Submissions are encrypted in transit over HTTPS" in html
     assert "we do not log your IP address or browser details" not in html
 
+
+# ---------------------------------------------------------------------------
+# 6. Rate Limit Cache Resilience Tests (Fail Open on Cache Outage)
+# ---------------------------------------------------------------------------
+
+from unittest.mock import patch
+
+@pytest.mark.django_db
+def test_rate_limit_cache_get_failure_fails_open(client):
+    """When cache.get raises a connection error, request must fail open without 500 error."""
+    with patch("apps.signals.utils.cache.get", side_effect=Exception("Redis connection error")):
+        resp = client.get("/")
+        # Request continues safely despite cache outage (200 OK)
+        assert resp.status_code == 200
+
+
+@pytest.mark.django_db
+def test_rate_limit_cache_set_failure_continues(client):
+    """When cache.set raises a connection error, request completes safely without 500 error."""
+    with patch("apps.signals.utils.cache.set", side_effect=Exception("Redis write error")):
+        resp = client.get("/")
+        assert resp.status_code == 200
+
+
+@pytest.mark.django_db
+def test_rate_limit_normal_behavior_unchanged(client):
+    """When cache is functioning normally, rate limiting operates as configured."""
+    from apps.signals.utils import rate_limit_ip
+    from django.http import HttpResponse
+
+    @rate_limit_ip(limit=2, period=60, key_prefix="test_normal")
+    def dummy_view(request):
+        return HttpResponse("OK")
+
+    from django.test.client import RequestFactory
+    rf = RequestFactory()
+
+    req1 = rf.get("/dummy/")
+    req1.META["REMOTE_ADDR"] = "192.168.1.100"
+    resp1 = dummy_view(req1)
+    assert resp1.status_code == 200
+
+    req2 = rf.get("/dummy/")
+    req2.META["REMOTE_ADDR"] = "192.168.1.100"
+    resp2 = dummy_view(req2)
+    assert resp2.status_code == 200
+
+    req3 = rf.get("/dummy/")
+    req3.META["REMOTE_ADDR"] = "192.168.1.100"
+    resp3 = dummy_view(req3)
+    assert resp3.status_code == 429
+
+

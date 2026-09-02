@@ -22,9 +22,12 @@ from rest_framework.views import APIView
 from .models import Resource
 from .serializers import NearbyResourceSerializer
 
+from drf_spectacular.utils import extend_schema
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(responses={200: NearbyResourceSerializer(many=True)})
 class NearbyResourcesView(APIView):
     """
     GET /api/resources/nearby/?lat=<lat>&lon=<lon>&radius_m=<m>&type=<type>
@@ -32,6 +35,7 @@ class NearbyResourcesView(APIView):
     Returns available resources within `radius_m` metres of the given point,
     sorted by distance ascending.
     """
+    serializer_class = NearbyResourceSerializer
 
     permission_classes = [IsAuthenticated]
 
