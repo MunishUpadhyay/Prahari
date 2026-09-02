@@ -1,132 +1,150 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}Prahari — Report an Incident{% endblock %}
-
-
 
 {% block content %}
 <main style="flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
-    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left;">
-        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2);">
-            <h2 class="section-title loc-en">Report an Incident</h2>
-            <h2 class="section-title loc-hi" lang="hi">घटना की रिपोर्ट करें</h2>
+    
+    <!-- Top Pipeline Progress Component (Independent of form sections) -->
+    <div class="top-pipeline-progress" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-3) var(--space-4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative; max-width: 480px; margin: 0 auto;">
+            <div style="position: absolute; top: 14px; left: 15%; right: 15%; height: 2px; background: var(--border-default); z-index: 1;"></div>
             
-            <p class="body-text loc-en" style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Describe the incident below. Prahari analyzes the description to determine appropriate response steps.</p>
-            <p class="body-text loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">नीचे घटना का वर्णन करें। प्रहरी उचित प्रतिक्रिया कदम उठाने के लिए विवरण का विश्लेषण करता है।</p>
+            <!-- Step 1: Submission (Active) -->
+            <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--accent-teal); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800;">1</div>
+                <span class="loc-en" style="font-size: 0.8rem; font-weight: 700; color: var(--deep-navy);">Submission</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.8rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">सबमिशन</span>
+            </div>
+
+            <!-- Step 2: AI Analysis -->
+            <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">2</div>
+                <span class="loc-en" style="font-size: 0.8rem; color: var(--text-muted);">AI Analysis</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">एआई विश्लेषण</span>
+            </div>
+
+            <!-- Step 3: Response -->
+            <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">3</div>
+                <span class="loc-en" style="font-size: 0.8rem; color: var(--text-muted);">Response</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">प्रतिक्रिया</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Submission Surface Card -->
+    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left; padding: var(--space-5);">
+        
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
+            <h1 class="section-title loc-en" style="color: var(--deep-navy); margin: 0;">Report an Incident</h1>
+            <h1 class="section-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">घटना की रिपोर्ट करें</h1>
+            <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Describe what happened in your own words. Prahari will analyze the situation and guide your next steps.</p>
+            <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">अपनी भाषा में बताएं क्या हुआ। प्रहरी स्थिति का विश्लेषण करेगा और आपके अगले कदमों का मार्गदर्शन करेगा।</p>
         </div>
 
-        <!-- Unified Stepper inside the Card -->
-        <div class="stepper" id="prahari-stepper" aria-label="Incident Submission Progress" style="background: transparent; border: none; padding: 0; margin-top: 4px; margin-bottom: var(--space-3);">
-            <!-- JavaScript will dynamically render steps here -->
-        </div>
-
-        <form method="POST" action="/submit/" onsubmit="return validateForm()">
+        <form method="POST" action="/submit/" onsubmit="return validateForm()" style="display: flex; flex-direction: column; gap: var(--space-5);">
             {% csrf_token %}
             <input type="hidden" name="preferred_language" id="preferred_language_field" value="hindi">
             
             {% if error %}
-                <div class="form-error-label" style="margin-bottom: var(--space-4); font-weight: 600;">
+                <div class="form-error-label" style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-inner); font-weight: 600; font-size: 0.88rem; background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); color: var(--critical);">
                     {{ error }}
                 </div>
             {% endif %}
 
-            <!-- 01 What happened? -->
-            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">01</span>
-                    <label class="form-label loc-en" for="raw_text" style="font-size: 1rem; font-weight: 600;">What happened? *</label>
-                    <label class="form-label loc-hi" lang="hi" for="raw_text" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">क्या हुआ? *</label>
+            <!-- Form Section 01: What happened? -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); font-weight: 800; font-size: 0.85rem;">01</span>
+                    <label class="form-label loc-en" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); margin: 0;">What happened? *</label>
+                    <label class="form-label loc-hi" lang="hi" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">क्या हुआ? *</label>
                 </div>
                 <textarea 
                     name="raw_text" 
                     id="raw_text" 
                     class="form-control" 
                     required
-                    style="min-height: 140px; resize: vertical;"
-                ></textarea>
+                    style="min-height: 150px; resize: vertical; padding: 12px; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-default);"
+                >{{ prefilled_text|default:'' }}</textarea>
             </div>
 
-            <!-- 02 Where did it happen? -->
-            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">02</span>
-                    <label class="form-label loc-en" for="location" style="font-size: 1rem; font-weight: 600;">Where did this happen?</label>
-                    <label class="form-label loc-hi" lang="hi" for="location" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">यह कहाँ हुआ?</label>
+            <!-- Form Section 02: Where did this happen? -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); font-weight: 800; font-size: 0.85rem;">02</span>
+                    <label class="form-label loc-en" for="location" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); margin: 0;">Where did this happen?</label>
+                    <label class="form-label loc-hi" lang="hi" for="location" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">यह कहाँ हुआ?</label>
                 </div>
                 <input 
                     type="text" 
                     name="location" 
                     id="location" 
                     class="form-control"
+                    placeholder="e.g., Dharavi, Mumbai, or District Hospital, Wayanad"
+                    style="height: 46px; padding: 0 12px; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-default);"
                 >
             </div>
 
-            <!-- 03 Identity & Report Access -->
-            <div style="margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">03</span>
-                    <span class="form-label loc-en" style="font-size: 1rem; font-weight: 600;">Identity & Report Access</span>
-                    <span class="form-label loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">पहचान और रिपोर्ट पहुंच</span>
-                </div>
-                
-                <!-- Anonymous toggle -->
-                <div class="switch-container" id="anon_switch_container">
-                    <label class="switch" aria-label="Toggle anonymous submission / गुमनाम रिपोर्ट विकल्प">
-                        <input type="checkbox" name="anonymous" id="anonymous_toggle">
-                        <span class="slider"></span>
-                    </label>
-                    <span class="body-text" style="font-size: 0.95rem; font-weight: 500;">Submit Anonymously / गुमनाम रूप से जमा करें</span>
-                </div>
-                
-                <!-- Account ownership message -->
-                <div id="ownership_message" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1);">
-                    {% if request.user.is_authenticated %}
-                        <span class="loc-en" style="color: var(--accent-teal); font-weight: 600;">✓ This report will be saved to your account and visible in My Reports.</span>
-                        <span class="loc-hi" lang="hi" style="color: var(--accent-teal); font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">✓ यह रिपोर्ट आपके खाते में सहेजी जाएगी और मेरी रिपोर्ट सूची में दिखाई देगी।</span>
-                    {% else %}
-                        <span class="loc-en">Creating an account is optional. You can register/login later to link your reports.</span>
-                        <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">खाता बनाना वैकल्पिक है। अपनी रिपोर्ट लिंक करने के लिए आप बाद में पंजीकरण/लॉगिन कर सकते हैं।</span>
-                    {% endif %}
-                </div>
-                
-                <!-- Anonymous description -->
-                <div id="anonymous_message" style="display: none; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1);">
-                    <span class="loc-en">Your identity will not be recorded. You will receive a Private Return Key to access your report later.</span>
-                    <span class="loc-hi" lang="hi">आपकी पहचान दर्ज नहीं की जाएगी। बाद में अपनी रिपोर्ट देखने के लिए आपको एक निजी रिटर्न कुंजी मिलेगी।</span>
+            <!-- Form Section 03: Identity & Report Access -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); font-weight: 800; font-size: 0.85rem;">03</span>
+                    <span class="form-label loc-en" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy);">Identity &amp; Report Access</span>
+                    <span class="form-label loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">पहचान और रिपोर्ट पहुंच</span>
                 </div>
 
-                <!-- Anonymous warning card -->
-                <div id="anonymous_warning" style="display: none; padding: var(--space-3); border-radius: var(--radius-inner); background: var(--bg-surface-raised); border: 1px solid var(--border-default); margin-top: var(--space-2);">
-                    <div style="display: flex; gap: var(--space-2); align-items: flex-start;">
-                        <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--caution); width: 16px; height: 16px; margin-top: 2px;" aria-hidden="true">
-                            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                        </svg>
-                        <div style="font-size: 0.85rem; line-height: 1.5; color: var(--caution);">
-                            <span class="loc-en"><strong>Save your Private Return Key:</strong> Your key is shown only once. You will need it to return to this report from another device or browser.</span>
-                            <span class="loc-hi" lang="hi"><strong>अपनी निजी रिटर्न कुंजी को सुरक्षित रखें:</strong> यह कुंजी केवल एक बार दिखाई जाएगी। यदि आप किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट पर वापस आना चाहते हैं, तो इसकी आवश्यकता होगी।</span>
+                <div style="display: flex; flex-direction: column; gap: var(--space-3); background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-4);">
+                    
+                    <!-- Anonymous Toggle -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <label class="switch" aria-label="Toggle anonymous submission">
+                                <input type="checkbox" name="anonymous" id="anonymous_toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <div>
+                                <strong class="loc-en" style="font-size: 0.95rem; color: var(--deep-navy); display: block;">Submit Anonymously</strong>
+                                <strong class="loc-hi" lang="hi" style="font-size: 0.95rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">गुमनाम रूप से सबमिट करें</strong>
+                            </div>
                         </div>
+                        <span style="font-size: 0.78rem; font-weight: 700; background: rgba(15, 118, 110, 0.15); color: var(--accent-teal); padding: 2px 8px; border-radius: 12px;">Recommended</span>
                     </div>
+
+                    <!-- Explanatory Text -->
+                    <div id="anonymous_info" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; border-top: 1px solid var(--border-subtle); padding-top: var(--space-2);">
+                        <span class="loc-en">No account required. We will generate a Report ID and Private Return Key so you can access your report later.</span>
+                        <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">खाता अनिवार्य नहीं है। हम एक रिपोर्ट आईडी और निजी रिटर्न कुंजी बनाएंगे ताकि आप बाद में अपनी रिपोर्ट देख सकें।</span>
+                    </div>
+
+                    <div id="account_info" style="display: none; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; border-top: 1px solid var(--border-subtle); padding-top: var(--space-2);">
+                        {% if request.user.is_authenticated %}
+                            <span class="loc-en" style="color: var(--accent-teal); font-weight: 600;">✓ You are logged in as {{ request.user.email|default:request.user.username }}. This report will be linked to your account.</span>
+                            <span class="loc-hi" lang="hi" style="color: var(--accent-teal); font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">✓ आप {{ request.user.email|default:request.user.username }} के रूप में लॉग इन हैं। यह रिपोर्ट आपके खाते से लिंक होगी।</span>
+                        {% else %}
+                            <span class="loc-en">Want to save reports to an account? <a href="{% url 'citizen_login' %}" style="color: var(--accent-teal); text-decoration: underline;">Log in to your account</a>.</span>
+                            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">क्या रिपोर्ट खाते में सहेजना चाहते हैं? <a href="{% url 'citizen_login' %}" style="color: var(--accent-teal); text-decoration: underline;">अपने खाते में लॉगिन करें</a>।</span>
+                        {% endif %}
+                    </div>
+
                 </div>
+
             </div>
 
-            <!-- 04 Review & Submit -->
-            <div style="margin-top: var(--space-6); display: flex; flex-direction: column; gap: var(--space-3);">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); font-weight: 700; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">04</span>
-                    <span class="form-label loc-en" style="font-size: 1rem; font-weight: 600;">Review & Submit</span>
-                    <span class="form-label loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; font-family: 'Noto Sans Devanagari', sans-serif;">समीक्षा करें और जमा करें</span>
+            <!-- Submit Action -->
+            <div style="margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="padding: 10px 14px; border-radius: 6px; background: rgba(15, 118, 110, 0.05); border: 1px solid rgba(15, 118, 110, 0.2); font-size: 0.82rem; line-height: 1.45; color: var(--text-secondary);">
+                    <span class="loc-en">🔒 <strong>Privacy Protection:</strong> Submissions are encrypted in transit over HTTPS. Anonymous reports do not require identity or account registration.</span>
+                    <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">🔒 <strong>गोपनीयता सुरक्षा:</strong> सबमिशन एचटीटीपीएस (HTTPS) पर एन्क्रिप्ट किए गए हैं। गुमनाम रिपोर्टों में पहचान की आवश्यकता नहीं होती है।</span>
                 </div>
 
-                <div style="padding: var(--space-3); border-radius: var(--radius-inner); background: var(--bg-surface-raised); border: 1px solid var(--border-default); font-size: 0.88rem; line-height: 1.5; color: var(--text-secondary); margin-bottom: 4px;">
-                    <span class="loc-en">🔒 <strong>Your safety is protected:</strong> Submissions are encrypted in transit over HTTPS. Anonymous reports do not require identity details or personal account binding.</span>
-                    <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">🔒 <strong>आपकी सुरक्षा संरक्षित है:</strong> सबमिशन एचटीटीपीएस (HTTPS) पर एन्क्रिप्ट किए गए हैं। गुमनाम रिपोर्टों में पहचान विवरण या व्यक्तिगत खाते की आवश्यकता नहीं होती है।</span>
-                </div>
-
-                <button type="submit" class="btn-primary" style="width: 100%; height: 50px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-inner); cursor: pointer; transition: all 0.2s ease;">
-                    <span class="loc-en">Submit Report</span>
-                    <span class="loc-hi" lang="hi">रिपोर्ट जमा करें</span>
+                <button type="submit" class="btn-primary" style="width: 100%; height: 48px; font-size: 1rem; font-weight: 700; border-radius: 8px; cursor: pointer; background: var(--accent-teal); color: #ffffff; border: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span class="loc-en">Submit Report &rarr;</span>
+                    <span class="loc-hi" lang="hi">रिपोर्ट जमा करें &rarr;</span>
                 </button>
             </div>
+
         </form>
     </div>
 </main>
@@ -136,11 +154,11 @@
     <script>
         const placeholders = {
             en: {
-                raw_text: "Provide details: what is happening, who is involved, facility names, any immediate medical or legal assistance required...",
+                raw_text: "Provide details: what is happening, who is involved, facility names, any immediate assistance required...",
                 location: "e.g., Dharavi, Mumbai, or District Hospital, Wayanad"
             },
             hi: {
-                raw_text: "विवरण प्रदान करें: क्या हो रहा है, कौन शामिल है, सुविधा का नाम, कोई तत्काल चिकित्सा या कानूनी सहायता की आवश्यकता...",
+                raw_text: "विवरण प्रदान करें: क्या हो रहा है, कौन शामिल है, सुविधा का नाम, कोई तत्काल सहायता की आवश्यकता...",
                 location: "उदा. धारावी, मुंबई, या जिला अस्पताल, वायनाड"
             }
         };
@@ -179,85 +197,19 @@
             return true;
         }
 
-        function updateStepper(isAnonymous) {
-            const stepperContainer = document.getElementById('prahari-stepper');
-            if (!stepperContainer) return;
-            
-            let html = '';
-            if (isAnonymous) {
-                html = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-                        <div style="position: absolute; top: 12px; left: 10%; right: 10%; height: 2px; background: var(--border-default); z-index: 1;"></div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--accent-teal); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">1</div>
-                            <span class="loc-en" style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary);">Submission</span>
-                            <span class="loc-hi" lang="hi" style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif;">सबमिशन</span>
-                        </div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</div>
-                            <span class="loc-en" style="font-size: 0.75rem; color: var(--text-muted);">Return Key</span>
-                            <span class="loc-hi" lang="hi" style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">रिटर्न कुंजी</span>
-                        </div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">3</div>
-                            <span class="loc-en" style="font-size: 0.75rem; color: var(--text-muted);">AI Analysis</span>
-                            <span class="loc-hi" lang="hi" style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">एआई विश्लेषण</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-                        <div style="position: absolute; top: 12px; left: 10%; right: 10%; height: 2px; background: var(--border-default); z-index: 1;"></div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--accent-teal); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">1</div>
-                            <span class="loc-en" style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary);">Submission</span>
-                            <span class="loc-hi" lang="hi" style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary); font-family: 'Noto Sans Devanagari', sans-serif;">सबमिशन</span>
-                        </div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</div>
-                            <span class="loc-en" style="font-size: 0.75rem; color: var(--text-muted);">AI Analysis</span>
-                            <span class="loc-hi" lang="hi" style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">एआई विश्लेषण</span>
-                        </div>
-                        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface-raised); color: var(--text-muted); border: 2px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">3</div>
-                            <span class="loc-en">Response</span>
-                            <span class="loc-hi" lang="hi">प्रतिक्रिया</span>
-                        </div>
-                    </div>
-                `;
-            }
-            stepperContainer.innerHTML = html;
-            
-            const currentLang = localStorage.getItem('prahari_lang') || 'hindi';
-            setLanguageTheme(currentLang);
-        }
-
         function initAnonymousToggle() {
             const anonToggle = document.getElementById('anonymous_toggle');
-            const anonMessage = document.getElementById('anonymous_message');
-            const ownershipMessage = document.getElementById('ownership_message');
-            const anonWarning = document.getElementById('anonymous_warning');
+            const anonInfo = document.getElementById('anonymous_info');
+            const accountInfo = document.getElementById('account_info');
 
             if (anonToggle) {
-                updateStepper(anonToggle.checked);
-                
                 anonToggle.addEventListener('change', () => {
-                    const isAnon = anonToggle.checked;
-                    updateStepper(isAnon);
-                    
-                    if (isAnon) {
-                        if (anonMessage) anonMessage.style.display = 'block';
-                        if (ownershipMessage) ownershipMessage.style.display = 'none';
-                        if (anonWarning) anonWarning.style.display = 'block';
+                    if (anonToggle.checked) {
+                        if (anonInfo) anonInfo.style.display = 'block';
+                        if (accountInfo) accountInfo.style.display = 'none';
                     } else {
-                        contactGroup.style.maxHeight = '200px';
-                        contactGroup.style.opacity = '1';
-                        contactGroup.style.marginTop = 'var(--space-2)';
-                        contactGroup.style.pointerEvents = 'auto';
-                        anonMessage.style.display = 'none';
-                        if (ownershipMessage) ownershipMessage.style.display = 'block';
-                        if (anonWarning) anonWarning.style.display = 'none';
+                        if (anonInfo) anonInfo.style.display = 'none';
+                        if (accountInfo) accountInfo.style.display = 'block';
                     }
                 });
             }
@@ -269,15 +221,7 @@
             if (field) {
                 field.value = selectedLang;
             }
-            
             initAnonymousToggle();
-            
-            const pKey = selectedLang === 'hindi' ? 'hi' : 'en';
-            const rawTextEl = document.getElementById('raw_text');
-            const locEl = document.getElementById('location');
-
-            if (rawTextEl) rawTextEl.placeholder = placeholders[pKey].raw_text;
-            if (locEl) locEl.placeholder = placeholders[pKey].location;
         });
     </script>
 {% endblock %}

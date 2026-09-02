@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Prahari — Track Your Report{% endblock %}
+
+{% block content %}
+<main style="flex: 1; max-width: 520px; width: 100%; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+    <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left;">
+        
+        <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
+            <span class="section-eyebrow" style="color: var(--accent-teal);">Report Access</span>
+            <h1 class="section-title loc-en" style="color: var(--deep-navy); margin: 0;">Track Your Report</h1>
+            <h1 class="section-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">अपनी रिपोर्ट ट्रैक करें</h1>
+            <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 4px 0 0 0;">Enter your Report ID and Private Return Key to view real-time processing status and verified guidance.</p>
+            <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 4px 0 0 0;">अपनी लाइव प्रोसेसिंग स्थिति और सत्यापित मार्गदर्शन देखने के लिए अपनी रिपोर्ट आईडी और निजी रिटर्न कुंजी दर्ज करें।</p>
+        </div>
+
+        {% if error %}
+            <div class="form-error-label" style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-inner); font-weight: 600; font-size: 0.88rem; background: rgba(214, 69, 69, 0.05); border: 1px solid var(--critical); color: var(--critical);">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'citizen_track' %}" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label loc-en" for="tracking_id">Report ID *</label>
+                <label class="form-label loc-hi" lang="hi" for="tracking_id">रिपोर्ट आईडी *</label>
+                <input 
+                    type="text" 
+                    name="tracking_id" 
+                    id="tracking_id" 
+                    class="form-control" 
+                    required 
+                    placeholder="e.g. PRAH-20260901-ABCD" 
+                    value="{{ tracking_id|default:'' }}"
+                    style="height: 46px; border-radius: var(--radius-inner); font-family: monospace; font-size: 0.95rem; text-transform: uppercase;"
+                >
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <div>
+                        <label class="form-label loc-en" for="return_key" style="margin: 0;">Private Return Key</label>
+                        <label class="form-label loc-hi" lang="hi" for="return_key" style="margin: 0;">निजी रिटर्न कुंजी</label>
+                    </div>
+                    <span style="font-size: 0.78rem; color: var(--text-muted);">(Required for anonymous reports)</span>
+                </div>
+                <input 
+                    type="text" 
+                    name="return_key" 
+                    id="return_key" 
+                    class="form-control" 
+                    placeholder="e.g. A1B2C3" 
+                    maxlength="10"
+                    style="height: 46px; border-radius: var(--radius-inner); font-family: monospace; font-size: 0.95rem; text-transform: uppercase;"
+                >
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; height: 46px; font-weight: 700; border-radius: var(--radius-inner); margin-top: 4px;">
+                <span class="loc-en">Track Report →</span>
+                <span class="loc-hi" lang="hi">रिपोर्ट ट्रैक करें →</span>
+            </button>
+        </form>
+
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3); font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; text-align: center;">
+            <div>
+                <span class="loc-en">Submitted using your account?</span>
+                <span class="loc-hi" lang="hi">अपने खाते का उपयोग करके जमा किया?</span>
+                <a href="{% url 'citizen_login' %}" style="color: var(--accent-teal); font-weight: 600; text-decoration: underline; margin-left: 4px;">
+                    <span class="loc-en">Log in to view My Reports</span>
+                    <span class="loc-hi" lang="hi">मेरी रिपोर्ट देखने के लिए लॉगिन करें</span>
+                </a>
+            </div>
+            <div>
+                <a href="/" style="color: var(--text-secondary); text-decoration: none;">
+                    <span class="loc-en">&larr; Back to Home</span>
+                    <span class="loc-hi" lang="hi">&larr; मुख्य पृष्ठ पर वापस जाएं</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</main>
+{% endblock %}

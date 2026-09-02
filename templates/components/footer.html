@@ -1,22 +1,43 @@
-<footer class="app-footer">
-    <div class="footer-container">
-        <div class="footer-left">
-            <div class="footer-brand">PRAHARI</div>
-            <span class="footer-sub loc-en">Real Time Civic Intelligence & Response System</span>
-            <span class="footer-sub loc-hi" lang="hi">तत्काल नागरिक सूचना एवं सहायता प्रणाली</span>
-        </div>
-        <div class="footer-center">
-            <p class="loc-en">Immediate citizen information and assistance. This service provides automated informational guidance and does not replace official emergency, legal, or medical authorities.</p>
-            <p class="loc-hi" lang="hi">तत्काल नागरिक सूचना और सहायता। यह सेवा केवल स्वचालित सूचनात्मक मार्गदर्शन प्रदान करती है और आधिकारिक आपातकालीन, कानूनी या चिकित्सा अधिकारियों का विकल्प नहीं है।</p>
-        </div>
-        <div class="footer-right">
-            <span class="footer-helpline-tag loc-en">Emergency Helplines</span>
-            <span class="footer-helpline-tag loc-hi" lang="hi">आपातकालीन हेल्पलाइन</span>
-            <div class="footer-helplines">
-                <a href="tel:112">112 (Emergency)</a>
-                <span>•</span>
-                <a href="tel:108">108 (Medical)</a>
+<footer class="app-footer" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: var(--space-6) 1.5rem var(--space-5) 1.5rem; margin-top: auto;">
+    <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-4);">
+        
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4);">
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--deep-navy); letter-spacing: 0.04em; text-transform: uppercase;">PRAHARI</span>
+                <span class="loc-en" style="font-size: 0.78rem; color: var(--text-muted);">Real Time Civic Intelligence & Response System</span>
+                <span class="loc-hi" lang="hi" style="font-size: 0.78rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">तत्काल नागरिक सूचना एवं सहायता प्रणाली</span>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); font-size: 0.85rem; font-weight: 500;">
+                <a href="/#how-it-works" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">How It Works</a>
+                <a href="/#how-it-works" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">यह कैसे काम करता है</a>
+                <span style="color: var(--border-default);">•</span>
+
+                <a href="{% url 'citizen_track' %}" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Track Report</a>
+                <a href="{% url 'citizen_track' %}" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">रिपोर्ट ट्रैक करें</a>
+                <span style="color: var(--border-default);">•</span>
+
+                <a href="{% url 'citizen_login' %}" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Citizen Login</a>
+                <a href="{% url 'citizen_login' %}" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">नागरिक लॉगिन</a>
+                <span style="color: var(--border-default);">•</span>
+
+                <a href="/login/" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Organization Portal</a>
+                <a href="/login/" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">संगठन पोर्टल</a>
             </div>
         </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: 0.78rem; color: var(--text-muted);">
+            <div>
+                &copy; 2026 Prahari. All rights reserved. &bull; Automated Civic Assistance &amp; Response Support System.
+            </div>
+            <div style="display: flex; gap: var(--space-3);">
+                <span>No account required</span>
+                <span>•</span>
+                <span>Privacy-conscious design</span>
+                <span>•</span>
+                <span>Accessible SSR architecture</span>
+            </div>
+        </div>
+
     </div>
 </footer>

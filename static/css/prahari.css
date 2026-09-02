@@ -441,8 +441,9 @@ html[lang="hi"] span.loc-hi,
 html[lang="hi"] a.loc-hi,
 html[lang="hi"] label.loc-hi,
 html[lang="hi"] button.loc-hi,
-html[lang="hi"] h3.loc-hi,
+html[lang="hi"] h1.loc-hi,
 html[lang="hi"] h2.loc-hi,
+html[lang="hi"] h3.loc-hi,
 html[lang="hi"] h4.loc-hi,
 html[lang="hi"] div.loc-hi {
     display: inline-block !important;

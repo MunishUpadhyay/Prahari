@@ -15,6 +15,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from apps.signals.citizen_views import (
     citizen_home,
     citizen_submit,
+    citizen_track_report,
     citizen_report_status,
     citizen_signal_status_api,
     health_check,
@@ -49,6 +50,7 @@ urlpatterns = [
     # Citizen Portal
     path("", citizen_home, name="citizen_home"),
     path("submit/", citizen_submit, name="citizen_submit"),
+    path("track/", citizen_track_report, name="citizen_track"),
     path("report/<str:signal_id>/", citizen_report_status, name="citizen_report_status"),
     path("report/<str:signal_id>/status/", citizen_signal_status_api, name="citizen_signal_status_api"),
     path("citizen/register/", citizen_register, name="citizen_register"),

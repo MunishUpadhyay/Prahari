@@ -36,10 +36,10 @@ def resolve_signal(signal_id):
                 return sig
         raise Http404("Signal not found by tracking ID")
     else:
-        # Try finding by UUID directly
+        from django.core.exceptions import ValidationError
         try:
             return Signal.objects.get(id=signal_id_str)
-        except (Signal.DoesNotExist, ValueError):
+        except (Signal.DoesNotExist, ValueError, ValidationError):
             raise Http404("Signal not found by UUID")
 
 
@@ -119,7 +119,6 @@ def citizen_submit(request):
         except Exception as e:
             logger.error("[Citizen Portal] Celery enqueue failed for signal %s: %s", signal.id, e)
             if getattr(settings, "DEBUG", False):
-                # Development fallback: Execute synchronously only in local DEBUG mode
                 try:
                     from config.celery import app as celery_app
                     celery_app.conf.task_always_eager = True
@@ -127,20 +126,61 @@ def citizen_submit(request):
                 except Exception as sync_exc:
                     logger.error("[Citizen Portal] Synchronous development processing failed: %s", sync_exc)
             else:
-                # Production mode: Record clean failure state without mutating global celery config or blocking HTTP thread
                 signal.status = 'failed'
                 if not isinstance(signal.metadata, dict):
                     signal.metadata = {}
                 signal.metadata['error'] = 'Processing service temporarily unavailable. Please retry later.'
                 signal.save(update_fields=['status', 'metadata'])
 
-        # Redirect using the user-friendly tracking ID format
         date_str = signal.created_at.strftime("%Y%m%d")
         uuid_first_4 = str(signal.id)[:4].upper()
         tracking_id = f"PRAH-{date_str}-{uuid_first_4}"
         return redirect(f"/report/{tracking_id}/")
 
-    return render(request, "submit.html")
+    prefilled_text = request.GET.get("raw_text", "").strip()
+    return render(request, "submit.html", {"prefilled_text": prefilled_text})
+
+
+def citizen_track_report(request):
+    """
+    GET /track/ — Renders dedicated Track Report page.
+    POST /track/ — Resolves tracking_id + return_key and redirects to report status.
+    """
+    if request.method == "POST":
+        tracking_id = request.POST.get("tracking_id", "").strip()
+        return_key = request.POST.get("return_key", "").strip().upper()
+
+        if not tracking_id:
+            return render(request, "track.html", {"error": "Please enter a valid Report ID."})
+
+        try:
+            signal = resolve_signal(tracking_id)
+        except Http404:
+            return render(request, "track.html", {"error": "Report ID not found. Please verify your Report ID and try again."})
+
+        date_str = signal.created_at.strftime("%Y%m%d")
+        uuid_first_4 = str(signal.id)[:4].upper()
+        formatted_id = f"PRAH-{date_str}-{uuid_first_4}"
+
+        if signal.user is not None:
+            return redirect(f"/report/{formatted_id}/")
+
+        stored_hash = signal.metadata.get("anonymous_code") if signal.metadata else None
+        if return_key and stored_hash:
+            import hashlib
+            key_hash = hashlib.sha256(return_key.encode()).hexdigest()
+            if key_hash == stored_hash:
+                request.session[f"verified_{signal.id}"] = True
+                return redirect(f"/report/{formatted_id}/")
+            else:
+                return render(request, "track.html", {
+                    "error": "Invalid Return Key. Please check your 6-character key.",
+                    "tracking_id": tracking_id
+                })
+
+        return redirect(f"/report/{formatted_id}/")
+
+    return render(request, "track.html")
 
 
 from django.conf import settings
