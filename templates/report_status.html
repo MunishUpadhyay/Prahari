@@ -1979,14 +1979,174 @@ function renderCaseStatus(status, notes, contactNumber) {
 }
 
 // ── Polling & Lifecycle ────────────────────────────────────
+let consecutive500s = 0;
+let consecutive429s = 0;
+let consecutiveNetworkErrors = 0;
+
+function showVerificationRequiredState() {
+    if (pollTimer) clearInterval(pollTimer);
+    const loadingCard = document.getElementById('loading-card');
+    if (loadingCard) loadingCard.style.display = 'none';
+    const container = document.getElementById('case-status-container');
+    if (container) {
+        container.innerHTML = `
+        <div class="surface-card" style="border-color: var(--accent-teal); text-align: left; display: flex; flex-direction: column; gap: var(--space-3); max-width: 480px; margin: 1.5rem auto;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="fill: var(--accent-teal); width: 24px; height: 24px;" aria-hidden="true">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+                <h3 class="card-title" style="color: var(--deep-navy); margin: 0;">
+                    <span class="loc-en">Verification Required</span>
+                    <span class="loc-hi" lang="hi">सत्यापन आवश्यक है</span>
+                </h3>
+            </div>
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                <span class="loc-en">Access to this confidential report requires verification with your 6-character Private Return Key.</span>
+                <span class="loc-hi" lang="hi">इस गोपनीय रिपोर्ट तक पहुँचने के लिए आपकी 6-अक्षरों की निजी रिटर्न कुंजी के साथ सत्यापन की आवश्यकता है।</span>
+            </p>
+            <form id="inline-verify-form" onsubmit="submitInlineVerification(event)" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <div class="form-group" style="margin: 0;">
+                    <input type="text" id="inline-verify-input" placeholder="e.g. 3B9X7A" maxlength="6" required style="height: 44px; border-radius: var(--radius-inner); font-family: monospace; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 0.75rem; border: 1px solid var(--border-default); width: 100%;" />
+                    <div id="inline-verify-error" style="display: none; color: var(--critical); font-size: 0.85rem; font-weight: 600; margin-top: 4px;"></div>
+                </div>
+                <button type="submit" class="btn-primary" style="height: 42px; font-weight: 700; font-size: 0.95rem; border-radius: var(--radius-inner);">
+                    <span class="loc-en">Verify & Access Report →</span>
+                    <span class="loc-hi" lang="hi">सत्यापित करें और रिपोर्ट देखें →</span>
+                </button>
+            </form>
+        </div>`;
+        container.style.display = 'block';
+    }
+}
+
+async function submitInlineVerification(event) {
+    event.preventDefault();
+    const input = document.getElementById('inline-verify-input');
+    const errDiv = document.getElementById('inline-verify-error');
+    if (!input || !errDiv) return;
+    const code = input.value.trim().toUpperCase();
+    errDiv.style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/signals/${signalId}/verify-code/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ code: code })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.valid) {
+            window.location.reload();
+        } else {
+            errDiv.style.display = 'block';
+            errDiv.textContent = data.message || (localStorage.getItem('prahari_lang') === 'hindi' ? 'अमान्य कुंजी।' : 'Invalid Return Key.');
+        }
+    } catch (e) {
+        errDiv.style.display = 'block';
+        errDiv.textContent = localStorage.getItem('prahari_lang') === 'hindi' ? 'कनेक्शन त्रुटि।' : 'Connection failed.';
+    }
+}
+
+function showNotFoundState() {
+    if (pollTimer) clearInterval(pollTimer);
+    const loadingCard = document.getElementById('loading-card');
+    if (loadingCard) loadingCard.style.display = 'none';
+    const container = document.getElementById('case-status-container');
+    if (container) {
+        container.innerHTML = `
+        <div class="surface-card" style="border-color: var(--critical); text-align: left; display: flex; flex-direction: column; gap: var(--space-3);">
+            <h3 class="card-title" style="color: var(--critical); margin: 0;">
+                <span class="loc-en">Report Not Found</span>
+                <span class="loc-hi" lang="hi">रिपोर्ट नहीं मिली</span>
+            </h3>
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                <span class="loc-en">The requested Report ID could not be found. Please check your Report ID and try again.</span>
+                <span class="loc-hi" lang="hi">अनुरोध की गई रिपोर्ट आईडी नहीं मिल सकी। कृपया अपनी रिपोर्ट आईडी की जांच करें और पुनः प्रयास करें।</span>
+            </p>
+            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                <a href="/track/" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+                    <span class="loc-en">Track Another Report</span>
+                    <span class="loc-hi" lang="hi">अन्य रिपोर्ट ट्रैक करें</span>
+                </a>
+            </div>
+        </div>`;
+        container.style.display = 'block';
+    }
+}
+
+function showSystemErrorState(msg) {
+    if (pollTimer) clearInterval(pollTimer);
+    const loadingCard = document.getElementById('loading-card');
+    if (loadingCard) loadingCard.style.display = 'none';
+    const container = document.getElementById('case-status-container');
+    if (container) {
+        container.innerHTML = `
+        <div class="surface-card" style="border-color: var(--critical); text-align: left; display: flex; flex-direction: column; gap: var(--space-3);">
+            <h3 class="card-title" style="color: var(--critical); margin: 0;">
+                <span class="loc-en">Service Temporarily Unavailable</span>
+                <span class="loc-hi" lang="hi">सेवा अस्थायी रूप से अनुपलब्ध है</span>
+            </h3>
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                <span class="loc-en">${msg || 'We are experiencing temporary server communication issues. Your report remains safely stored.'}</span>
+                <span class="loc-hi" lang="hi">${msg || 'हम अस्थायी सर्वर संचार समस्याओं का सामना कर रहे हैं। आपकी रिपोर्ट सुरक्षित रूप से सहेजी गई है।'}</span>
+            </p>
+            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                <button onclick="window.location.reload()" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+                    <span class="loc-en">Retry Check</span>
+                    <span class="loc-hi" lang="hi">पुनः प्रयास करें</span>
+                </button>
+            </div>
+        </div>`;
+        container.style.display = 'block';
+    }
+}
+
+// ── Polling & Lifecycle ────────────────────────────────────
 async function pollStatus() {
     try {
         const response = await fetch(`/report/${signalId}/status/`);
+        
+        // Handle non-200 HTTP responses explicitly
         if (!response.ok) {
-            // Quietly retry on transient HTTP errors
+            if (response.status === 403) {
+                showVerificationRequiredState();
+                return;
+            }
+            if (response.status === 404) {
+                showNotFoundState();
+                return;
+            }
+            if (response.status === 429) {
+                consecutive429s++;
+                if (consecutive429s >= 5) {
+                    showSystemErrorState(localStorage.getItem('prahari_lang') === 'hindi' ? 'अत्यधिक अनुरोध प्राप्त हुए। कृपया कुछ क्षण पश्चात् पुनः प्रयास करें।' : 'Rate limit exceeded. Please wait a moment and click retry.');
+                    return;
+                }
+                return;
+            }
+            if (response.status >= 500) {
+                consecutive500s++;
+                if (consecutive500s >= 3) {
+                    showSystemErrorState(localStorage.getItem('prahari_lang') === 'hindi' ? 'अस्थायी सर्वर त्रुटि। कृपया पुनः प्रयास करें।' : 'Temporary server error. Please try again.');
+                    return;
+                }
+                return;
+            }
+            consecutiveNetworkErrors++;
+            if (consecutiveNetworkErrors >= 3) {
+                showSystemErrorState();
+                return;
+            }
             return;
         }
-        
+
+        // Reset error counters on successful HTTP 200
+        consecutive500s = 0;
+        consecutive429s = 0;
+        consecutiveNetworkErrors = 0;
+
         const data = await response.json();
         pollAttempts++;
         document.getElementById('attempt-counter').textContent = `Check attempt: ${pollAttempts}`;
@@ -2011,7 +2171,10 @@ async function pollStatus() {
             }
         }
     } catch (e) {
-        // Log silently
+        consecutiveNetworkErrors++;
+        if (consecutiveNetworkErrors >= 5) {
+            showSystemErrorState(localStorage.getItem('prahari_lang') === 'hindi' ? 'नेटवर्क कनेक्शन त्रुटि।' : 'Network connection issue.');
+        }
     }
 }
 

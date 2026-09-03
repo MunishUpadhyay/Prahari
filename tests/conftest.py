@@ -35,6 +35,7 @@ def configure_settings(settings):
         }
     }
 
+
 @pytest.fixture(autouse=True)
 def mock_groq(monkeypatch):
     def mock_completion_create(*args, **kwargs):

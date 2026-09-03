@@ -231,6 +231,7 @@ def test_coordinator_dashboard_isolation(client, tenant, citizen_a, coordinator)
 
 @pytest.mark.django_db
 def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
+    client.cookies.clear()
     client.login(username=citizen_a.username, password="password123")
 
     # Post identified report
@@ -278,6 +279,7 @@ def test_anonymous_submission_immediate_access_and_subsequent_verification(clien
 
     # 3. New browser client accesses the report without session authorization
     fresh_client = Client()
+    fresh_client.cookies.clear()
     resp_fresh = fresh_client.get(f"/report/{tracking_id}/")
     assert resp_fresh.status_code == 200
     fresh_content = resp_fresh.content.decode()

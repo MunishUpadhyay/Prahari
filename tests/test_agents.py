@@ -55,8 +55,11 @@ def mock_groq_custom(monkeypatch):
             instantiations.append(api_key)
             self.chat = MockChat()
 
+    import apps.agents.base
+    original_groq = apps.agents.base.Groq
     monkeypatch.setattr("apps.agents.base.Groq", MockGroqClient)
-    return instantiations, completion_calls, exceptions_to_raise, success_responses
+    yield instantiations, completion_calls, exceptions_to_raise, success_responses
+    apps.agents.base.Groq = original_groq
 
 @pytest.mark.django_db
 def test_call_groq_success(settings, mock_groq_custom):

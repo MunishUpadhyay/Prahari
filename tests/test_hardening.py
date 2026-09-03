@@ -362,3 +362,108 @@ def test_rate_limit_normal_behavior_unchanged(client):
     assert resp3.status_code == 429
 
 
+# ---------------------------------------------------------------------------
+# 7. Citizen Status API HTTP Boundary Response Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_status_api_404_not_found(client):
+    """Status API returns 404 for invalid report tracking ID."""
+    resp = client.get("/report/PRAH-20260903-NONEXISTENT/status/")
+    assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_status_api_403_unauthorized_for_unverified_anonymous_signal(client, tenant):
+    """Status API returns 403 for anonymous signal without Return Key session verification."""
+    from apps.signals.models import Signal
+    import hashlib
+
+    sig = Signal.objects.create(
+        tenant=tenant,
+        raw_text="Anonymous test signal for boundary check",
+        metadata={"anonymous_code": hashlib.sha256(b"SECRET").hexdigest()},
+        status="pending"
+    )
+    date_str = sig.created_at.strftime("%Y%m%d")
+    uuid_4 = str(sig.id)[:4].upper()
+    tracking_id = f"PRAH-{date_str}-{uuid_4}"
+
+    # Request status API without setting verified in session -> Must return 403
+    resp = client.get(f"/report/{tracking_id}/status/")
+    assert resp.status_code == 403
+    data = resp.json()
+    assert data.get("status") == "unauthorized"
+
+
+@pytest.mark.django_db
+def test_status_api_200_processing_response(client, tenant):
+    """Status API returns 200 with status='processing' and steps when verified."""
+    from apps.signals.models import Signal
+    import hashlib
+
+    sig = Signal.objects.create(
+        tenant=tenant,
+        raw_text="Anonymous processing test signal",
+        metadata={"anonymous_code": hashlib.sha256(b"SECRET").hexdigest()},
+        status="processing"
+    )
+    date_str = sig.created_at.strftime("%Y%m%d")
+    uuid_4 = str(sig.id)[:4].upper()
+    tracking_id = f"PRAH-{date_str}-{uuid_4}"
+
+    # Set session verification
+    session = client.session
+    session[f"verified_{sig.id}"] = True
+    session.save()
+
+    resp = client.get(f"/report/{tracking_id}/status/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("status") == "processing"
+    assert data.get("steps", {}).get("received") is True
+    assert data.get("steps", {}).get("translated") is False
+
+
+@pytest.mark.django_db
+def test_status_api_200_completed_response(client, tenant):
+    """Status API returns 200 with status='processed' and steps.translated=True when completed."""
+    from apps.signals.models import Signal
+    from apps.incidents.models import Incident
+    import hashlib
+
+    sig = Signal.objects.create(
+        tenant=tenant,
+        raw_text="Anonymous completed test signal",
+        metadata={"anonymous_code": hashlib.sha256(b"SECRET").hexdigest()},
+        status="processed"
+    )
+    inc = Incident.objects.create(
+        signal=sig,
+        domain="legal",
+        situation_brief="Completed legal test incident",
+        agent_outputs={
+            "triage": {"triage_severity": "LOW"},
+            "rights": {"rights_violated": []},
+            "coordination": {"situation_title": "Completed Notice"},
+            "language": {"preferred": "english", "english": {"situation_title": "Completed Notice"}}
+        }
+    )
+    date_str = sig.created_at.strftime("%Y%m%d")
+    uuid_4 = str(sig.id)[:4].upper()
+    tracking_id = f"PRAH-{date_str}-{uuid_4}"
+
+    # Set session verification
+    session = client.session
+    session[f"verified_{sig.id}"] = True
+    session.save()
+
+    resp = client.get(f"/report/{tracking_id}/status/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("status") == "processed"
+    assert data.get("steps", {}).get("translated") is True
+    assert data.get("result", {}).get("incident_id") == str(inc.id)
+
+
+
