@@ -55,17 +55,32 @@ def get_embedding_function():
 import re
 
 
+def _norm_word(w: str) -> str:
+    w = w.lower()
+    if w.endswith("ies") and len(w) > 4:
+        return w[:-3] + "y"
+    if w.endswith("es") and len(w) > 4:
+        return w[:-2]
+    if w.endswith("s") and not w.endswith("ss") and len(w) > 3:
+        return w[:-1]
+    return w
+
+
 def _fallback_legal_search(query: str, n_results: int = 3) -> list[dict]:
     """Zero-memory keyword fallback search against VERIFIED_LEGAL_DATABASE."""
     try:
         from apps.agents.legal_reference import VERIFIED_LEGAL_DATABASE
-        words = set(re.findall(r'\w+', query.lower())) - {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need"}
-        if not words:
+        stop_words = {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need", "after", "from", "but", "by", "from"}
+        raw_words = [w.lower() for w in re.findall(r'\w+', query) if w.lower() not in stop_words]
+        norm_query_words = {_norm_word(w) for w in raw_words}
+        if not norm_query_words:
             return []
         scored = []
         for (code, sec), rec in VERIFIED_LEGAL_DATABASE.items():
             text_corpus = f"{code} {sec} {rec['title']} {rec['statutory_text']}".lower()
-            score = sum(1 for w in words if w in text_corpus)
+            corpus_words = {_norm_word(w) for w in re.findall(r'\w+', text_corpus)}
+            overlap = norm_query_words.intersection(corpus_words)
+            score = len(overlap)
             if score > 0:
                 doc_str = f"{code} Section {sec} — {rec['title']}. Statutory Text: {rec['statutory_text']}"
                 meta = {
@@ -80,7 +95,7 @@ def _fallback_legal_search(query: str, n_results: int = 3) -> list[dict]:
                 scored.append({
                     "text": doc_str,
                     "metadata": meta,
-                    "distance": max(0.1, round(1.0 - (score / (len(words) + 1)), 2)),
+                    "distance": max(0.1, round(1.0 - (score / (len(norm_query_words) + 1)), 2)),
                     "score": score
                 })
         scored.sort(key=lambda x: x["score"], reverse=True)
