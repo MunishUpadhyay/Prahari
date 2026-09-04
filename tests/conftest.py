@@ -188,6 +188,7 @@ def mock_groq(monkeypatch):
     mock_client.chat.completions = mock_completions
     
     monkeypatch.setattr("apps.agents.base.Groq", lambda *args, **kwargs: mock_client)
+    monkeypatch.setattr("groq.Groq", lambda *args, **kwargs: mock_client)
     return mock_completions.create
 
 @pytest.fixture(autouse=True)

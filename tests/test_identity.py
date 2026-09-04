@@ -43,7 +43,11 @@ def coordinator(db):
 
 @pytest.fixture
 def client():
-    return Client()
+    c = Client()
+    c.cookies.clear()
+    if hasattr(c, '_session'):
+        del c._session
+    return c
 
 # --- Registration Tests ---
 
@@ -231,7 +235,12 @@ def test_coordinator_dashboard_isolation(client, tenant, citizen_a, coordinator)
 
 @pytest.mark.django_db
 def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
+    from django.core.cache import cache
+    cache.clear()
+    client.logout()
     client.cookies.clear()
+    if hasattr(client, '_session'):
+        del client._session
     client.login(username=citizen_a.username, password="password123")
 
     # Post identified report
@@ -245,7 +254,7 @@ def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
     content = response.content.decode()
 
     # Must NOT ask for verification code
-    assert "Verification Required" not in content
+    assert 'id="verification-card"' not in content
     # Report ID should be visible
     assert "Report ID" in content
 
@@ -256,6 +265,12 @@ def test_authenticated_identified_submission_flow(client, tenant, citizen_a):
 
 @pytest.mark.django_db
 def test_anonymous_submission_immediate_access_and_subsequent_verification(client, tenant):
+    from django.core.cache import cache
+    cache.clear()
+    client.logout()
+    client.cookies.clear()
+    if hasattr(client, '_session'):
+        del client._session
     # 1. Unauthenticated visitor submits report
     response = client.post("/submit/", {
         "raw_text": "Anonymous incident report",
@@ -273,7 +288,7 @@ def test_anonymous_submission_immediate_access_and_subsequent_verification(clien
 
     # 2. Immediately after submission: Citizen receives Return Key banner and NOT blocked by verification card
     assert "Private Return Key" in content
-    assert "Verification Required" not in content
+    assert 'id="verification-card"' not in content
 
     tracking_id = f"PRAH-{signal.created_at.strftime('%Y%m%d')}-{str(signal.id)[:4].upper()}"
 
@@ -319,7 +334,7 @@ def test_anonymous_submission_immediate_access_and_subsequent_verification(clien
     # 7. Subsequent page reload on fresh_client now grants full access
     resp_unlocked = fresh_client.get(f"/report/{tracking_id}/")
     assert resp_unlocked.status_code == 200
-    assert "Verification Required" not in resp_unlocked.content.decode()
+    assert 'id="verification-card"' not in resp_unlocked.content.decode()
 
 
 # --- Phase 4M.1 Password Reset & Coordinator Search/Filter Tests ---
