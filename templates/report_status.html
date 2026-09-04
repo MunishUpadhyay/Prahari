@@ -587,6 +587,40 @@ function extractForum(actionText) {
     return null;
 }
 
+function isLegalNoticeRequired(result) {
+    if (!result) return false;
+    const domain = (result.domain || '').toLowerCase();
+    const isLegalDomain = ['legal', 'cross', 'cross_domain', 'rights'].includes(domain);
+    if (!isLegalDomain) return false;
+
+    const provisions = result.legal_provisions || [];
+    const rights = result.rights_violated || [];
+    const immActions = Array.isArray(result.immediate_actions) ? result.immediate_actions : [];
+    const escActions = Array.isArray(result.escalation_path) ? result.escalation_path : [];
+    
+    let combinedActionsStr = '';
+    immActions.forEach(a => {
+        if (typeof a === 'string') combinedActionsStr += ' ' + a;
+        else if (a && a.action) combinedActionsStr += ' ' + a.action;
+    });
+    escActions.forEach(a => {
+        if (typeof a === 'string') combinedActionsStr += ' ' + a;
+        else if (a && a.step) combinedActionsStr += ' ' + a.step;
+    });
+    combinedActionsStr = combinedActionsStr.toLowerCase();
+
+    const hasNoticeRequirement = combinedActionsStr.includes('notice') || 
+                                 combinedActionsStr.includes('court') || 
+                                 combinedActionsStr.includes('commissioner') || 
+                                 combinedActionsStr.includes('claim') || 
+                                 combinedActionsStr.includes('demand') || 
+                                 combinedActionsStr.includes('legal') ||
+                                 combinedActionsStr.includes('labor') ||
+                                 combinedActionsStr.includes('labour');
+
+    return (provisions.length > 0 || rights.length > 0 || hasNoticeRequirement);
+}
+
 function bringChecklist(domain, nearest_authority_type, title, brief, lang = 'en') {
     const domainL = (domain || '').toLowerCase();
     const auth = (nearest_authority_type || '').trim();
@@ -932,6 +966,17 @@ function showResult(result) {
             </div>`;
         }).join('');
         
+        const legalNoticeBtnHTML = isLegalNoticeRequired(result) ? `
+        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+            <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id || result.signal_id}')" style="width: fit-content;">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+                <span class="loc-en">Generate Legal Notice</span>
+                <span class="loc-hi">कानूनी नोटिस बनाएं</span>
+            </button>
+        </div>` : '';
+
         rightsHTML = `
     <section class="rs-section" aria-label="Legal Rights">
         <div class="section-header">
@@ -944,15 +989,7 @@ function showResult(result) {
             <p class="section-subheading loc-hi" lang="hi">आपकी रिपोर्ट के आधार पर, निम्नलिखित अधिकार आपकी सुरक्षा करते हैं:</p>
         </div>
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">${provCards}</div>
-        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
-            <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id}')" style="width: fit-content;">
-                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-                </svg>
-                <span class="loc-en">Generate Legal Notice</span>
-                <span class="loc-hi">कानूनी नोटिस बनाएं</span>
-            </button>
-        </div>
+        ${legalNoticeBtnHTML}
     </section>`;
     }
 
@@ -1799,6 +1836,14 @@ function showResultUnified(result) {
             </div>`;
         }).join('');
 
+        const legalNoticeBtnHTML2 = isLegalNoticeRequired(result) ? `
+        <div style="margin-top: var(--space-3); text-align: left;">
+            <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id || result.signal_id}')" style="background: var(--accent-teal); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 600; border-radius: var(--radius-inner); cursor: pointer;">
+                <span class="loc-en">Generate Legal Notice</span>
+                <span class="loc-hi">कानूनी नोटिस बनाएं</span>
+            </button>
+        </div>` : '';
+
         rightsProvisionsHTML = `
         <section class="rs-section" aria-label="Your Rights and Provisions" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4);">
             <div class="section-header" style="margin-bottom: var(--space-3); text-align: left;">
@@ -1809,13 +1854,7 @@ function showResultUnified(result) {
                 <p class="metadata-text loc-hi" lang="hi" style="margin: 0;">अधिकारियों के साथ बातचीत में अपनी सुरक्षा के लिए इन अधिकारों का उपयोग करें:</p>
             </div>
             <div class="accordion-list" style="display: flex; flex-direction: column; gap: var(--space-2);">${accItems}</div>
-            
-            <div style="margin-top: var(--space-3); text-align: left;">
-                <button id="legal-notice-btn" class="btn-primary" onclick="generateLegalNotice('${result.incident_id || result.signal_id}')" style="background: var(--accent-teal); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 600; border-radius: var(--radius-inner); cursor: pointer;">
-                    <span class="loc-en">Generate Legal Notice</span>
-                    <span class="loc-hi">कानूनी नोटिस बनाएं</span>
-                </button>
-            </div>
+            ${legalNoticeBtnHTML2}
         </section>`;
     } else {
         rightsProvisionsHTML = `
@@ -2242,14 +2281,15 @@ async function generateLegalNotice(incidentId) {
     content.textContent = 'Generating draft notice... / कानूनी नोटिस का प्रारूप तैयार किया जा रहा है...';
     modal.style.display = 'flex';
 
+    const selectedLang = localStorage.getItem('prahari_lang') || 'hindi';
     try {
-        const response = await fetch(`/api/incidents/${incidentId}/notice/`);
+        const response = await fetch(`/api/incidents/${incidentId}/legal-notice/?lang=${selectedLang}`);
         if (response.ok) {
             const data = await response.json();
-            const selectedLang = localStorage.getItem('prahari_lang') || 'hindi';
-            content.textContent = selectedLang === 'hindi' ? data.notice_hi : data.notice_en;
+            content.textContent = data.notice || data.notice_hi || data.notice_en || 'Legal notice draft generated successfully.';
         } else {
-            content.textContent = 'Failed to generate legal notice. / कानूनी नोटिस उत्पन्न करने में विफल।';
+            const errData = await response.json().catch(() => ({}));
+            content.textContent = errData.message || errData.detail || 'Failed to generate legal notice. / कानूनी नोटिस उत्पन्न करने में विफल।';
         }
     } catch (e) {
         content.textContent = 'Failed to generate legal notice. / कानूनी नोटिस उत्पन्न करने में विफल।';

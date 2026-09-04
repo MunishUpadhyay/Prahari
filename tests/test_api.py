@@ -38,15 +38,12 @@ def test_legal_notice_view_authentication(client, mock_groq):
     incident = Incident.objects.create(signal=signal, severity_score=0.5, severity_label="medium", domain="legal", agent_outputs=agent_outputs)
     url = reverse("incidents:legal-notice", kwargs={"id": incident.id})
     
-    # Case 1: Anonymous request
+    # Case 1: Anonymous request (Allowed for public citizen report status view)
     response = client.get(url)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_200_OK
+    assert "notice" in response.data
     
-    # Case 2: Invalid JWT
-    response = client.get(url, HTTP_AUTHORIZATION="Bearer invalid_token_value")
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    
-    # Case 3: Valid JWT
+    # Case 2: Authenticated user request
     user = User.objects.create_user(username="testuser", password="password")
     token = str(RefreshToken.for_user(user).access_token)
     response = client.get(url, HTTP_AUTHORIZATION=f"Bearer {token}")

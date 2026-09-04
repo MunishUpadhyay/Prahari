@@ -196,6 +196,7 @@ class SimilarIncidentsView(APIView):
 
 
 
+from rest_framework.permissions import AllowAny
 from apps.agents.agents import LegalNoticeAgent
 
 @extend_schema(request=None, responses={200: None})
@@ -204,17 +205,38 @@ class LegalNoticeView(APIView):
     GET /api/incidents/<uuid:id>/legal-notice/
     Generates a formal legal notice draft for the incident.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, id):
-        from apps.tenants.utils import get_authorized_tenant
-        tenant = get_authorized_tenant(request)
-        incident = get_object_or_404(Incident.objects.filter(signal__tenant=tenant).select_related("signal"), id=id)
+        incident = Incident.objects.filter(id=id).select_related("signal").first()
+        if not incident:
+            from apps.signals.citizen_views import resolve_signal
+            try:
+                sig = resolve_signal(id)
+                incident = getattr(sig, "incident", None)
+            except Exception:
+                incident = None
+
+        if not incident:
+            return Response(
+                {"detail": "Incident not found", "message": "Incident not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if request.user.is_authenticated and not request.user.is_staff:
+            from apps.tenants.utils import get_authorized_tenant
+            tenant = get_authorized_tenant(request)
+            if tenant and incident.signal.tenant_id != tenant.id:
+                return Response(
+                    {"detail": "Unauthorized access to incident", "message": "Unauthorized access to incident"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         signal = incident.signal
         
         # Check domain
         domain = (incident.domain or "").lower()
-        if domain not in ["legal", "cross", "cross_domain"]:
+        if domain not in ["legal", "cross", "cross_domain", "rights"]:
             return Response(
                 {"detail": "Legal notice only available for legal domain incidents", "message": "Legal notice only available for legal domain incidents"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -230,5 +252,10 @@ class LegalNoticeView(APIView):
 
         lang = request.query_params.get("lang") or signal.preferred_language or "english"
         notice_text = LegalNoticeAgent().run(signal, rights_result, target_language=lang)
-        return Response({"notice": notice_text}, status=status.HTTP_200_OK)
+        return Response({
+            "notice": notice_text,
+            "notice_en": notice_text,
+            "notice_hi": notice_text
+        }, status=status.HTTP_200_OK)
+
 
