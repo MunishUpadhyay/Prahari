@@ -158,12 +158,10 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     logger.info("Retrieving legal provisions for query: %r", query)
     try:
         client = get_chroma_client()
-        emb_fn = get_embedding_function()
         try:
-            collection = client.get_collection(
-                name="legal_provisions",
-                embedding_function=emb_fn
-            )
+            collection = client.get_collection(name="legal_provisions")
+            emb_fn = get_embedding_function()
+            collection._embedding_function = emb_fn
         except Exception:
             logger.info("Collection 'legal_provisions' missing. Using zero-memory statutory database fallback matcher.")
             return _fallback_legal_search(query, n_results)
@@ -218,12 +216,10 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
     logger.info("Retrieving medical protocols for query: %r", query)
     try:
         client = get_chroma_client()
-        emb_fn = get_embedding_function()
         try:
-            collection = client.get_collection(
-                name="medical_protocols",
-                embedding_function=emb_fn
-            )
+            collection = client.get_collection(name="medical_protocols")
+            emb_fn = get_embedding_function()
+            collection._embedding_function = emb_fn
         except Exception:
             logger.info("Collection 'medical_protocols' missing. Using zero-memory medical database fallback matcher.")
             return _fallback_medical_search(query, n_results)

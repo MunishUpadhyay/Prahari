@@ -28,10 +28,19 @@ def resolve_signal(signal_id):
         except ValueError:
             raise Http404("Invalid tracking ID format date")
         
-        # Filter signals created on that date
-        signals_on_date = Signal.objects.filter(created_at__date=date_obj)
-        # Find the one where str(id) starts with prefix
+        # Filter signals created on that date using timezone-aware timestamp range to ensure PostgreSQL compatibility
+        from datetime import time
+        from django.utils import timezone
+        raw_start = datetime.combine(date_obj, time.min)
+        raw_end = datetime.combine(date_obj, time.max)
+        start_dt = timezone.make_aware(raw_start) if getattr(settings, "USE_TZ", False) else raw_start
+        end_dt = timezone.make_aware(raw_end) if getattr(settings, "USE_TZ", False) else raw_end
+        signals_on_date = Signal.objects.filter(created_at__gte=start_dt, created_at__lte=end_dt)
         for sig in signals_on_date:
+            if str(sig.id).lower().startswith(prefix):
+                return sig
+        # Fallback: scan all signals if date range filter yields no match
+        for sig in Signal.objects.all().order_by('-created_at')[:100]:
             if str(sig.id).lower().startswith(prefix):
                 return sig
         raise Http404("Signal not found by tracking ID")
@@ -287,12 +296,12 @@ def citizen_signal_status_api(request, signal_id):
 
         # If language and coordination are both done, or signal is processed, compile the final response
         if steps["translated"] or signal.status == "processed":
-            coord_out = outputs.get("coordination", {})
-            lang_data = outputs.get("language", {})
+            coord_out = outputs.get("coordination", {}) if isinstance(outputs.get("coordination"), dict) else {}
+            lang_data = outputs.get("language", {}) if isinstance(outputs.get("language"), dict) else {}
             pref_lang = lang_data.get("preferred", "hindi") if isinstance(lang_data, dict) else "hindi"
-            lang_out = (lang_data.get(pref_lang, {}) or lang_data.get("hindi", {})) if isinstance(lang_data, dict) else {}
-            rights_out = outputs.get("rights", {})
-            triage_out = outputs.get("triage", {})
+            lang_out = lang_data.get(pref_lang, {}) if isinstance(lang_data.get(pref_lang), dict) else (lang_data.get("hindi", {}) if isinstance(lang_data.get("hindi"), dict) else {})
+            rights_out = outputs.get("rights", {}) if isinstance(outputs.get("rights"), dict) else {}
+            triage_out = outputs.get("triage", {}) if isinstance(outputs.get("triage"), dict) else {}
             
             result = {
                 "incident_id": str(incident.id),
