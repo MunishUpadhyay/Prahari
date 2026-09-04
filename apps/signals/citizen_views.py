@@ -285,12 +285,12 @@ def citizen_signal_status_api(request, signal_id):
         # Translation:
         steps["translated"] = ("language" in outputs)
 
-        # If language and coordination are both done, we compile the final response
-        if steps["translated"]:
+        # If language and coordination are both done, or signal is processed, compile the final response
+        if steps["translated"] or signal.status == "processed":
             coord_out = outputs.get("coordination", {})
             lang_data = outputs.get("language", {})
-            pref_lang = lang_data.get("preferred", "hindi")
-            lang_out = lang_data.get(pref_lang, {}) or lang_data.get("hindi", {})
+            pref_lang = lang_data.get("preferred", "hindi") if isinstance(lang_data, dict) else "hindi"
+            lang_out = (lang_data.get(pref_lang, {}) or lang_data.get("hindi", {})) if isinstance(lang_data, dict) else {}
             rights_out = outputs.get("rights", {})
             triage_out = outputs.get("triage", {})
             
@@ -364,8 +364,13 @@ def citizen_signal_status_api(request, signal_id):
 
     # Signal status mapper
     pipeline_status = "processing"
-    if steps["translated"]:
+    if steps["translated"] or signal.status == "processed":
         pipeline_status = "processed"
+        steps["received"] = True
+        steps["classified"] = True
+        steps["analyzed"] = True
+        steps["coordinated"] = True
+        steps["translated"] = True
     elif signal.status == "failed":
         pipeline_status = "failed"
 

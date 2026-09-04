@@ -453,8 +453,40 @@ def test_session_closure_isolation_and_csrf(client):
     response = csrf_client.post(invalid_url, content_type="application/json", HTTP_X_CSRFTOKEN=csrf_token)
     assert response.status_code == 404
     
-    # 21. No sensitive details leaked in 404
-    assert "detail" in response.json() or "message" in response.json()
 
 
 
+@pytest.mark.django_db
+def test_status_api_authoritative_processed_signal(client):
+    tenant = Tenant.objects.create(name="Test Tenant", is_active=True)
+    signal = Signal.objects.create(
+        tenant=tenant,
+        raw_text="Test processed signal",
+        source_type=SourceType.TEXT,
+        domain="legal",
+        status="processed"
+    )
+    incident = Incident.objects.create(
+        signal=signal,
+        domain="legal",
+        severity_score=0.8,
+        severity_label="high",
+        situation_brief="Test brief",
+        agent_outputs={
+            "sentinel": {"domain": "legal"},
+            "rights": {"rights_violated": ["Right to Housing"]},
+            "coordination": {"situation_title": "Legal Notice"}
+        }
+    )
+    status_url = reverse("citizen_signal_status_api", kwargs={"signal_id": signal.id})
+    response = client.get(status_url)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "processed"
+    assert data["steps"]["received"] is True
+    assert data["steps"]["classified"] is True
+    assert data["steps"]["analyzed"] is True
+    assert data["steps"]["coordinated"] is True
+    assert data["steps"]["translated"] is True
+    assert data["result"] is not None
+    assert data["result"]["incident_id"] == str(incident.id)

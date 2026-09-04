@@ -2160,14 +2160,30 @@ async function pollStatus() {
 
         updateChecklistUI(data.steps || {});
 
-        if (data.steps && data.steps.translated) {
+        const isProcessed = data.status === 'processed' || (data.steps && data.steps.translated);
+
+        if (isProcessed) {
             clearInterval(pollTimer);
             pipelineCompleted = true;
-            document.getElementById('loading-card').style.display = 'none';
-            document.getElementById('result-section').style.display = 'flex';
-            showResultUnified(data.result);
+
+            const allCompletedSteps = {
+                received: true,
+                classified: true,
+                analyzed: true,
+                coordinated: true,
+                translated: true
+            };
+            updateChecklistUI(data.steps ? Object.assign({}, allCompletedSteps, data.steps) : allCompletedSteps);
+
+            const loadingCard = document.getElementById('loading-card');
+            if (loadingCard) loadingCard.style.display = 'none';
+
+            const resultSection = document.getElementById('result-section');
+            if (resultSection) resultSection.style.display = 'flex';
+
             if (data.result) {
-                renderCaseStatus(data.result.status, data.result.coordinator_notes, data.result.contact_number);
+                showResultUnified(data.result);
+                renderCaseStatus(data.result.status, data.result.coordinator_notes);
             }
         }
     } catch (e) {
