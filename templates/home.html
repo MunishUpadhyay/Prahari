@@ -32,15 +32,23 @@
         
         <!-- Conversational Input Form -->
         <form action="/submit/" method="GET" style="width: 100%; max-width: 680px; margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-3);">
-            <div style="position: relative; background: #ffffff; border-radius: 10px; padding: 8px; border: 1px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px;">
+            <div style="position: relative; background: #ffffff; border-radius: 12px; padding: 10px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); display: flex; flex-direction: column; gap: 8px;">
                 <textarea 
                     name="raw_text" 
                     id="hero-raw-text" 
                     rows="3" 
                     required
-                    placeholder="Describe the situation in your own words..."
+                    placeholder="Describe the situation in your own words (e.g. unpaid wages, landlord eviction, hospital refusal, pothole)..."
                     style="width: 100%; border: none; outline: none; padding: 8px 12px; font-size: 0.98rem; font-family: inherit; color: #0f172a; resize: none; border-radius: 6px;"
                 ></textarea>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 8px 4px; border-top: 1px solid #f1f5f9;">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; align-self: center; margin-right: 4px;">Quick Examples:</span>
+                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('I resigned from my company 3 months ago. Employer has withheld my unpaid salary and full & final settlement (F&F). They refuse to issue my relieving letter.')">💼 Unpaid Salary &amp; F&amp;F</button>
+                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Landlord threatens to lock me out of my rented house tomorrow without notice despite active rent agreement.')">🏠 Illegal Eviction</button>
+                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Local government hospital refused to admit patient in emergency room demanding upfront cash payment.')">🏥 Hospital Denial</button>
+                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Huge deep pothole on MG Road causing traffic congestion and accidents near the market intersection.')">🛣️ Pothole Hazard</button>
+                </div>
                 
                 <div style="display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid #f1f5f9;">
                     <button type="submit" class="btn-primary" style="height: 42px; padding: 0 1.25rem; font-size: 0.95rem; font-weight: 700; border-radius: 6px; background: #0f766e; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s ease;">
@@ -50,6 +58,16 @@
                 </div>
             </div>
         </form>
+
+        <script>
+        function fillHeroPrompt(text) {
+            const el = document.getElementById('hero-raw-text');
+            if (el) {
+                el.value = text;
+                el.focus();
+            }
+        }
+        </script>
 
         <div style="font-size: 0.84rem; color: #94a3b8; margin-top: 2px;">
             <span class="loc-en">No account required &bull; Anonymous reporting available</span>

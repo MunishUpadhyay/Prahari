@@ -2296,10 +2296,25 @@ async function generateLegalNotice(incidentId) {
     }
 }
 
+function showToast(msg) {
+    const existing = document.querySelector('.copy-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'copy-toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
 function copyLegalNotice() {
     const text = document.getElementById('legal-notice-content').textContent;
     navigator.clipboard.writeText(text);
-    alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'कानूनी नोटिस कॉपी हो गया!' : 'Legal notice copied to clipboard!');
+    const msg = localStorage.getItem('prahari_lang') === 'hindi' ? '✓ कानूनी नोटिस कॉपी हो गया!' : '✓ Legal notice copied to clipboard!';
+    showToast(msg);
 }
 
 function printLegalNotice() {
@@ -2316,7 +2331,8 @@ function closeLegalNoticeModal() {
 
 function copyReportId() {
     navigator.clipboard.writeText(signalId).then(() => {
-        alert(localStorage.getItem('prahari_lang') === 'hindi' ? 'रिपोर्ट आईडी क्लिपबोर्ड पर कॉपी की गई!' : 'Report ID copied to clipboard!');
+        const msg = localStorage.getItem('prahari_lang') === 'hindi' ? '✓ रिपोर्ट आईडी कॉपी हो गई!' : '✓ Report ID copied to clipboard!';
+        showToast(msg);
     }).catch(err => {
         console.error('Could not copy text: ', err);
     });

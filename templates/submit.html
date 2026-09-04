@@ -56,19 +56,50 @@
 
             <!-- Form Section 01: What happened? -->
             <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); font-weight: 800; font-size: 0.85rem;">01</span>
-                    <label class="form-label loc-en" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); margin: 0;">What happened? *</label>
-                    <label class="form-label loc-hi" lang="hi" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">क्या हुआ? *</label>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); font-weight: 800; font-size: 0.85rem;">01</span>
+                        <label class="form-label loc-en" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); margin: 0;">What happened? *</label>
+                        <label class="form-label loc-hi" lang="hi" for="raw_text" style="font-size: 1.05rem; font-weight: 700; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">क्या हुआ? *</label>
+                    </div>
+                    <span id="char-count-badge" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">0 / 2000</span>
                 </div>
                 <textarea 
                     name="raw_text" 
                     id="raw_text" 
                     class="form-control" 
                     required
+                    oninput="updateCharCounter(this)"
                     style="min-height: 150px; resize: vertical; padding: 12px; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-default);"
                 >{{ prefilled_text|default:'' }}</textarea>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;">
+                    <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); align-self: center;">Suggestions:</span>
+                    <button type="button" class="scenario-chip" style="background: var(--bg-surface-raised); color: var(--text-primary); border: 1px solid var(--border-default);" onclick="fillSubmitText('I resigned 3 months ago. Employer has withheld unpaid salary and full & final settlement (F&F).')">💼 Unpaid Salary</button>
+                    <button type="button" class="scenario-chip" style="background: var(--bg-surface-raised); color: var(--text-primary); border: 1px solid var(--border-default);" onclick="fillSubmitText('Landlord threatens to lock me out of my apartment tomorrow without notice.')">🏠 Illegal Eviction</button>
+                    <button type="button" class="scenario-chip" style="background: var(--bg-surface-raised); color: var(--text-primary); border: 1px solid var(--border-default);" onclick="fillSubmitText('Hospital emergency room refused patient admission demanding advance payment.')">🏥 Hospital Denial</button>
+                </div>
             </div>
+
+            <script>
+            function updateCharCounter(el) {
+                const badge = document.getElementById('char-count-badge');
+                if (badge) {
+                    badge.textContent = `${el.value.length} / 2000`;
+                }
+            }
+            function fillSubmitText(txt) {
+                const el = document.getElementById('raw_text');
+                if (el) {
+                    el.value = txt;
+                    updateCharCounter(el);
+                    el.focus();
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                const el = document.getElementById('raw_text');
+                if (el) updateCharCounter(el);
+            });
+            </script>
 
             <!-- Form Section 02: Where did this happen? -->
             <div style="display: flex; flex-direction: column; gap: var(--space-2);">
