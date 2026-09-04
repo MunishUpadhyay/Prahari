@@ -1387,27 +1387,6 @@ function showResultUnified(result) {
     const triageSev = (result.triage_severity || '').toLowerCase();
     const provisions = result.legal_provisions || [];
 
-    // ── 01 — CASE OVERVIEW (ID, Status, Urgency, Domain, Summary) ───────────────────
-    const statusLabelMap = {
-        'pending': { en: 'Needs action', hi: 'कार्रवाई की आवश्यकता' },
-        'under_review': { en: 'Under Review', hi: 'समीक्षा के तहत' },
-        'action_taken': { en: 'Action Taken', hi: 'कार्रवाई की गई' },
-        'resolved': { en: 'Resolved', hi: 'हल हो गया' }
-    };
-    const statusLabels = statusLabelMap[result.status] || statusLabelMap['pending'];
-    const briefEn = result.brief_en || result.what_is_happening_en || result.situation_brief || '';
-    const briefHi = result.brief_hi || result.what_is_happening_hi || (result.language_outputs && result.language_outputs.hindi ? result.language_outputs.hindi.situation_brief : '') || briefEn;
-    
-    const notes = result.coordinator_notes || '';
-    let notesHTML = '';
-    if (notes && notes.trim() !== '') {
-        notesHTML = `
-        <div style="margin-top:0.75rem; padding:0.75rem; background: var(--bg-surface-raised); border-radius: var(--radius-inner); border-left: 4px solid var(--accent-teal); font-size:0.9rem;">
-            <div class="loc-en" style="color:var(--text-secondary);"><strong>Coordinator update:</strong> ${notes}</div>
-            <div class="loc-hi" lang="hi" style="color:var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;"><strong>समन्वयक का अपडेट:</strong> ${notes}</div>
-        </div>`;
-    }
-
     // Domain & Category Label Resolution (No contradictory priority strings)
     let categoryLabelEn = domain.toUpperCase();
     let categoryLabelHi = domain.toUpperCase();

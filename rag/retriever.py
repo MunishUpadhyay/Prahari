@@ -67,10 +67,19 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     try:
         client = get_chroma_client()
         emb_fn = get_embedding_function()
-        collection = client.get_collection(
-            name="legal_provisions",
-            embedding_function=emb_fn
-        )
+        try:
+            collection = client.get_collection(
+                name="legal_provisions",
+                embedding_function=emb_fn
+            )
+        except Exception:
+            logger.info("Collection 'legal_provisions' missing. Ingesting verified legal documents...")
+            from rag.ingest import ingest_legal_documents
+            ingest_legal_documents()
+            collection = client.get_collection(
+                name="legal_provisions",
+                embedding_function=emb_fn
+            )
         
         results = collection.query(
             query_texts=[query],
@@ -121,10 +130,19 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
     try:
         client = get_chroma_client()
         emb_fn = get_embedding_function()
-        collection = client.get_collection(
-            name="medical_protocols",
-            embedding_function=emb_fn
-        )
+        try:
+            collection = client.get_collection(
+                name="medical_protocols",
+                embedding_function=emb_fn
+            )
+        except Exception:
+            logger.info("Collection 'medical_protocols' missing. Ingesting verified medical protocols...")
+            from rag.ingest import ingest_medical_protocols
+            ingest_medical_protocols()
+            collection = client.get_collection(
+                name="medical_protocols",
+                embedding_function=emb_fn
+            )
         
         results = collection.query(
             query_texts=[query],
