@@ -165,7 +165,7 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
         
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
-            return _fallback_legal_search(query, n_results)
+            return formatted_results
             
         for i in range(len(results["documents"][0])):
             distance = results["distances"][0][i] if results["distances"] else 0.0
@@ -183,7 +183,7 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
                 "distance": distance
             })
             
-        return formatted_results if formatted_results else _fallback_legal_search(query, n_results)
+        return formatted_results
     except Exception as e:
         logger.exception("Error during legal provisions retrieval: %s. Using zero-memory fallback.", e)
         return _fallback_legal_search(query, n_results)
@@ -225,7 +225,7 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
         
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
-            return _fallback_medical_search(query, n_results)
+            return formatted_results
             
         for i in range(len(results["documents"][0])):
             distance = results["distances"][0][i] if results["distances"] else 0.0
@@ -243,7 +243,7 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
                 "distance": distance
             })
             
-        return formatted_results if formatted_results else _fallback_medical_search(query, n_results)
+        return formatted_results
     except Exception as e:
         logger.exception("Error during medical protocols retrieval: %s. Using zero-memory fallback.", e)
         return _fallback_medical_search(query, n_results)
