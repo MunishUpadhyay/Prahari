@@ -52,6 +52,83 @@ def get_embedding_function():
     return _cached_emb_fn
 
 
+import re
+
+
+def _fallback_legal_search(query: str, n_results: int = 3) -> list[dict]:
+    """Zero-memory keyword fallback search against VERIFIED_LEGAL_DATABASE."""
+    try:
+        from apps.agents.legal_reference import VERIFIED_LEGAL_DATABASE
+        words = set(re.findall(r'\w+', query.lower())) - {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need"}
+        if not words:
+            return []
+        scored = []
+        for (code, sec), rec in VERIFIED_LEGAL_DATABASE.items():
+            text_corpus = f"{code} {sec} {rec['title']} {rec['statutory_text']}".lower()
+            score = sum(1 for w in words if w in text_corpus)
+            if score > 0:
+                doc_str = f"{code} Section {sec} — {rec['title']}. Statutory Text: {rec['statutory_text']}"
+                meta = {
+                    "code": code,
+                    "section": sec,
+                    "title": rec["title"],
+                    "category": rec["type"],
+                    "legacy_code": rec.get("legacy_code") or "None",
+                    "legacy_section": rec.get("legacy_section") or "None",
+                    "verified": "True"
+                }
+                scored.append({
+                    "text": doc_str,
+                    "metadata": meta,
+                    "distance": max(0.1, round(1.0 - (score / (len(words) + 1)), 2)),
+                    "score": score
+                })
+        scored.sort(key=lambda x: x["score"], reverse=True)
+        return [{
+            "text": item["text"],
+            "metadata": item["metadata"],
+            "distance": item["distance"]
+        } for item in scored[:n_results]]
+    except Exception as e:
+        logger.warning("Fallback legal search error: %s", e)
+        return []
+
+
+def _fallback_medical_search(query: str, n_results: int = 3) -> list[dict]:
+    """Zero-memory keyword fallback search against VERIFIED_MEDICAL_DATABASE."""
+    try:
+        from apps.agents.medical_reference import VERIFIED_MEDICAL_DATABASE
+        words = set(re.findall(r'\w+', query.lower())) - {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need"}
+        if not words:
+            return []
+        scored = []
+        for key, rec in VERIFIED_MEDICAL_DATABASE.items():
+            text_corpus = f"{rec.get('condition', '')} {rec.get('triage_category', '')} {rec.get('first_aid_steps', '')}".lower()
+            score = sum(1 for w in words if w in text_corpus)
+            if score > 0:
+                doc_str = f"Medical Condition: {rec.get('condition')}. Triage: {rec.get('triage_category')}. First Aid: {rec.get('first_aid_steps')}"
+                meta = {
+                    "condition": rec.get("condition"),
+                    "triage": rec.get("triage_category"),
+                    "verified": "True"
+                }
+                scored.append({
+                    "text": doc_str,
+                    "metadata": meta,
+                    "distance": max(0.1, round(1.0 - (score / (len(words) + 1)), 2)),
+                    "score": score
+                })
+        scored.sort(key=lambda x: x["score"], reverse=True)
+        return [{
+            "text": item["text"],
+            "metadata": item["metadata"],
+            "distance": item["distance"]
+        } for item in scored[:n_results]]
+    except Exception as e:
+        logger.warning("Fallback medical search error: %s", e)
+        return []
+
+
 def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     """
     Retrieve the top n_results most relevant legal provisions for a query.
@@ -73,25 +150,22 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
                 embedding_function=emb_fn
             )
         except Exception:
-            logger.info("Collection 'legal_provisions' missing. Ingesting verified legal documents...")
-            from rag.ingest import ingest_legal_documents
-            ingest_legal_documents()
-            collection = client.get_collection(
-                name="legal_provisions",
-                embedding_function=emb_fn
-            )
+            logger.info("Collection 'legal_provisions' missing. Using zero-memory statutory database fallback matcher.")
+            return _fallback_legal_search(query, n_results)
         
         results = collection.query(
             query_texts=[query],
             n_results=n_results
         )
         
-        # Centralized configurable threshold (lowered to 0.85 to prevent irrelevant retrieval)
-        max_dist = getattr(settings, "RAG_LEGAL_DISTANCE_THRESHOLD", 0.85)
+        try:
+            max_dist = getattr(settings, "RAG_LEGAL_DISTANCE_THRESHOLD", 0.85)
+        except Exception:
+            max_dist = 0.85
         
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
-            return formatted_results
+            return _fallback_legal_search(query, n_results)
             
         for i in range(len(results["documents"][0])):
             distance = results["distances"][0][i] if results["distances"] else 0.0
@@ -109,10 +183,10 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
                 "distance": distance
             })
             
-        return formatted_results
+        return formatted_results if formatted_results else _fallback_legal_search(query, n_results)
     except Exception as e:
-        logger.exception("Error during legal provisions retrieval: %s", e)
-        return []
+        logger.exception("Error during legal provisions retrieval: %s. Using zero-memory fallback.", e)
+        return _fallback_legal_search(query, n_results)
 
 
 def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
@@ -136,25 +210,22 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
                 embedding_function=emb_fn
             )
         except Exception:
-            logger.info("Collection 'medical_protocols' missing. Ingesting verified medical protocols...")
-            from rag.ingest import ingest_medical_protocols
-            ingest_medical_protocols()
-            collection = client.get_collection(
-                name="medical_protocols",
-                embedding_function=emb_fn
-            )
+            logger.info("Collection 'medical_protocols' missing. Using zero-memory medical database fallback matcher.")
+            return _fallback_medical_search(query, n_results)
         
         results = collection.query(
             query_texts=[query],
             n_results=n_results
         )
         
-        # Centralized configurable threshold
-        max_dist = getattr(settings, "RAG_MEDICAL_DISTANCE_THRESHOLD", 1.1)
+        try:
+            max_dist = getattr(settings, "RAG_MEDICAL_DISTANCE_THRESHOLD", 1.1)
+        except Exception:
+            max_dist = 1.1
         
         formatted_results = []
         if not results or not results["documents"] or len(results["documents"]) == 0:
-            return formatted_results
+            return _fallback_medical_search(query, n_results)
             
         for i in range(len(results["documents"][0])):
             distance = results["distances"][0][i] if results["distances"] else 0.0
@@ -172,10 +243,10 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
                 "distance": distance
             })
             
-        return formatted_results
+        return formatted_results if formatted_results else _fallback_medical_search(query, n_results)
     except Exception as e:
-        logger.exception("Error during medical protocols retrieval: %s", e)
-        return []
+        logger.exception("Error during medical protocols retrieval: %s. Using zero-memory fallback.", e)
+        return _fallback_medical_search(query, n_results)
 
 
 def retrieve_similar_incidents(query: str,
