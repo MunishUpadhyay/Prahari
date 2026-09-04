@@ -252,6 +252,7 @@ class RightsAgent(BaseAgent):
         search_query = self.extract_search_query(signal.raw_text)
 
         # 2. Retrieve relevant legal provisions from local ChromaDB vector store
+        from rag.retriever import retrieve_legal_provisions
         provisions = retrieve_legal_provisions(search_query, n_results=5)
         
         # 3. Format provisions context
@@ -435,6 +436,7 @@ class TriageAgent(BaseAgent):
         search_query = self.extract_symptoms_and_keywords(signal.raw_text)
 
         # 2. Retrieve relevant medical protocols from local ChromaDB vector store
+        from rag.retriever import retrieve_medical_protocols
         protocols = retrieve_medical_protocols(search_query, n_results=3)
         
         # 3. Format protocols context

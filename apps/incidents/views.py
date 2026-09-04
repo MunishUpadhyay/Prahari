@@ -18,7 +18,6 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rag.retriever import retrieve_similar_incidents
 
 from .models import Incident
 from .serializers import IncidentDetailSerializer, IncidentListSerializer
@@ -107,6 +106,7 @@ class SimilarIncidentsView(APIView):
         if not query_text:
             query_text = incident.signal.raw_text
 
+        from rag.retriever import retrieve_similar_incidents
         results = retrieve_similar_incidents(
             query=query_text,
             n_results=5,

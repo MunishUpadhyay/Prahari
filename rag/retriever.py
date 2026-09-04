@@ -1,10 +1,55 @@
 import logging
+import threading
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+_client_lock = threading.Lock()
+_emb_fn_lock = threading.Lock()
+
+_cached_client = None
+_cached_client_class = None
+
+_cached_emb_fn = None
+_cached_emb_fn_class = None
+
+
+def get_chroma_client():
+    """
+    Lazy process-local singleton for Chroma PersistentClient.
+    Tracks client class to support test monkeypatching smoothly.
+    """
+    global _cached_client, _cached_client_class
+    current_class = chromadb.PersistentClient
+    if _cached_client is None or _cached_client_class != current_class:
+        with _client_lock:
+            if _cached_client is None or _cached_client_class != current_class:
+                _cached_client = chromadb.PersistentClient(
+                    path="rag/chroma_db",
+                    settings=Settings(anonymized_telemetry=False)
+                )
+                _cached_client_class = current_class
+    return _cached_client
+
+
+def get_embedding_function():
+    """
+    Lazy process-local singleton for SentenceTransformerEmbeddingFunction.
+    Tracks embedding function class to support test monkeypatching smoothly.
+    """
+    global _cached_emb_fn, _cached_emb_fn_class
+    current_class = embedding_functions.SentenceTransformerEmbeddingFunction
+    if _cached_emb_fn is None or _cached_emb_fn_class != current_class:
+        with _emb_fn_lock:
+            if _cached_emb_fn is None or _cached_emb_fn_class != current_class:
+                _cached_emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+                    model_name="all-MiniLM-L6-v2"
+                )
+                _cached_emb_fn_class = current_class
+    return _cached_emb_fn
 
 
 def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
@@ -20,13 +65,8 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     """
     logger.info("Retrieving legal provisions for query: %r", query)
     try:
-        client = chromadb.PersistentClient(
-            path="rag/chroma_db",
-            settings=Settings(anonymized_telemetry=False)
-        )
-        emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
-        )
+        client = get_chroma_client()
+        emb_fn = get_embedding_function()
         collection = client.get_collection(
             name="legal_provisions",
             embedding_function=emb_fn
@@ -79,13 +119,8 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
     """
     logger.info("Retrieving medical protocols for query: %r", query)
     try:
-        client = chromadb.PersistentClient(
-            path="rag/chroma_db",
-            settings=Settings(anonymized_telemetry=False)
-        )
-        emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
-        )
+        client = get_chroma_client()
+        emb_fn = get_embedding_function()
         collection = client.get_collection(
             name="medical_protocols",
             embedding_function=emb_fn
@@ -135,13 +170,8 @@ def retrieve_similar_incidents(query: str,
     """
     logger.info("Retrieving similar incidents for query: %r (exclude_id: %s)", query, exclude_id)
     try:
-        client = chromadb.PersistentClient(
-            path="rag/chroma_db",
-            settings=Settings(anonymized_telemetry=False)
-        )
-        emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
-        )
+        client = get_chroma_client()
+        emb_fn = get_embedding_function()
         
         # Access the collection safely. Return empty list if collection doesn't exist yet.
         try:

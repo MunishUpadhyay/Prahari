@@ -247,24 +247,6 @@ def citizen_signal_status_api(request, signal_id):
                     "message": "Anonymous access code verification required."
                 }, status=403)
     
-    # Stuck pipeline check: if signal.status in ['processing', 'classified']
-    from django.utils import timezone
-    from datetime import timedelta
-    is_stuck = False
-    now = timezone.now()
-    if signal.status in ['processing', 'classified']:
-        if (now - signal.created_at) > timedelta(minutes=10):
-            is_stuck = True
-            incident = getattr(signal, "incident", None)
-            if incident and incident.updated_at and (now - incident.updated_at) < timedelta(minutes=4):
-                is_stuck = False
-                
-    if is_stuck:
-        return JsonResponse({
-            'status': 'pipeline_error',
-            'message': 'Pipeline timed out'
-        })
-
     incident = getattr(signal, "incident", None)
 
     # Base steps status mapping
@@ -361,6 +343,24 @@ def citizen_signal_status_api(request, signal_id):
                 "coordinator_notes": incident.coordinator_notes,
                 "preferred_language": signal.preferred_language
             }
+
+    # Stuck pipeline check: if signal.status in ['processing', 'classified']
+    from django.utils import timezone
+    from datetime import timedelta
+    is_stuck = False
+    now = timezone.now()
+    if signal.status in ['processing', 'classified']:
+        if (now - signal.created_at) > timedelta(minutes=10):
+            is_stuck = True
+            if incident and incident.updated_at and (now - incident.updated_at) < timedelta(minutes=4):
+                is_stuck = False
+                
+    if is_stuck:
+        return JsonResponse({
+            'status': 'pipeline_error',
+            'message': 'Pipeline timed out',
+            'steps': steps,
+        })
 
     # Signal status mapper
     pipeline_status = "processing"
