@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Prahari — Report an Incident{% endblock %}
+{% block title %}ResQGrid — Report an Incident{% endblock %}
 
 {% block content %}
 <main style="flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
@@ -38,10 +38,10 @@
     <div class="surface-card" style="display: flex; flex-direction: column; gap: var(--space-4); text-align: left; padding: var(--space-5);">
         
         <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); display: flex; flex-direction: column; gap: 4px;">
-            <h1 class="section-title loc-en" style="color: var(--deep-navy); margin: 0;">Report an Incident</h1>
+            <h1 class="page-title loc-en" style="margin: 0; color: var(--text-primary);">Report an Incident</h1>
             <h1 class="section-title loc-hi" lang="hi" style="color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">घटना की रिपोर्ट करें</h1>
-            <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Describe what happened in your own words. Prahari will analyze the situation and guide your next steps.</p>
-            <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">अपनी भाषा में बताएं क्या हुआ। प्रहरी स्थिति का विश्लेषण करेगा और आपके अगले कदमों का मार्गदर्शन करेगा।</p>
+            <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Describe what happened in your own words. ResQGrid will analyze the situation and guide your next steps.</p>
+            <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">अपनी भाषा में बताएं क्या हुआ। रेस्क्यूग्रिड स्थिति का विश्लेषण करेगा और आपके अगले कदमों का मार्गदर्शन करेगा।</p>
         </div>
 
         <form method="POST" action="/submit/" onsubmit="return validateForm()" style="display: flex; flex-direction: column; gap: var(--space-5);">

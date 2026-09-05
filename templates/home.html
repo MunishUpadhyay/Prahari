@@ -1,59 +1,73 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Prahari — Civic Assistance & Emergency Response{% endblock %}
+{% block title %}ResQGrid — Civic Assistance & Emergency Response{% endblock %}
 
 {% block content %}
 <main style="flex: 1; width: 100%; max-width: 1000px; margin: 0 auto; padding: var(--space-4) 1.5rem var(--space-7) 1.5rem; display: flex; flex-direction: column; gap: var(--space-6);">
     
-    <!-- 1. Conversational Hero Section (Deep Navy) -->
-    <section class="surface-card" style="background: var(--deep-navy); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: var(--space-6) var(--space-5); text-align: center; color: #ffffff; display: flex; flex-direction: column; align-items: center; gap: var(--space-3); box-shadow: 0 4px 20px rgba(10, 25, 47, 0.15);">
+    <!-- 1. Unified Hero Template Box Container -->
+    <section class="surface-card" style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: 16px; padding: var(--space-5) var(--space-5); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-4); box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05); margin-top: var(--space-2);">
         
         <div style="display: inline-flex; align-items: center; justify-content: center;">
-            <span class="section-eyebrow" style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf; padding: 4px 14px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(20, 184, 166, 0.3); font-size: 0.78rem; letter-spacing: 0.05em;">
-                <span class="loc-en">CITIZEN ASSISTANCE PLATFORM</span>
-                <span class="loc-hi" lang="hi">नागरिक सहायता मंच</span>
+            <span class="section-eyebrow" style="background: rgba(15, 159, 163, 0.08); color: var(--accent-teal); padding: 5px 16px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(15, 159, 163, 0.2); font-size: 0.78rem; letter-spacing: 0.04em;">
+                <span class="loc-en">CITIZEN ASSISTANCE &amp; EMERGENCY RESPONSE</span>
+                <span class="loc-hi" lang="hi">नागरिक सहायता एवं आपातकालीन सेवा</span>
             </span>
         </div>
         
-        <h1 class="page-title loc-en" style="font-size: 2.3rem; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.02em; line-height: 1.2;">
-            What happened?
+        <h1 class="page-title loc-en" style="margin: 0; color: var(--text-primary);">
+            What happened? How can we help?
         </h1>
-        <h1 class="page-title loc-hi" lang="hi" style="font-size: 2.3rem; font-weight: 800; color: #ffffff; margin: 0; font-family: 'Noto Sans Devanagari', sans-serif; line-height: 1.2;">
-            क्या हुआ?
+        <h1 class="page-title loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 2.3rem; font-weight: 800; color: var(--text-primary); margin: 0; line-height: 1.25;">
+            क्या हुआ? हम आपकी कैसे मदद कर सकते हैं?
         </h1>
 
-        <p class="body-text loc-en" style="font-size: 1.1rem; color: #cbd5e1; margin: 0; max-width: 52ch; font-weight: 400; line-height: 1.5;">
-            We'll help you know what to do next.
+        <p class="body-text loc-en" style="font-size: 1.05rem; color: var(--text-secondary); margin: 0; max-width: 58ch; font-weight: 500; line-height: 1.55;">
+            Describe your situation in your own words. We'll guide you on legal action, civic complaints, and emergency services.
         </p>
-        <p class="body-text loc-hi" lang="hi" style="font-size: 1.1rem; color: #cbd5e1; margin: 0; max-width: 52ch; font-weight: 400; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">
-            हम आपको आगे क्या करना है, यह समझने में मदद करेंगे।
+        <p class="body-text loc-hi" lang="hi" style="font-size: 1.05rem; color: var(--text-secondary); margin: 0; max-width: 58ch; font-weight: 500; line-height: 1.55; font-family: 'Noto Sans Devanagari', sans-serif;">
+            अपनी समस्या को अपनी भाषा में बताएं। हम आपको कानूनी सलाह, नागरिक शिकायत और आपातकालीन सहायता में मार्गदर्शन करेंगे।
         </p>
         
-        <!-- Conversational Input Form -->
-        <form action="/submit/" method="GET" style="width: 100%; max-width: 680px; margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-3);">
-            <div style="position: relative; background: #ffffff; border-radius: 12px; padding: 10px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); display: flex; flex-direction: column; gap: 8px;">
+        <!-- Crisp Input Workbench Card Inside Hero Template Container -->
+        <form action="/submit/" method="GET" style="width: 100%; max-width: 760px; margin-top: var(--space-1); display: flex; flex-direction: column; gap: var(--space-3);">
+            <div style="position: relative; background: #FFFFFF; border-radius: 12px; padding: 22px; border: 1px solid var(--border-default); border-top: 3px solid var(--accent-teal); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04); display: flex; flex-direction: column; gap: 16px; text-align: left;">
+                
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <label for="hero-raw-text" style="font-family: var(--font-ui); font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em;" class="loc-en">✍️ Describe Your Incident</label>
+                    <label for="hero-raw-text" style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">✍️ अपनी समस्या लिखें</label>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--accent-teal); background: rgba(15, 159, 163, 0.08); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(15, 159, 163, 0.2);">Confidential &amp; Secure</span>
+                </div>
+
                 <textarea 
                     name="raw_text" 
                     id="hero-raw-text" 
                     rows="3" 
                     required
                     placeholder="Describe the situation in your own words (e.g. unpaid wages, landlord eviction, hospital refusal, pothole)..."
-                    style="width: 100%; border: none; outline: none; padding: 8px 12px; font-size: 0.98rem; font-family: inherit; color: #0f172a; resize: none; border-radius: 6px;"
+                    style="width: 100%; border: 1px solid var(--border-default); outline: none; padding: 14px; font-size: 0.98rem; font-family: var(--font-ui); color: var(--text-primary); resize: none; border-radius: 8px; background: #F8FAFC; transition: border-color 0.2s, box-shadow 0.2s;"
+                    onfocus="this.style.borderColor='var(--accent-teal)'; this.style.boxShadow='0 0 0 3px rgba(15, 159, 163, 0.12)';"
+                    onblur="this.style.borderColor='var(--border-default)'; this.style.boxShadow='none';"
                 ></textarea>
 
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 8px 4px; border-top: 1px solid #f1f5f9;">
-                    <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; align-self: center; margin-right: 4px;">Quick Examples:</span>
-                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('I resigned from my company 3 months ago. Employer has withheld my unpaid salary and full & final settlement (F&F). They refuse to issue my relieving letter.')">💼 Unpaid Salary &amp; F&amp;F</button>
-                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Landlord threatens to lock me out of my rented house tomorrow without notice despite active rent agreement.')">🏠 Illegal Eviction</button>
-                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Local government hospital refused to admit patient in emergency room demanding upfront cash payment.')">🏥 Hospital Denial</button>
-                    <button type="button" class="scenario-chip" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="fillHeroPrompt('Huge deep pothole on MG Road causing traffic congestion and accidents near the market intersection.')">🛣️ Pothole Hazard</button>
+                <!-- Clean Scenario Pills Container -->
+                <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;" class="loc-en">Quick Examples:</span>
+                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">त्वरित उदाहरण:</span>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;">
+                        <button type="button" class="scenario-chip" style="background: #F1F5F6; color: var(--text-primary); border: 1px solid var(--border-default); font-weight: 600; font-family: var(--font-ui); transition: all 0.2s ease;" onclick="fillHeroPrompt('I resigned from my company 3 months ago. Employer has withheld my unpaid salary and full & final settlement (F&F). They refuse to issue my relieving letter.')">💼 Unpaid Salary &amp; F&amp;F</button>
+                        <button type="button" class="scenario-chip" style="background: #F1F5F6; color: var(--text-primary); border: 1px solid var(--border-default); font-weight: 600; font-family: var(--font-ui); transition: all 0.2s ease;" onclick="fillHeroPrompt('Landlord threatens to lock me out of my rented house tomorrow without notice despite active rent agreement.')">🏠 Illegal Eviction</button>
+                        <button type="button" class="scenario-chip" style="background: #F1F5F6; color: var(--text-primary); border: 1px solid var(--border-default); font-weight: 600; font-family: var(--font-ui); transition: all 0.2s ease;" onclick="fillHeroPrompt('Local government hospital refused to admit patient in emergency room demanding upfront cash payment.')">🏥 Hospital Denial</button>
+                        <button type="button" class="scenario-chip" style="background: #F1F5F6; color: var(--text-primary); border: 1px solid var(--border-default); font-weight: 600; font-family: var(--font-ui); transition: all 0.2s ease;" onclick="fillHeroPrompt('Huge deep pothole on MG Road causing traffic congestion and accidents near the market intersection.')">🛣️ Pothole Hazard</button>
+                    </div>
                 </div>
                 
-                <div style="display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid #f1f5f9;">
-                    <button type="submit" class="btn-primary" style="height: 42px; padding: 0 1.25rem; font-size: 0.95rem; font-weight: 700; border-radius: 6px; background: #0f766e; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s ease;">
-                        <span class="loc-en">Start Report &rarr;</span>
-                        <span class="loc-hi" lang="hi">रिपोर्ट शुरू करें &rarr;</span>
+                <div style="display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <button type="submit" class="btn-primary" style="height: 44px; padding: 0 1.75rem; font-family: var(--font-ui); font-size: 0.96rem; font-weight: 700; border-radius: 8px; background: var(--accent-teal); color: #FFFFFF; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s ease;">
+                        <span class="loc-en">Submit Report &rarr;</span>
+                        <span class="loc-hi" lang="hi">रिपोर्ट जमा करें &rarr;</span>
                     </button>
                 </div>
             </div>
@@ -69,35 +83,35 @@
         }
         </script>
 
-        <div style="font-size: 0.84rem; color: #94a3b8; margin-top: 2px;">
-            <span class="loc-en">No account required &bull; Anonymous reporting available</span>
-            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">खाता अनिवार्य नहीं &bull; गुमनाम रिपोर्टिंग उपलब्ध</span>
+        <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 2px;">
+            <span class="loc-en">Free &amp; Confidential &bull; No Registration Required &bull; 24/7 Citizen Portal</span>
+            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">निःशुल्क और गोपनीय &bull; खाता अनिवार्य नहीं &bull; 24/7 नागरिक पोर्टल</span>
         </div>
 
-        <!-- Secondary Action Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); width: 100%; max-width: 680px; margin-top: var(--space-2);">
+        <!-- Clean Secondary Action Cards Inside Hero Container -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); width: 100%; max-width: 760px; margin-top: var(--space-1);">
             
-            <a href="{% url 'citizen_track' %}" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; text-decoration: none; color: #ffffff; text-align: left; transition: background 0.2s ease;">
-                <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(20, 184, 166, 0.2); display: flex; align-items: center; justify-content: center; color: #2dd4bf; font-size: 1.1rem; flex-shrink: 0;">
+            <a href="{% url 'citizen_track' %}" class="surface-card" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: #F8FAFC; border: 1px solid var(--border-default); border-radius: 10px; text-decoration: none; color: var(--text-primary); text-align: left; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent-teal)'; this.style.background='#FFFFFF';" onmouseout="this.style.borderColor='var(--border-default)'; this.style.background='#F8FAFC';">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 159, 163, 0.1); display: flex; align-items: center; justify-content: center; color: var(--accent-teal); font-size: 1.1rem; flex-shrink: 0;">
                     🔍
                 </div>
                 <div>
-                    <span style="font-size: 0.78rem; color: #94a3b8; display: block;" class="loc-en">Already submitted a report?</span>
-                    <span style="font-size: 0.78rem; color: #94a3b8; display: block; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">क्या आपने पहले ही रिपोर्ट भेजी है?</span>
-                    <strong style="font-size: 0.95rem; color: #ffffff;" class="loc-en">Track a Report</strong>
-                    <strong style="font-size: 0.95rem; color: #ffffff; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">रिपोर्ट ट्रैक करें</strong>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); display: block;" class="loc-en">Already submitted a report?</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">क्या आपने पहले ही रिपोर्ट भेजी है?</span>
+                    <strong style="font-family: var(--font-ui); font-size: 0.95rem; color: var(--text-primary); font-weight: 700;" class="loc-en">Track Report Status</strong>
+                    <strong style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.95rem; color: var(--text-primary); font-weight: 700;" class="loc-hi" lang="hi">रिपोर्ट की स्थिति देखें</strong>
                 </div>
             </a>
 
-            <a href="{% url 'citizen_login' %}" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; text-decoration: none; color: #ffffff; text-align: left; transition: background 0.2s ease;">
-                <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(20, 184, 166, 0.2); display: flex; align-items: center; justify-content: center; color: #2dd4bf; font-size: 1.1rem; flex-shrink: 0;">
+            <a href="{% url 'citizen_login' %}" class="surface-card" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: #F8FAFC; border: 1px solid var(--border-default); border-radius: 10px; text-decoration: none; color: var(--text-primary); text-align: left; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent-teal)'; this.style.background='#FFFFFF';" onmouseout="this.style.borderColor='var(--border-default)'; this.style.background='#F8FAFC';">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 159, 163, 0.1); display: flex; align-items: center; justify-content: center; color: var(--accent-teal); font-size: 1.1rem; flex-shrink: 0;">
                     👤
                 </div>
                 <div>
-                    <span style="font-size: 0.78rem; color: #94a3b8; display: block;" class="loc-en">Have an account?</span>
-                    <span style="font-size: 0.78rem; color: #94a3b8; display: block; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">खाता मौजूद है?</span>
-                    <strong style="font-size: 0.95rem; color: #ffffff;" class="loc-en">Citizen Login</strong>
-                    <strong style="font-size: 0.95rem; color: #ffffff; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">नागरिक लॉगिन</strong>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); display: block;" class="loc-en">Have a citizen profile?</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">नागरिक प्रोफाइल मौजूद है?</span>
+                    <strong style="font-family: var(--font-ui); font-size: 0.95rem; color: var(--text-primary); font-weight: 700;" class="loc-en">Citizen Portal Login</strong>
+                    <strong style="font-family: 'Noto Sans Devanagari', sans-serif; font-size: 0.95rem; color: var(--text-primary); font-weight: 700;" class="loc-hi" lang="hi">नागरिक पोर्टल लॉगिन</strong>
                 </div>
             </a>
 
@@ -105,134 +119,167 @@
 
     </section>
 
-    <!-- 2. How Prahari Works (5 Stages) -->
+    <!-- 2. How ResQGrid Works (5 Stages Pipeline) -->
     <section style="display: flex; flex-direction: column; gap: var(--space-4); text-align: center;">
         <div>
-            <span class="section-eyebrow" style="color: var(--accent-teal);">PROCESS WORKFLOW</span>
-            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px;">How Prahari works</h2>
-            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif;">प्रहरी कैसे काम करता है</h2>
+            <span class="section-eyebrow" style="color: var(--accent-teal);">AUTOMATED RESPONSE PIPELINE</span>
+            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px;">How ResQGrid Autonomous Triage Works</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif;">रेस्क्यूग्रिड स्वायत्त ट्राइएज कैसे काम करता है</h2>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); width: 100%;">
             
             <!-- Step 1 -->
-            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: #ffffff;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                     📝
                 </div>
-                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Describe</h3>
-                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">वर्णन करें</h3>
-                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Tell us what happened in your own words.</p>
+                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">1. Natural Input</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">1. भाषा में विवरण</h3>
+                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Tell us what happened in plain language.</p>
                 <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">अपनी भाषा में बताएं क्या हुआ।</p>
             </div>
 
             <!-- Step 2 -->
-            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: #ffffff;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                     🧠
                 </div>
-                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Understand</h3>
-                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">समझें</h3>
-                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Prahari analyzes and triages your report.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">प्रहरी आपकी रिपोर्ट का विश्लेषण करता है।</p>
+                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">2. AI Multi-LLM Triage</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">2. एआई ट्राइएज</h3>
+                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Extracts facts, severity &amp; statutory domain.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">तथ्य, गंभीरता और कानूनी क्षेत्र निकालता है।</p>
             </div>
 
             <!-- Step 3 -->
-            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    🗺️
+            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: #ffffff;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    🔒
                 </div>
-                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Route</h3>
-                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">मार्ग</h3>
-                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Connects to the right authorities and services.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">उचित अधिकारियों और सेवाओं से जुड़ता है।</p>
+                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">3. SHA-256 Hash</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">3. अपरिवर्तनीय हैश</h3>
+                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Generates immutable cryptographic proof.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">अपरिवर्तनीय डिजिटल सबूत उत्पन्न करता है।</p>
             </div>
 
             <!-- Step 4 -->
-            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    🤝
+            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: #ffffff;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    ⚖️
                 </div>
-                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Coordinate</h3>
-                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">समन्वय</h3>
-                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Response and escalation steps are coordinated.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">प्रतिक्रिया और समन्वित कदम उठाए जाते हैं।</p>
+                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">4. Legal / Action Draft</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">4. नोटिस प्रारूप</h3>
+                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Drafts statutory legal notice or dispatch payload.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">वैधानिक नोटिस या प्रेषण पेलोड तैयार करता है।</p>
             </div>
 
             <!-- Step 5 -->
-            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    🛡️
+            <div class="surface-card" style="padding: var(--space-4) var(--space-3); border: 1px solid var(--border-default); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: #ffffff;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    🚀
                 </div>
-                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Verify</h3>
-                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">सत्यापित करें</h3>
-                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">You get verified statutory guidance.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">आपको सत्यापित मार्गदर्शन प्राप्त होता है।</p>
+                <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">5. Authority Routing</h3>
+                <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">5. अधिकारी रूटिंग</h3>
+                <p class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Routes directly to authority coordinators.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; font-family: 'Noto Sans Devanagari', sans-serif;">संबंधित अधिकारियों को सीधे रूट करता है।</p>
             </div>
 
         </div>
     </section>
 
-    <!-- 3. What Can You Report? (4 Domains) -->
+    <!-- 3. Interactive Civic & Legal Rights Explorer (Harmonized Domain Palette) -->
     <section style="display: flex; flex-direction: column; gap: var(--space-4); text-align: center;">
         <div>
-            <span class="section-eyebrow" style="color: var(--accent-teal);">PRODUCT DOMAINS</span>
-            <h2 class="section-title loc-en" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px;">What can you report?</h2>
-            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.6rem; color: var(--deep-navy); margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif;">आप किसकी रिपोर्ट कर सकते हैं?</h2>
+            <span class="section-eyebrow" style="background: rgba(22, 140, 140, 0.1); color: var(--accent-teal); padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(22, 140, 140, 0.2);">EXPLORE CIVIC &amp; STATUTORY SERVICES</span>
+            <h2 class="section-title loc-en" style="font-size: 1.7rem; color: var(--deep-navy); margin-top: 6px;">Supported Resolution Domains</h2>
+            <h2 class="section-title loc-hi" lang="hi" style="font-size: 1.7rem; color: var(--deep-navy); margin-top: 6px; font-family: 'Noto Sans Devanagari', sans-serif;">समर्थित समाधान क्षेत्र</h2>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); width: 100%;">
+        <!-- Domain Grid with Harmonized Color Palette -->
+        <div class="domain-cards-grid">
             
-            <!-- Domain 1 -->
-            <div class="surface-card" style="padding: var(--space-4); border: 1px solid var(--border-default); border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                        🏙️
-                    </div>
-                    <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Civic & Public Safety</h3>
-                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">नागरिक और सार्वजनिक सुरक्षा</h3>
-                </div>
-                <p class="body-text loc-en" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Roads, water, lights, sanitation, noise, public infrastructure hazards, and more.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">सड़कें, पानी, बिजली, स्वच्छता, शोर, सार्वजनिक बुनियादी ढांचा और अन्य।</p>
-            </div>
-
-            <!-- Domain 2 -->
-            <div class="surface-card" style="padding: var(--space-4); border: 1px solid var(--border-default); border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+            <!-- Domain 1: Legal & Labor Rights (Amber Theme) -->
+            <div class="surface-card domain-card" style="background: #ffffff; border: 1px solid #fde68a; border-radius: 14px; padding: var(--space-4); text-align: left; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #fffbe2; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 1px solid #fef3c7;">
                         ⚖️
                     </div>
-                    <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Legal & Rights</h3>
-                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">कानूनी और अधिकार</h3>
+                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 12px; border-radius: 12px; background: #fffbe2; color: #b45309; border: 1px solid #fde68a;">LEGAL &amp; RIGHTS</span>
                 </div>
-                <p class="body-text loc-en" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Rights violations, harassment, discrimination, consumer issues, and legal aid.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">अधिकारों का उल्लंघन, उत्पीड़न, भेदभाव, उपभोक्ता समस्याएं और कानूनी सहायता।</p>
+                <div>
+                    <h3 class="card-title loc-en" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">Legal &amp; Labor Rights</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;">कानूनी और श्रम अधिकार</h3>
+                </div>
+                <p class="body-text loc-en" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Unpaid wages, withheld settlement, illegal eviction, consumer fraud, and automated legal notice generation.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">अवैतनिक वेतन, रोका गया निपटान, अवैध बेदखली, उपभोक्ता धोखाधड़ी, और स्वचालित कानूनी नोटिस।</p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px;">
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #fffbe2; color: #92400e; font-weight: 700; border: 1px solid #fde68a;">Code on Wages</span>
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #fffbe2; color: #92400e; font-weight: 700; border: 1px solid #fde68a;">Legal Notice Generator</span>
+                </div>
             </div>
 
-            <!-- Domain 3 -->
-            <div class="surface-card" style="padding: var(--space-4); border: 1px solid var(--border-default); border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                        🩺
+            <!-- Domain 2: Medical & Welfare Rights (Sky Teal Theme) -->
+            <div class="surface-card domain-card" style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 14px; padding: var(--space-4); text-align: left; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 1px solid #bae6fd;">
+                        🏥
                     </div>
-                    <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Medical & Welfare</h3>
-                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">चिकित्सा और कल्याण</h3>
+                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 12px; border-radius: 12px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">MEDICAL &amp; HEALTH</span>
                 </div>
-                <p class="body-text loc-en" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Medical assistance, hospital admissions, blood donation, welfare schemes, and more.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">चिकित्सा सहायता, अस्पताल प्रवेश, रक्तदान, कल्याणकारी योजनाएं और अन्य।</p>
+                <div>
+                    <h3 class="card-title loc-en" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">Medical &amp; Healthcare Rights</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;">चिकित्सा और स्वास्थ्य अधिकार</h3>
+                </div>
+                <p class="body-text loc-en" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Emergency admission denial, Golden Hour treatment alerts, ambulance 108 routing, medical negligence triage.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन प्रवेश से इनकार, गोल्डन विंडो उपचार अलर्ट, एम्बुलेंस 108 रूटिंग।</p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px;">
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #e0f2fe; color: #075985; font-weight: 700; border: 1px solid #bae6fd;">Golden Hour Alert</span>
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #e0f2fe; color: #075985; font-weight: 700; border: 1px solid #bae6fd;">108 Ambulance Dispatch</span>
+                </div>
             </div>
 
-            <!-- Domain 4 -->
-            <div class="surface-card" style="padding: var(--space-4); border: 1px solid var(--border-default); border-radius: 8px; text-align: left; display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(214, 69, 69, 0.1); color: var(--critical); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                        ⚠️
+            <!-- Domain 3: Civic & Public Infrastructure (Emerald Jade Theme) -->
+            <div class="surface-card domain-card" style="background: #ffffff; border: 1px solid #a7f3d0; border-radius: 14px; padding: var(--space-4); text-align: left; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 1px solid #a7f3d0;">
+                        🛣️
                     </div>
-                    <h3 class="card-title loc-en" style="font-size: 1rem; color: var(--deep-navy); margin: 0;">Emergency Situations</h3>
-                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif;">आपातकालीन स्थितियां</h3>
+                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 12px; border-radius: 12px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">CIVIC INFRASTRUCTURE</span>
                 </div>
-                <p class="body-text loc-en" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Accidents, fires, natural disasters, urgent hazards, and immediate crisis assistance.</p>
-                <p class="body-text loc-hi" lang="hi" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">दुर्घटनाएं, आग, प्राकृतिक आपदाएं, तत्काल खतरे और संकट सहायता।</p>
+                <div>
+                    <h3 class="card-title loc-en" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">Civic &amp; Public Infrastructure</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;">नागरिक और सार्वजनिक बुनियादी ढांचा</h3>
+                </div>
+                <p class="body-text loc-en" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">Potholes, broken streetlights, water contamination, garbage overflow, public safety hazards.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">गड्ढे, टूटी स्ट्रीट लाइट, जल प्रदूषण, कचरा ओवरफ्लो, सार्वजनिक सुरक्षा खतरे।</p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px;">
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #ecfdf5; color: #065f46; font-weight: 700; border: 1px solid #a7f3d0;">Municipal Dispatch</span>
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #ecfdf5; color: #065f46; font-weight: 700; border: 1px solid #a7f3d0;">Public Safety Hazard</span>
+                </div>
+            </div>
+
+            <!-- Domain 4: Emergency & Safety (Crimson Coral Theme) -->
+            <div class="surface-card domain-card" style="background: #ffffff; border: 1px solid #fecdd3; border-radius: 14px; padding: var(--space-4); text-align: left; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #fff1f2; color: #e11d48; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 1px solid #fecdd3;">
+                        🚨
+                    </div>
+                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 12px; border-radius: 12px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3;">EMERGENCY &amp; SAFETY</span>
+                </div>
+                <div>
+                    <h3 class="card-title loc-en" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-weight: 700;">Emergency &amp; Police Aid</h3>
+                    <h3 class="card-title loc-hi" lang="hi" style="font-size: 1.1rem; color: var(--deep-navy); margin: 0; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;">आपातकालीन और पुलिस सहायता</h3>
+                </div>
+                <p class="body-text loc-en" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">FIR refusal complaints, police misconduct, immediate disaster relief, 112 emergency routing.</p>
+                <p class="body-text loc-hi" lang="hi" style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-family: 'Noto Sans Devanagari', sans-serif;">एफआईआर से इनकार की शिकायतें, पुलिस कदाचार, तत्काल आपदा राहत, 112 आपातकालीन रूटिंग।</p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 6px;">
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #fff1f2; color: #9f1239; font-weight: 700; border: 1px solid #fecdd3;">Police Escalation</span>
+                    <span style="font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; background: #fff1f2; color: #9f1239; font-weight: 700; border: 1px solid #fecdd3;">112 Emergency Signal</span>
+                </div>
             </div>
 
         </div>
@@ -241,50 +288,50 @@
     <!-- 4. Trust & Privacy & Contextual Emergency Strip -->
     <section style="display: flex; flex-direction: column; gap: var(--space-3);">
         
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-4); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); text-align: left;">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: var(--space-4); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); text-align: left;">
             <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
                     👤
                 </div>
                 <div>
-                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">No account required</strong>
+                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">No Account Required</strong>
                     <strong class="loc-hi" lang="hi" style="font-size: 0.92rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">खाता अनिवार्य नहीं</strong>
-                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">Submit anonymously without registering or logging in.</span>
-                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">पंजीकरण या लॉगिन किए बिना गुमनाम रूप से सबमिट करें।</span>
+                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">File incidents anonymously without mandatory registration.</span>
+                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">पंजीकरण के बिना गुमनाम रूप से सबमिट करें।</span>
                 </div>
             </div>
 
             <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
                     🔒
                 </div>
                 <div>
-                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">Your privacy matters</strong>
-                    <strong class="loc-hi" lang="hi" style="font-size: 0.92rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">आपकी गोपनीयता महत्वपूर्ण है</strong>
-                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">Report data is securely transmitted over HTTPS.</span>
-                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">रिपोर्ट डेटा एचटीटीपीएस (HTTPS) पर सुरक्षित रूप से ट्रांसमिट होता है।</span>
+                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">Immutable Privacy &amp; Proof</strong>
+                    <strong class="loc-hi" lang="hi" style="font-size: 0.92rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">सुरक्षित गोपनीयता एवं सबूत</strong>
+                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">Cryptographic SHA-256 integrity hash issued for every filing.</span>
+                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">हर सबमिशन पर SHA-256 हैश जारी किया जाता है।</span>
                 </div>
             </div>
 
             <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(15, 118, 110, 0.1); color: var(--accent-teal); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
                     🔑
                 </div>
                 <div>
-                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">Access anytime</strong>
-                    <strong class="loc-hi" lang="hi" style="font-size: 0.92rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">कभी भी एक्सेस करें</strong>
-                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">Use your Return Key or account to check report updates.</span>
-                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">रिपोर्ट अपडेट देखने के लिए अपनी रिटर्न कुंजी या खाते का उपयोग करें।</span>
+                    <strong class="loc-en" style="font-size: 0.92rem; color: var(--deep-navy); display: block;">Instant Return Key Access</strong>
+                    <strong class="loc-hi" lang="hi" style="font-size: 0.92rem; color: var(--deep-navy); display: block; font-family: 'Noto Sans Devanagari', sans-serif;">रिटर्न कुंजी से एक्सेस</strong>
+                    <span class="body-text loc-en" style="font-size: 0.82rem; color: var(--text-secondary);">Use your secret Return Key anytime to track updates.</span>
+                    <span class="body-text loc-hi" lang="hi" style="font-size: 0.82rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif;">अपडेट देखने के लिए अपनी गुप्त रिटर्न कुंजी का उपयोग करें।</span>
                 </div>
             </div>
         </div>
 
         <!-- Contextual Emergency Box -->
-        <div style="background: rgba(15, 118, 110, 0.06); border: 1px solid rgba(15, 118, 110, 0.25); border-radius: 8px; padding: 12px 18px; text-align: left; display: flex; gap: 12px; align-items: center;">
+        <div style="background: rgba(15, 118, 110, 0.06); border: 1px solid rgba(15, 118, 110, 0.25); border-radius: 10px; padding: 12px 18px; text-align: left; display: flex; gap: 12px; align-items: center;">
             <span style="font-size: 1.2rem; flex-shrink: 0;">⚠️</span>
             <p style="font-size: 0.88rem; font-weight: 500; color: var(--deep-navy); margin: 0; line-height: 1.45;">
-                <span class="loc-en">For immediate life-threatening emergencies, please contact your local emergency services directly.</span>
-                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">तत्काल जीवन-घातक आपात स्थितियों के लिए, कृपया सीधे अपनी स्थानीय आपातकालीन सेवाओं से संपर्क करें।</span>
+                <span class="loc-en">For immediate life-threatening emergencies, please contact your local emergency services (112 / 108) directly.</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">तत्काल जीवन-घातक आपात स्थितियों के लिए, कृपया सीधे अपनी स्थानीय आपातकालीन सेवाओं (112 / 108) से संपर्क करें।</span>
             </p>
         </div>
 

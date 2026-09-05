@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Prahari — Report Status{% endblock %}
+{% block title %}ResQGrid — Report Status{% endblock %}
 
 
 
@@ -18,46 +18,62 @@
 {% block content %}
 <main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
     {% if verified %}
-    <!-- Private Return Key Presentation Banner (shown immediately upon anonymous creation) -->
-    {% if anonymous_access_code %}
-    <div id="anonymous-key-banner" class="surface-card" style="border: 2px solid var(--accent-teal); background: var(--bg-surface-raised); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-3); text-align: left;">
-        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap;">
-                <div>
-                    <span class="section-eyebrow" style="color: var(--accent-teal); display: block; margin-bottom: 2px;">
-                        <span class="loc-en">Save Your Credentials (Confidential)</span>
-                        <span class="loc-hi" lang="hi">अपनी साख सुरक्षित करें (गोपनीय)</span>
-                    </span>
-                    <h3 class="card-title loc-en" style="margin: 0; color: var(--deep-navy);">Private Return Key Issued</h3>
-                    <h3 class="card-title loc-hi" lang="hi" style="margin: 0; color: var(--deep-navy); font-family: 'Noto Sans Devanagari', sans-serif;">निजी रिटर्न कुंजी जारी की गई</h3>
+    <!-- Consolidated Report Credentials Card (Clean, non-repetitive UI) -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: 0.5rem; text-align: left; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+            <div>
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">REPORT ID</div>
+                <div style="font-family: var(--font-ui); font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+                    {{ tracking_id }}
                 </div>
-                <button onclick="document.getElementById('anonymous-key-banner').style.display='none'" class="btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
-                    <span class="loc-en">Dismiss Banner ✕</span>
-                    <span class="loc-hi">छुपाएं ✕</span>
-                </button>
             </div>
 
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                <span class="loc-en"><strong>Important:</strong> Because this report is anonymous, this 6-character Return Key is shown only once. You will need your <strong>Report ID</strong> and <strong>Return Key</strong> to access this report from another device or browser.</span>
-                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;"><strong>महत्वपूर्ण:</strong> चूंकि यह रिपोर्ट गुमनाम है, यह 6-अक्षरों की रिटर्न कुंजी केवल एक बार दिखाई जाती है। किसी अन्य डिवाइस या ब्राउज़र से इस रिपोर्ट तक पहुँचने के लिए आपको अपनी <strong>रिपोर्ट आईडी</strong> और <strong>रिटर्न कुंजी</strong> की आवश्यकता होगी।</span>
-            </p>
+            {% if anonymous_access_code %}
+            <div style="padding-left: var(--space-3); border-left: 2px solid var(--border-subtle);">
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">PRIVATE RETURN KEY</div>
+                <code id="raw-access-code" style="font-family: monospace; font-size: 1.3rem; font-weight: 800; color: var(--accent-teal); letter-spacing: 0.08em; display: block; margin-top: 2px;">{{ anonymous_access_code }}</code>
+            </div>
+            {% endif %}
 
-            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; background: var(--bg-surface); padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default);">
-                <div style="flex: 1; min-width: 200px;">
-                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Private Return Key</div>
-                    <code id="raw-access-code" style="font-family: monospace; font-size: 1.35rem; font-weight: 800; color: var(--accent-teal); letter-spacing: 0.08em;">{{ anonymous_access_code }}</code>
-                </div>
-                <button id="copy-return-key-btn" onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.5rem 1.25rem; flex-shrink: 0;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-left: auto;">
+                <button id="copy-report-id-btn" onclick="copyReportID('{{ tracking_id }}')" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 15px; height: 15px;" aria-hidden="true">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                    <span class="loc-en">Copy ID</span>
+                    <span class="loc-hi">आईडी कॉपी करें</span>
+                </button>
+
+                {% if anonymous_access_code %}
+                <button id="copy-return-key-btn" onclick="copyAccessCode('{{ anonymous_access_code }}')" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
                     <span class="loc-en">Copy Return Key</span>
-                    <span class="loc-hi">रिटर्न कुंजी कॉपी करें</span>
+                    <span class="loc-hi">कुंजी कॉपी करें</span>
+                </button>
+                {% endif %}
+
+                <button class="btn-secondary" onclick="window.print()" style="padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 15px; height: 15px;" aria-hidden="true">
+                        <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+                    </svg>
+                    <span class="loc-en">Print / PDF</span>
+                    <span class="loc-hi">प्रिंट / PDF</span>
                 </button>
             </div>
         </div>
+
+        {% if anonymous_access_code %}
+        <div style="font-size: 0.82rem; color: var(--text-secondary); background: rgba(15, 159, 163, 0.06); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(15, 159, 163, 0.2); margin-top: 2px;">
+            <span class="loc-en">💡 <strong>Anonymous Access Note:</strong> Save your <strong>Report ID</strong> and 6-character <strong>Return Key</strong> to look up status updates from another device or browser.</span>
+            <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">💡 <strong>गुमनाम पहुंच नोट:</strong> किसी अन्य डिवाइस या ब्राउज़र से स्थिति देखने के लिए अपनी <strong>रिपोर्ट आईडी</strong> और 6-अक्षरों की <strong>रिटर्न कुंजी</strong> सहेजें।</span>
+        </div>
+        {% endif %}
     </div>
+
     <script>
-    function copyAccessCode(code) {
-        navigator.clipboard.writeText(code);
-        const btn = document.getElementById('copy-return-key-btn');
+    function copyReportID(id) {
+        navigator.clipboard.writeText(id);
+        const btn = document.getElementById('copy-report-id-btn');
         if (btn) {
             const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
             const origHTML = btn.innerHTML;
@@ -67,28 +83,9 @@
             }, 2000);
         }
     }
-    </script>
-    {% endif %}
-
-    <!-- Report Tracker Header Row -->
-    <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-inner); padding: var(--space-4) var(--space-5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: 0.5rem; text-align: left;">
-        <div>
-            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Report ID</div>
-            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--deep-navy);">
-                {{ tracking_id }}
-            </div>
-        </div>
-        <div style="display: flex; gap: var(--space-3); align-items: center;">
-            <button id="copy-report-id-btn" onclick="copyReportID('{{ tracking_id }}')" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; min-width: 100px;">
-                <span class="loc-en">Copy ID</span>
-                <span class="loc-hi">आईडी कॉपी करें</span>
-            </button>
-        </div>
-    </div>
-    <script>
-    function copyReportID(id) {
-        navigator.clipboard.writeText(id);
-        const btn = document.getElementById('copy-report-id-btn');
+    function copyAccessCode(code) {
+        navigator.clipboard.writeText(code);
+        const btn = document.getElementById('copy-return-key-btn');
         if (btn) {
             const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
             const origHTML = btn.innerHTML;
@@ -169,25 +166,6 @@
 
     <!-- Result section (hidden until analysis complete) -->
     <div id="result-section" style="display: none; flex-direction: column; gap: var(--space-5);">
-        <!-- Toolbar Row -->
-        <div style="display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); margin-bottom: 0.5rem;">
-            <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
-                <button class="btn-secondary" onclick="copyReportId()">
-                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                    </svg>
-                    <span class="loc-en">Copy Report ID</span>
-                    <span class="loc-hi">रिपोर्ट आईडी कॉपी करें</span>
-                </button>
-                <button class="btn-secondary" onclick="window.print()">
-                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-                    </svg>
-                    <span class="loc-en">Print / Save PDF</span>
-                    <span class="loc-hi">प्रिंट / PDF सेव करें</span>
-                </button>
-            </div>
-        </div>
 
         <!-- Dynamically injected report sections -->
         <div id="dynamic-sections" style="display: flex; flex-direction: column; gap: var(--space-6);"></div>
@@ -226,8 +204,8 @@
         </div>
 
         <!-- Close Access Button -->
-        <div style="display:flex; justify-content:center; margin-top:var(--space-6); margin-bottom:var(--space-4);">
-            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="padding: 1rem 3rem;">
+        <div style="display:flex; justify-content:center; margin-top:var(--space-6); margin-bottom:var(--space-8);">
+            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="padding: 0.88rem 2.5rem; font-weight: 700; font-size: 0.95rem; border-radius: 8px;">
                 <span class="loc-en">Close Report Access</span>
                 <span class="loc-hi" lang="hi">रिपोर्ट एक्सेस बंद करें</span>
             </button>
@@ -260,7 +238,7 @@
             </button>
             <div style="text-align: center; margin-top: 4px;">
                 <a href="/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">
-                    <span class="loc-en">← Back to Prahari Home</span>
+                    <span class="loc-en">← Back to ResQGrid Home</span>
                     <span class="loc-hi" lang="hi">← मुख्य पृष्ठ पर वापस जाएं</span>
                 </a>
             </div>
@@ -551,10 +529,10 @@ setLanguageTheme = function(lang) {
     
     // Update browser tab title dynamically
     const tabTitles = {
-        english: 'Prahari — Report Status',
-        hindi: 'प्रहरी — रिपोर्ट की स्थिति'
+        english: 'ResQGrid — Report Status',
+        hindi: 'रेस्क्यूग्रिड — रिपोर्ट की स्थिति'
     };
-    document.title = tabTitles[lang] || 'Prahari';
+    document.title = tabTitles[lang] || 'ResQGrid';
 }
 
 function tfClass(tf) {
@@ -1191,12 +1169,15 @@ function showResult(result) {
                 <span class="loc-en">Personal Preparation Checklist</span>
                 <span class="loc-hi">व्यक्तिगत तैयारी चेकलिस्ट</span>
             </h2>
-            <p class="section-subheading loc-en" style="color: var(--yellow); font-weight: 500;">🔔 Disclaimer: This checklist is local for your reference. Checked states are saved on your device and never sent to Prahari.</p>
+            <p class="section-subheading loc-en" style="color: var(--yellow); font-weight: 500;">🔔 Disclaimer: This checklist is local for your reference. Checked states are saved on your device and never sent to ResQGrid.</p>
             <p class="section-subheading loc-hi" lang="hi" style="color: var(--yellow); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;">🔔 अस्वीकरण: यह चेकबॉक्स केवल आपके संदर्भ के लिए है। चिह्नित स्थिति आपके डिवाइस पर सहेजी जाती है और कभी भी प्रहरी को नहीं भेजी जाती।</p>
         </div>
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">${evidenceCards}</div>
         <div style="margin-top: var(--space-3); display: flex; gap: var(--space-2);">
-            <button class="btn-secondary" onclick="clearChecklistState()" style="font-size: 0.85rem; padding: 6px 14px;">Clear Checklist</button>
+            <button class="btn-secondary" onclick="clearChecklistState()" style="font-size: 0.82rem; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border-default); background: var(--bg-surface); cursor: pointer;">
+                <span class="loc-en">Clear Checklist</span>
+                <span class="loc-hi" lang="hi">चेकलिस्ट साफ़ करें</span>
+            </button>
         </div>
     </section>`;
     }
@@ -1282,7 +1263,7 @@ function showResult(result) {
             <p class="section-subheading loc-en">Primary administrative authority directory to resolve this file:</p>
             <p class="section-subheading loc-hi" lang="hi">इस मामले के समाधान के लिए प्राथमिक प्रशासनिक अधिकारी निर्देशिका:</p>
         </div>
-        <div class="contact-grid">
+        <div class="contacts-grid">
             ${primaryContactHTML}
         </div>
     </section>`;
@@ -1857,6 +1838,17 @@ function showResultUnified(result) {
             ${legalNoticeBtnHTML2}
         </section>`;
     } else {
+        let fallbackNoticeEn = 'ℹ️ Statutory Rights Guidance Notice — Administrative routing to municipal authority is active.';
+        let fallbackNoticeHi = 'ℹ️ वैधानिक अधिकार मार्गदर्शन - नगर निगम प्राधिकरण को प्रशासनिक रूटिंग सक्रिय है।';
+
+        if (isLegal || domain.includes('legal') || domain.includes('labor') || domain.includes('rights')) {
+            fallbackNoticeEn = 'ℹ️ Statutory Rights Guidance Notice — Legal rights triage complete. Automated legal notice generation is enabled for this file.';
+            fallbackNoticeHi = 'ℹ️ वैधानिक अधिकार मार्गदर्शन - कानूनी अधिकार विश्लेषण पूर्ण। इस फाइल के लिए स्वचालित कानूनी नोटिस निर्माण सक्षम है।';
+        } else if (isHealth || domain.includes('health') || domain.includes('medical')) {
+            fallbackNoticeEn = 'ℹ️ Medical Rights Guidance Notice — Emergency response routing & Golden Window alerts are active for this file.';
+            fallbackNoticeHi = 'ℹ️ चिकित्सा अधिकार मार्गदर्शन - इस फाइल के लिए आपातकालीन प्रतिक्रिया और गोल्डन विंडो अलर्ट सक्रिय हैं।';
+        }
+
         rightsProvisionsHTML = `
         <section class="rs-section" aria-label="Your Rights and Provisions" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-4); text-align: left;">
             <div class="section-header" style="margin-bottom: var(--space-3);">
@@ -1865,8 +1857,8 @@ function showResultUnified(result) {
                 <h2 class="section-title loc-hi" lang="hi">आपके वैधानिक अधिकार और प्रावधान</h2>
             </div>
             <div style="padding: var(--space-3); border-radius: var(--radius-inner); border: 1px solid var(--border-default); background: var(--bg-surface-raised); font-size: 0.9rem; color: var(--text-secondary);">
-                <span class="loc-en">ℹ️ Statutory Rights Guidance Notice — This is a standard civic infrastructure report. No legal dispute or statutory violation proceedings are currently active.</span>
-                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">ℹ️ वैधानिक अधिकार मार्गदर्शन - यह एक मानक नागरिक बुनियादी ढांचा रिपोर्ट है। वर्तमान में कोई कानूनी विवाद सक्रिय नहीं है।</span>
+                <span class="loc-en">${fallbackNoticeEn}</span>
+                <span class="loc-hi" lang="hi" style="font-family: 'Noto Sans Devanagari', sans-serif;">${fallbackNoticeHi}</span>
             </div>
         </section>`;
     }
@@ -1909,7 +1901,7 @@ function showResultUnified(result) {
                     <span class="section-label">Section 7</span>
                     <h2 class="section-title loc-en" style="margin-bottom: 4px;">Evidence & Personal Checklist</h2>
                     <h2 class="section-title loc-hi" lang="hi" style="margin-bottom: 4px; font-family: 'Noto Sans Devanagari', sans-serif;">आवश्यक साक्ष्य और चेकलिस्ट</h2>
-                    <p class="metadata-text loc-en" style="color: var(--caution); font-weight: 500; margin: 0;">🔔 Saved locally on your device. Checked items are never uploaded to Prahari.</p>
+                    <p class="metadata-text loc-en" style="color: var(--caution); font-weight: 500; margin: 0;">🔔 Saved locally on your device. Checked items are never uploaded to ResQGrid.</p>
                     <p class="metadata-text loc-hi" lang="hi" style="color: var(--caution); font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">🔔 आपके डिवाइस पर सुरक्षित रूप से सहेजी जाती है। प्रहरी पर कभी नहीं भेजी जाती।</p>
                 </div>
                 <div id="checklist-counter-badge" style="font-size: 0.95rem; font-weight: 700; color: var(--accent-teal); background: rgba(22,140,140,0.1); padding: 4px 8px; border-radius: var(--radius-inner);">
@@ -1937,6 +1929,19 @@ function showResultUnified(result) {
     }
 
     // ── 08 — ADDITIONAL REFERENCES (Citizen Public Reference Record) ───────────────────
+    const formattedTime = (function() {
+        const raw = result.created_at || result.timestamp;
+        if (raw && raw !== 'N/A') {
+            try {
+                const d = new Date(raw);
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' IST';
+                }
+            } catch(e) {}
+        }
+        return 'Ingested & Verified in System';
+    })();
+
     const additionalReferencesHTML = `
     <section class="rs-section" aria-label="Additional References" style="margin-bottom: var(--space-4); text-align: left;">
         <div class="section-header" style="margin-bottom: var(--space-2);">
@@ -1949,7 +1954,7 @@ function showResultUnified(result) {
                 <!-- Statistics will load here dynamically -->
             </div>
             <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-                <div><strong>Official Registration Timestamp:</strong> ${result.created_at || 'N/A'}</div>
+                <div><strong>Official Registration Timestamp:</strong> ${formattedTime}</div>
                 <div><strong>Public Guidance Notice:</strong> Guidance generated based on Indian statutory framework & public safety protocols.</div>
             </div>
         </div>

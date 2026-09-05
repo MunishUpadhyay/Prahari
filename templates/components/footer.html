@@ -1,42 +1,35 @@
-<footer class="app-footer" style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: var(--space-6) 1.5rem var(--space-5) 1.5rem; margin-top: auto;">
-    <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-4);">
+<footer class="app-footer" style="background: #0B1120; border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem 1.5rem; margin-top: auto; color: #94A3B8;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
         
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4);">
-            <div style="display: flex; flex-direction: column; text-align: left;">
-                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--deep-navy); letter-spacing: 0.04em; text-transform: uppercase;">PRAHARI</span>
-                <span class="loc-en" style="font-size: 0.78rem; color: var(--text-muted);">Real Time Civic Intelligence & Response System</span>
-                <span class="loc-hi" lang="hi" style="font-size: 0.78rem; color: var(--text-muted); font-family: 'Noto Sans Devanagari', sans-serif;">तत्काल नागरिक सूचना एवं सहायता प्रणाली</span>
-            </div>
-
-            <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); font-size: 0.85rem; font-weight: 500;">
-                <a href="/#how-it-works" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">How It Works</a>
-                <a href="/#how-it-works" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">यह कैसे काम करता है</a>
-                <span style="color: var(--border-default);">•</span>
-
-                <a href="{% url 'citizen_track' %}" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Track Report</a>
-                <a href="{% url 'citizen_track' %}" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">रिपोर्ट ट्रैक करें</a>
-                <span style="color: var(--border-default);">•</span>
-
-                <a href="{% url 'citizen_login' %}" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Citizen Login</a>
-                <a href="{% url 'citizen_login' %}" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">नागरिक लॉगिन</a>
-                <span style="color: var(--border-default);">•</span>
-
-                <a href="/login/" style="color: var(--text-secondary); text-decoration: none;" class="loc-en">Organization Portal</a>
-                <a href="/login/" style="color: var(--text-secondary); text-decoration: none; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">संगठन पोर्टल</a>
-            </div>
+        <!-- Left: Brand Logo & Copyright -->
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <a href="/" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(20, 184, 166, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="fill: #2DD4BF; width: 16px; height: 16px;" aria-hidden="true">
+                        <path d="M12 2S3 5 3 5v6c0 5.5 3.8 10.7 9 12c5.2-1.3 9-6.5 9-12V5s-9-3-9-3zm0 17.9c-2.9-.8-5-3.6-5-6.9V7.1l5-1.7 5 1.7v3.9c0 3.3-2.1 6.1-5 6.9z"/>
+                    </svg>
+                </div>
+                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.05em; text-transform: uppercase;">RESQGRID</span>
+            </a>
+            <span style="font-size: 0.8rem; color: #64748B;">&copy; 2026 ResQGrid. All rights reserved.</span>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: 0.78rem; color: var(--text-muted);">
-            <div>
-                &copy; 2026 Prahari. All rights reserved. &bull; Automated Civic Assistance &amp; Response Support System.
-            </div>
-            <div style="display: flex; gap: var(--space-3);">
-                <span>No account required</span>
-                <span>•</span>
-                <span>Privacy-conscious design</span>
-                <span>•</span>
-                <span>Accessible SSR architecture</span>
-            </div>
+        <!-- Right: Essential Real Action Links -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; font-size: 0.85rem;">
+            <a href="/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#2DD4BF'" onmouseout="this.style.color='#CBD5E1'" class="loc-en">Home</a>
+            <a href="/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">मुख्य पृष्ठ</a>
+
+            <a href="/submit/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#2DD4BF'" onmouseout="this.style.color='#CBD5E1'" class="loc-en">File Incident</a>
+            <a href="/submit/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">घटना दर्ज करें</a>
+
+            <a href="{% url 'citizen_track' %}" style="color: #CBD5E1; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#2DD4BF'" onmouseout="this.style.color='#CBD5E1'" class="loc-en">Track Report</a>
+            <a href="{% url 'citizen_track' %}" style="color: #CBD5E1; text-decoration: none; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">रिपोर्ट ट्रैक करें</a>
+
+            <a href="{% url 'citizen_login' %}" style="color: #CBD5E1; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#2DD4BF'" onmouseout="this.style.color='#CBD5E1'" class="loc-en">Citizen Portal</a>
+            <a href="{% url 'citizen_login' %}" style="color: #CBD5E1; text-decoration: none; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">नागरिक पोर्टल</a>
+
+            <a href="/login/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#2DD4BF'" onmouseout="this.style.color='#CBD5E1'" class="loc-en">Authority Portal</a>
+            <a href="/login/" style="color: #CBD5E1; text-decoration: none; font-weight: 500; font-family: 'Noto Sans Devanagari', sans-serif;" class="loc-hi" lang="hi">प्राधिकरण पोर्टल</a>
         </div>
 
     </div>
