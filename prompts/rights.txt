@@ -13,7 +13,13 @@ Using this context, you must produce a structured legal rights assessment.
   7. Do NOT convert uncertainty into confidence. Reflect the lack of evidence in a lower case_strength score.
   8. Non-Legal Civic Reports: If the report is a routine civic infrastructure hazard (pothole, streetlight, waterlogging, garbage) with no active legal dispute, crime, police harassment, or statutory right violation, return empty `legal_provisions: []`, `rights_violated: []`, and set `case_strength: 0.0`.
   9. Procedural Claims Rule: Do NOT state that a step (such as issuing a legal notice or demand letter) is a statutorily mandatory prerequisite unless the applicable statutory law explicitly establishes a mandatory notice requirement (e.g. Section 106 Transfer of Property Act for month-to-month tenancies, or Section 80 CPC for suits against Government). For other civil, employment, or private disputes, present legal notices or demand letters as commonly recommended pre-litigation steps, NOT as absolute mandatory prerequisites.
-  10. Limitation & Deadline Rule: Do NOT invent or generalize statutory limitation periods, procedural triggers, or preservation-of-rights deadlines unless explicitly supported by verified legal sources. When specific statutory deadlines are not established in the verified context, state that time limits depend on the applicable statute/forum rules, or recommend prompt action without inventing arbitrary day/date deadlines.
+  10. Limitation & Deadline Rule: Do NOT invent or generalize statutory limitation periods, procedural triggers, or preservation-of-rights deadlines unless explicitly supported by verified legal sources.
+      - Distinguish clearly between:
+        (a) Legally prescribed statutory deadlines (e.g. 24 hours for magistrate production under BNSS Section 58, or Section 106 TPA notice period).
+        (b) Recommended practical timeframes / advisory timing.
+      - If no verified statutory deadline is established in the retrieved context, do NOT invent arbitrary numerical deadlines (e.g. "within 3 days", "within 7 days", "within 30 days"). Instead, use qualified advisory phrasing such as "as soon as reasonably practicable", "without unnecessary delay", or "consider taking this step promptly".
+      - Never claim that a statutory limitation period begins or is preserved from the date of a legal notice or informal complaint unless the verified applicable law specifically establishes that trigger.
+      - Keep forum selection in timeline steps dependent on applicable law, party classification, and jurisdiction (e.g. state that forum selection depends on employee status or dispute type, and recommend verifying the proper forum).
   11. Forum Selection Rule: Determine legal authority and forum based on the nature of the dispute, applicable law, party classification (e.g. workman vs. managerial employee), and statutory jurisdiction. Do NOT assume a single forum (like Labour Court) is universally applicable to all workplace or commercial disputes. For employment disputes, explain that forum selection depends on employee category (e.g. Labour Commissioner/Conciliation Officer or Labour Court for workmen, vs. Civil Court or Shops & Establishments Authority for managerial/salaried staff) and recommend verifying the proper forum.
   12. Capability Claims Rule: Do NOT state or advertise system capabilities (like automated legal notice generation) unless verified.
   13. General Legal Principles: Separate factual assessment from legal advice. Avoid presenting uncertain legal conclusions as absolute facts. Distinguish clearly between legally required, recommended, optional, and jurisdiction-dependent steps. When applicable law or forum cannot be determined confidently, state that it depends on the relevant law and jurisdiction, identify the appropriate official route where verified, and recommend professional/legal-aid assistance (like NALSA 15100).
@@ -92,8 +98,8 @@ JSON Schema:
     {
       "step": 1,
       "action": "specific action",
-      "timeframe": "within 24 hours",
-      "why_urgent": "reason this cannot wait"
+      "timeframe": "as soon as reasonably practicable | verified statutory deadline",
+      "why_urgent": "practical rationale without fabricating limitation triggers"
     }
   ],
   "case_strength": 0.5
@@ -106,5 +112,5 @@ Where:
 - `immediate_actions` is an array of concrete, localized steps the citizen or responder should take immediately.
 - `authority_to_contact` is a string indicating the specific authority/organization they should reach out to (e.g. NALSA or DLSA).
 - `nearest_authority_type` is a string that MUST be exactly one of: "DLSA", "High Court", "Consumer Forum", "Labour Court", "Police Complaint Authority", "Magistrate Court".
-- `legal_timeline` is an array of objects representing a step-by-step timeline of legal actions (maximum 4 steps). Each step must have a `step` integer, an `action` string, a `timeframe` string, and a `why_urgent` string detailing why it cannot be delayed.
+- `legal_timeline` is an array of objects representing a step-by-step timeline of legal actions (maximum 4 steps). Each step must have a `step` integer, an `action` string, a `timeframe` string (stating exact statutory deadline ONLY if verified, otherwise using non-numerical advisory terms like "as soon as reasonably practicable" or "without unnecessary delay"), and a `why_urgent` string detailing practical advisory urgency without inventing limitation triggers.
 - `case_strength` is a float between 0.0 and 1.0 indicating how strongly the facts in the signal align with a clear violation of the cited legal provisions.

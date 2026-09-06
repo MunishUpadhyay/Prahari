@@ -15,6 +15,7 @@ Agents:
 """
 
 import logging
+import re
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -302,18 +303,17 @@ class RightsAgent(BaseAgent):
         if nat not in valid_authorities:
             result["nearest_authority_type"] = "DLSA"
 
-        # Validate legal_timeline
+        # Validate and sanitize legal_timeline
         timeline = result.get("legal_timeline")
         if not isinstance(timeline, list):
-            # Try to build a basic one from immediate_actions if empty
-            actions = result.get("immediate_actions") or ["Contact local legal aid panel advocate."]
+            actions = result.get("immediate_actions") or ["Consult DLSA panel advocate for legal guidance."]
             timeline = []
             for i, act in enumerate(actions[:4], 1):
                 timeline.append({
                     "step": i,
                     "action": act,
-                    "timeframe": "Within 24-48 hours",
-                    "why_urgent": "To prevent delay in seeking remedy."
+                    "timeframe": "As soon as reasonably practicable",
+                    "why_urgent": "Prompt action helps establish a clear written record."
                 })
         else:
             validated_timeline = []
@@ -323,11 +323,31 @@ class RightsAgent(BaseAgent):
                         step_num = int(item.get("step", len(validated_timeline) + 1))
                     except (ValueError, TypeError):
                         step_num = len(validated_timeline) + 1
+
+                    action_str = str(item.get("action", "Consult DLSA panel advocate.")).strip()
+                    timeframe_str = str(item.get("timeframe", "As soon as reasonably practicable")).strip()
+                    why_urgent_str = str(item.get("why_urgent", "Prompt action avoids unnecessary procedural delays.")).strip()
+
+                    # Check if the step cites a statutorily verified timeframe (e.g., 24-hour magistrate production or statutory lease notice)
+                    combined_str = f"{action_str} {timeframe_str}".lower()
+                    is_statutory = any(kw in combined_str for kw in ["bnss", "crpc", "section 58", "section 106", "section 80 cpc", "constitution", "24 hours", "15 days notice", "6 months notice"])
+
+                    if not is_statutory:
+                        # Clean arbitrary numerical deadlines like "within 3 days", "within 7 days", "within 30 days"
+                        timeframe_str = re.sub(r'within \d+ days?( of [^,\.]*)?', 'as soon as reasonably practicable', timeframe_str, flags=re.IGNORECASE)
+                        timeframe_str = re.sub(r'within \d+ hours?( of [^,\.]*)?', 'without unnecessary delay', timeframe_str, flags=re.IGNORECASE)
+                        timeframe_str = re.sub(r'after \d+ days?', 'without unnecessary delay', timeframe_str, flags=re.IGNORECASE)
+
+                        # Clean ungrounded limitation claims
+                        why_urgent_str = re.sub(r'preserves your claim within the limitation period', 'establishes a documented demand record', why_urgent_str, flags=re.IGNORECASE)
+                        why_urgent_str = re.sub(r'prevents loss of rights due to limitation periods', 'provides an official channel for dispute resolution if informal steps fail', why_urgent_str, flags=re.IGNORECASE)
+                        why_urgent_str = re.sub(r'limitation period', 'procedural timing', why_urgent_str, flags=re.IGNORECASE)
+
                     validated_timeline.append({
                         "step": step_num,
-                        "action": str(item.get("action", "Consult DLSA panel advocate.")),
-                        "timeframe": str(item.get("timeframe", "Immediate")),
-                        "why_urgent": str(item.get("why_urgent", "Action is time critical."))
+                        "action": action_str,
+                        "timeframe": timeframe_str,
+                        "why_urgent": why_urgent_str
                     })
             timeline = validated_timeline[:4]
         result["legal_timeline"] = timeline
