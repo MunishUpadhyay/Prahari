@@ -67,7 +67,47 @@ VERIFIED_DIRECTORY = {
         "contact": "100",
         "source": "Official Gov Helpline",
         "verified": True,
-        "last_verified": "2026-08-28"
+        "last_verified": "2026-09-06"
+    },
+    ("Fire Emergency", "National"): {
+        "authority": "Fire Emergency",
+        "jurisdiction": "National",
+        "contact": "101",
+        "source": "Official Gov Helpline",
+        "verified": True,
+        "last_verified": "2026-09-06"
+    },
+    ("NALSA Legal Aid Helpline", "National"): {
+        "authority": "NALSA Legal Aid Helpline",
+        "jurisdiction": "National",
+        "contact": "15100",
+        "source": "National Legal Services Authority Helpline",
+        "verified": True,
+        "last_verified": "2026-09-06"
+    },
+    ("Ministry of Labour & Employment Helpline", "National"): {
+        "authority": "Ministry of Labour & Employment Helpline",
+        "jurisdiction": "National",
+        "contact": "14434",
+        "source": "Ministry of Labour & Employment Toll-Free Helpline",
+        "verified": True,
+        "last_verified": "2026-09-06"
+    },
+    ("National Consumer Helpline", "National"): {
+        "authority": "National Consumer Helpline",
+        "jurisdiction": "National",
+        "contact": "1915",
+        "source": "Department of Consumer Affairs Helpline",
+        "verified": True,
+        "last_verified": "2026-09-06"
+    },
+    ("National Cyber Crime Helpline", "National"): {
+        "authority": "National Cyber Crime Helpline",
+        "jurisdiction": "National",
+        "contact": "1930",
+        "source": "Ministry of Home Affairs Cyber Crime Portal",
+        "verified": True,
+        "last_verified": "2026-09-06"
     }
 }
 
@@ -119,8 +159,8 @@ def sanitize_contact_number(number: str) -> str:
             
     # Known official national emergency/support lines are allowed
     known_emergency = {
-        "108", "100", "101", "102", "1091", "112", "1098", "14416",
-        "1800-599-0019", "18005990019"
+        "108", "100", "101", "102", "1091", "112", "1098", "14416", "14434", "15100", "1915", "1930", "181",
+        "1800-599-0019", "18005990019", "1800-891-4416", "18008914416"
     }
     if num_clean in known_emergency:
         return num_clean

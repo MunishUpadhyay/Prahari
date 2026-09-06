@@ -351,6 +351,11 @@ def test_authority_contact_sanitization():
     
     assert sanitize_contact_number("108") == "108"
     assert sanitize_contact_number("100") == "100"
+    assert sanitize_contact_number("15100") == "15100"
+    assert sanitize_contact_number("14434") == "14434"
+    assert sanitize_contact_number("1915") == "1915"
+    assert sanitize_contact_number("1930") == "1930"
+    assert sanitize_contact_number("14444") == "Verified contact unavailable"
 
 
 def test_evidence_checklist_cases():
