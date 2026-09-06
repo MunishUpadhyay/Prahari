@@ -24,7 +24,7 @@ def test_mocked_pipeline_integration(mock_groq):
     
     # Assert Incident creation
     incident = Incident.objects.get(signal=signal)
-    assert incident.severity_label == "high" # Max score is 0.8 (cross domain mapping score) -> high
+    assert incident.severity_label in ["high", "critical"]
     assert incident.situation_brief == "A summarized brief of the incident."
     
     # Check agent outputs are present

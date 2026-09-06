@@ -428,12 +428,22 @@ def coordination_agent(self, incident_id: str, agent_outputs: dict = None):
                 'end': end_time.isoformat(),
                 'duration_ms': duration_ms
             }
-            incident.agent_outputs = agent_outputs
-            incident.situation_brief = coord_result.get('situation_brief', '')
-            incident.severity_score = coord_result.get('overall_severity_score', incident.severity_score)
-            incident.save(update_fields=[
-                'agent_outputs', 'situation_brief', 'severity_score'
-            ])
+            new_score = coord_result.get('overall_severity_score', incident.severity_score)
+            incident.severity_score = new_score
+            if new_score >= 0.9:
+                incident.severity_label = "critical"
+            elif new_score >= 0.6:
+                incident.severity_label = "high"
+            elif new_score >= 0.35:
+                incident.severity_label = "medium"
+            else:
+                incident.severity_label = "low"
+
+        incident.agent_outputs = agent_outputs
+        incident.situation_brief = coord_result.get('situation_brief', '')
+        incident.save(update_fields=[
+            'agent_outputs', 'situation_brief', 'severity_score', 'severity_label'
+        ])
 
         # Chain to websocket/language agent
         return push_to_websocket.delay(str(incident_id), coord_result)
@@ -470,6 +480,10 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
             id=incident_id
         )
         agent_outputs = incident.agent_outputs or {}
+        coord = (coord_result or {} if isinstance(coord_result, dict) else {}) or agent_outputs.get('coordination', {})
+        brief = coord.get('situation_brief', '') if isinstance(coord, dict) else ''
+        if brief:
+            incident.situation_brief = brief
 
         # Idempotency check: Reuse existing language translation if already present
         if 'language' in agent_outputs and 'hindi' in agent_outputs['language']:
@@ -478,7 +492,7 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
         else:
             # Run Language Agent to get Hindi translation
             hindi_brief = None
-            if coord_result:
+            if coord:
                 if 'timing' not in agent_outputs:
                     agent_outputs['timing'] = {}
                 
@@ -494,15 +508,15 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                     authority_to_contact = (rights_out or {}).get("authority_to_contact") or (triage_out or {}).get("authority_to_contact") or "National Legal Services Authority (NALSA)"
 
                     translation_payload = {
-                        "situation_title": coord_result.get("situation_title", ""),
-                        "what_is_happening": coord_result.get("what_is_happening", ""),
-                        "situation_brief": coord_result.get("situation_brief", ""),
-                        "resources_needed": coord_result.get("resources_needed", []),
-                        "authorities_to_notify": coord_result.get("authorities_to_notify", []),
-                        "conflict_resolution": coord_result.get("conflict_resolution"),
-                        "escalation_path": coord_result.get("escalation_path", []),
-                        "immediate_actions": coord_result.get("immediate_actions", []),
-                        "evidence_to_collect": coord_result.get("evidence_to_collect", []),
+                        "situation_title": coord.get("situation_title", ""),
+                        "what_is_happening": coord.get("what_is_happening", ""),
+                        "situation_brief": coord.get("situation_brief", ""),
+                        "resources_needed": coord.get("resources_needed", []),
+                        "authorities_to_notify": coord.get("authorities_to_notify", []),
+                        "conflict_resolution": coord.get("conflict_resolution"),
+                        "escalation_path": coord.get("escalation_path", []),
+                        "immediate_actions": coord.get("immediate_actions", []),
+                        "evidence_to_collect": coord.get("evidence_to_collect", []),
                         "nearest_authority_type": nearest_authority_type,
                         "authority_to_contact": authority_to_contact,
                     }
@@ -660,9 +674,6 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                         'end': end_time.isoformat(),
                         'duration_ms': duration_ms
                     }
-                    incident.agent_outputs = agent_outputs
-                    incident.save(update_fields=['agent_outputs'])
-
                     # Ingest incident to history collection for RAG
                     try:
                         from rag.ingest import ingest_incident_to_history
@@ -675,6 +686,11 @@ def push_to_websocket(self, incident_id: str, coord_result: dict = None):
                         )
                     except Exception as e:
                         logger.error("Failed to ingest incident to history (non-critical): %s", e)
+
+        if brief:
+            incident.situation_brief = brief
+        incident.agent_outputs = agent_outputs
+        incident.save(update_fields=['agent_outputs', 'situation_brief'])
 
         # Push to WebSocket dashboard
         channel_layer = get_channel_layer()

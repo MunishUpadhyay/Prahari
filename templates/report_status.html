@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <main class="report-container" style="flex: 1; padding: var(--space-6) 1.5rem; display: flex; flex-direction: column; gap: var(--space-4);">
     {% if verified %}
     <!-- Consolidated Report Credentials Card (Symmetric, balanced executive layout) -->
@@ -213,7 +214,7 @@
                 <span class="loc-en">Print / PDF Report</span>
                 <span class="loc-hi" lang="hi">रिपोर्ट प्रिंट / PDF करें</span>
             </button>
-            <button onclick="closeSessionAndGoHome()" class="btn-primary" style="padding: 0.88rem 2.5rem; font-weight: 700; font-size: 0.95rem; border-radius: 8px;">
+            <button type="button" onclick="closeSessionAndGoHome(event)" class="btn-primary" style="padding: 0.88rem 2.5rem; font-weight: 700; font-size: 0.95rem; border-radius: 8px;">
                 <span class="loc-en">Close Report Access</span>
                 <span class="loc-hi" lang="hi">रिपोर्ट एक्सेस बंद करें</span>
             </button>
@@ -267,7 +268,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    'X-CSRFToken': getCsrfToken()
                 },
                 body: JSON.stringify({ code: code })
             });
@@ -293,6 +294,13 @@
 
 {% block extra_js %}
     <script>
+function getCsrfToken() {
+    const input = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (input && input.value) return input.value;
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '{{ csrf_token }}';
+}
+
 const signalId = "{{ signal_id }}";
 const siteUrl = "{{ site_url }}";
 const trackingId = "{{ tracking_id }}";
@@ -1995,6 +2003,31 @@ function showResultUnified(result) {
     restoreChecklistState();
 }
 
+async function loadOutcomeStats(id) {
+    const card = document.getElementById('outcome-stats-card');
+    if (!card || !id) return;
+    try {
+        const response = await fetch(`/api/incidents/${id}/similar/`);
+        if (!response.ok) {
+            card.style.display = 'none';
+            return;
+        }
+        const data = await response.json();
+        const stats = data.outcome_stats;
+        if (!stats || !stats.total_similar) {
+            card.style.display = 'none';
+            return;
+        }
+        const isHindi = localStorage.getItem('prahari_lang') === 'hindi';
+        const titleEn = `<strong>Similar Case Insights:</strong> ${stats.resolved_count} of ${stats.total_similar} similar incidents resolved (${stats.resolution_rate} resolution rate). Typical resolution route: <em>${stats.typical_resolution}</em>.`;
+        const titleHi = `<strong>समान मामला अंतर्दृष्टि:</strong> ${stats.total_similar} में से ${stats.resolved_count} समान मामले सुलझाए गए (${stats.resolution_rate} समाधान दर)। सामान्य समाधान मार्ग: <em>${stats.typical_resolution}</em>।`;
+        card.innerHTML = `<div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;"><span class="loc-en">${titleEn}</span><span class="loc-hi" lang="hi">${titleHi}</span></div>`;
+        card.style.display = 'block';
+    } catch (e) {
+        card.style.display = 'none';
+    }
+}
+
 function updateChecklistCounter() {
     const checkboxes = document.querySelectorAll('[id^="evidence-check-"]');
     const total = checkboxes.length;
@@ -2276,17 +2309,19 @@ function extractRemedy(relevance) {
 }
 
 // Close Return Key Session and Go Home (Improvement C)
-async function closeSessionAndGoHome() {
+async function closeSessionAndGoHome(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const token = getCsrfToken();
     try {
         await fetch(`/api/signals/${signalId}/close-session/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
+                'X-CSRFToken': token,
                 'Content-Type': 'application/json'
             }
         });
-    } catch (e) {
-        // Silently redirect anyway
+    } catch (err) {
+        console.error('Failed to close session:', err);
     }
     window.location.href = '/';
 }

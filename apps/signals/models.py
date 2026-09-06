@@ -12,6 +12,7 @@ class Domain(models.TextChoices):
     LEGAL = "legal", "Legal"
     HEALTH = "health", "Health"
     EMERGENCY = "emergency", "Emergency"
+    CIVIC = "civic", "Civic / Infrastructure"
     CROSS = "cross", "Cross-domain"
 
 

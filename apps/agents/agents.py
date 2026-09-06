@@ -160,8 +160,24 @@ class SentinelAgent(BaseAgent):
         raw_response = self.call_groq(user_message)
         result = self.parse_json_response(raw_response)
         
-        valid_domains = {"legal", "health", "emergency", "cross_domain"}
+        valid_domains = {"legal", "health", "emergency", "civic", "cross_domain"}
         domain = result.get("domain")
+        
+        # Normalize cross_domain to civic if all content concerns municipal hazards without health/legal/emergency factors
+        if domain in ["cross_domain", "cross"]:
+            text_lower = signal.raw_text.lower()
+            reasoning_lower = str(result.get("reasoning", "")).lower()
+            combined_text = f"{text_lower} {reasoning_lower}"
+            
+            has_health_kw = any(w in combined_text for w in ["hospital", "doctor", "patient", "bleeding", "injury", "medical", "ambulance"])
+            has_legal_kw = any(w in combined_text for w in ["arrest", "jail", "lawyer", "legal notice", "wages", "salary", "fir", "police custody", "court"])
+            has_emergency_kw = any(w in combined_text for w in ["fire", "flood", "disaster", "earthquake", "landslide", "explosion", "building collapse"])
+            has_civic_kw = any(w in combined_text for w in ["pothole", "streetlight", "road", "garbage", "drain", "waterlogging", "municipal", "traffic", "sewage", "civic"])
+            
+            if has_civic_kw and not (has_health_kw or has_legal_kw or has_emergency_kw):
+                result["domain"] = "civic"
+                domain = "civic"
+
         if domain not in valid_domains:
             raise ValueError(f"Invalid domain returned: {domain}. Expected one of {valid_domains}")
             
@@ -720,6 +736,10 @@ class CoordinationAgent(BaseAgent):
         if "what_is_happening" not in result:
             result["what_is_happening"] = signal.raw_text
         
+        # Determine domain context for post-processing
+        eff_domain = (sentinel_result.get("domain") if sentinel_result else getattr(signal, "domain", "")) or ""
+        is_civic_domain = eff_domain == "civic" or (eff_domain not in ["emergency", "health", "cross", "legal"] and not (sentinel_result and sentinel_result.get("requires_immediate_action")))
+
         if not isinstance(result.get("immediate_actions"), list):
             result["immediate_actions"] = []
         else:
@@ -730,11 +750,20 @@ class CoordinationAgent(BaseAgent):
                         prio = int(action.get("priority", 1))
                     except (ValueError, TypeError):
                         prio = 1
+                    time_win = str(action.get("time_window", "")).strip()
+                    if is_civic_domain:
+                        # Clean manufactured SLA time windows in civic/infrastructure cases
+                        time_win = re.sub(r'within \d+ minutes?', 'as soon as reasonably practicable', time_win, flags=re.IGNORECASE)
+                        time_win = re.sub(r'within \d+ hours?', 'promptly', time_win, flags=re.IGNORECASE)
+                        time_win = re.sub(r'within \d+ days?', 'after submitting the complaint', time_win, flags=re.IGNORECASE)
+                        time_win = re.sub(r'\b\d+ mins?\b', 'promptly', time_win, flags=re.IGNORECASE)
+                        if not time_win or any(w in time_win.lower() for w in ["minute", "min", "10", "15", "30", "45", "60"]):
+                            time_win = "as soon as reasonably practicable"
                     validated_actions.append({
                         "priority": prio,
                         "action": str(action.get("action", "")),
                         "responsible_party": str(action.get("responsible_party", "")),
-                        "time_window": str(action.get("time_window", ""))
+                        "time_window": time_win
                     })
             validated_actions = reorder_actions_by_safety(validated_actions, signal.raw_text)
             validated_actions.sort(key=lambda x: x["priority"])
@@ -742,10 +771,27 @@ class CoordinationAgent(BaseAgent):
 
         if not isinstance(result.get("resources_needed"), list):
             result["resources_needed"] = []
-        if not isinstance(result.get("authorities_to_notify"), list):
-            result["authorities_to_notify"] = []
-        if "situation_brief" not in result:
-            result["situation_brief"] = result.get("what_is_happening", "")[:100]
+            
+        # Clean authorities to notify: remove non-relevant 112 / legal-aid helplines for routine civic cases
+        auths = result.get("authorities_to_notify")
+        if not isinstance(auths, list):
+            auths = []
+        if is_civic_domain:
+            cleaned_auths = []
+            for a in auths:
+                a_str = str(a).strip()
+                a_lower = a_str.lower()
+                if any(bad in a_lower for bad in ["112", "emergency help", "108", "ambulance", "15100", "nalsa", "dlsa", "legal services"]):
+                    continue
+                cleaned_auths.append(a_str)
+            if not cleaned_auths:
+                cleaned_auths = ["Municipal Corporation / Public Works Department (PWD)", "Local Traffic Police"]
+            result["authorities_to_notify"] = cleaned_auths
+        else:
+            result["authorities_to_notify"] = [str(a) for a in auths]
+
+        if not result.get("situation_brief"):
+            result["situation_brief"] = result.get("what_is_happening", "")[:100] or getattr(signal, "raw_text", "")[:100]
         if "escalation_required" not in result:
             result["escalation_required"] = False
         else:
@@ -754,7 +800,7 @@ class CoordinationAgent(BaseAgent):
             result["estimated_resolution_time"] = "hours"
 
         # Validate conflict_resolution for cross_domain/cross signals
-        is_cross = sentinel_result.get("domain") in ["cross", "cross_domain"]
+        is_cross = sentinel_result.get("domain") in ["cross", "cross_domain"] if sentinel_result else False
         cr = result.get("conflict_resolution")
         if is_cross:
             if not isinstance(cr, dict):
@@ -774,15 +820,25 @@ class CoordinationAgent(BaseAgent):
 
         # Validate escalation_path
         ep = result.get("escalation_path")
-        if not isinstance(ep, list):
-            result["escalation_path"] = [
-                {
-                    "level": 1,
-                    "authority": "Chief Medical Officer / District Magistrate",
-                    "trigger": "If hospital refuses admission after 15 minutes",
-                    "contact": "CMO Office / District Legal Services Authority (DLSA) helpline 15100"
-                }
-            ]
+        if not isinstance(ep, list) or len(ep) == 0:
+            if is_civic_domain:
+                result["escalation_path"] = [
+                    {
+                        "level": 1,
+                        "authority": "Municipal Commissioner / Ward Officer",
+                        "trigger": "If initial report remains unaddressed",
+                        "contact": "Verified contact unavailable"
+                    }
+                ]
+            else:
+                result["escalation_path"] = [
+                    {
+                        "level": 1,
+                        "authority": "District Magistrate / Competent Authority",
+                        "trigger": "If initial report remains unaddressed",
+                        "contact": "Verified contact unavailable"
+                    }
+                ]
         else:
             validated_ep = []
             for item in ep:
@@ -791,17 +847,26 @@ class CoordinationAgent(BaseAgent):
                         level_num = int(item.get("level", len(validated_ep) + 1))
                     except (ValueError, TypeError):
                         level_num = len(validated_ep) + 1
-                    raw_contact = str(item.get("contact", "Call 15100 DLSA / National helpline"))
+                    raw_contact = str(item.get("contact", "Verified contact unavailable")).strip()
+                    
+                    trigger_str = str(item.get("trigger", "If report remains unaddressed")).strip()
+                    if is_civic_domain:
+                        # Clean SLA triggers like "after 24 hours" / "after 48 hours" in civic cases
+                        trigger_str = re.sub(r'after \d+ (hours?|days?)', 'if initial complaint remains unaddressed', trigger_str, flags=re.IGNORECASE)
+                        trigger_str = re.sub(r'within \d+ (minutes?|hours?)', 'if initial complaint remains unaddressed', trigger_str, flags=re.IGNORECASE)
+                        if any(bad in raw_contact.lower() for bad in ["112", "15100", "dlsa", "nalsa"]):
+                            raw_contact = "Verified contact unavailable"
+                            
                     sanitized_contact = sanitize_contact_number(raw_contact)
                     validated_ep.append({
                         "level": level_num,
                         "authority": str(item.get("authority", "District Authority")),
-                        "trigger": str(item.get("trigger", "Immediate if no response")),
+                        "trigger": trigger_str,
                         "contact": sanitized_contact
                     })
             result["escalation_path"] = validated_ep[:3]
 
-        # Validate evidence_to_collect (Upgrade 2)
+        # Validate evidence_to_collect
         etc = result.get("evidence_to_collect")
         if not isinstance(etc, list):
             result["evidence_to_collect"] = []
@@ -817,17 +882,28 @@ class CoordinationAgent(BaseAgent):
                     })
             result["evidence_to_collect"] = validated_etc[:5]
 
-        # Protect Sentinel severity score from LLM downgrades
-        sentinel_severity_score = sentinel_result.get("severity_score", 0.5) if sentinel_result else 0.5
-        if result["overall_severity_score"] < sentinel_severity_score:
-            result["overall_severity_score"] = sentinel_severity_score
-            
-        # Keep overall_severity mapping correct if score is overridden
+        # Harmonize severity score with Sentinel assessment
+        if sentinel_result:
+            sent_score = sentinel_result.get("severity_score")
+            sent_req_imm = sentinel_result.get("requires_immediate_action", False)
+            if sent_score is not None:
+                try:
+                    s_score_flt = float(sent_score)
+                    if is_civic_domain and not sent_req_imm:
+                        # For non-emergency civic cases, keep score harmonized with Sentinel rather than inflating to high/critical
+                        result["overall_severity_score"] = s_score_flt
+                    elif result["overall_severity_score"] < s_score_flt:
+                        # Protect Sentinel severity score from LLM downgrades in non-civic cases
+                        result["overall_severity_score"] = s_score_flt
+                except (ValueError, TypeError):
+                    pass
+
+        # Keep overall_severity mapping strictly aligned with overall_severity_score
         if result["overall_severity_score"] >= 0.8:
             result["overall_severity"] = "critical"
         elif result["overall_severity_score"] >= 0.6:
             result["overall_severity"] = "high"
-        elif result["overall_severity_score"] >= 0.4:
+        elif result["overall_severity_score"] >= 0.35:
             result["overall_severity"] = "medium"
         else:
             result["overall_severity"] = "low"

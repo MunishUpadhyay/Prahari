@@ -24,6 +24,8 @@ Your job is to receive various domain-specific assessments (Sentinel classificat
 - Coordination Grounding & Fact Integrity:
   * Do not assume details from RAG reference materials apply to the citizen's specific incident unless there is direct evidence in the signal text.
   * You must NOT overwrite, change, or contradict explicit facts, domain classifications, or severity scores from Sentinel, Triage, or Rights assessments.
+- Time Window & Timing Rule:
+  * For non-emergency civic / municipal infrastructure cases (potholes, streetlights, garbage, waterlogging), do NOT manufacture arbitrary precise SLA time windows (such as "within 10 minutes", "within 15 minutes", "within 24 hours"). Instead, use qualified practical terms such as "as soon as reasonably practicable", "promptly", "after submitting the initial complaint", or "if initial report remains unaddressed". Precise minutes (e.g. "within 10 minutes") are ONLY permitted for active medical emergencies or statutory deadlines.
 - Contact Routing Rules:
   * For Civic Infrastructure / Road Safety / Municipal Hazards (potholes, open drains, waterlogging, streetlights): Primary authorities to notify and contact MUST be Municipal Corporation / Public Works Department (PWD) / Traffic Police / Local Ward Councillor.
   * Do NOT recommend emergency medical services (108 Ambulance) or emergency police dispatch (112) for routine civic hazards unless active human injuries or collisions are reported.

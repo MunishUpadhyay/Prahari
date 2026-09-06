@@ -10,6 +10,7 @@ import dj_database_url
 import environ
 
 env = environ.Env()
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 # ---------------------------------------------------------------------------
 # Paths
