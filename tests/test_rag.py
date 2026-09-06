@@ -9,25 +9,62 @@ from rag.retriever import (
     get_embedding_function,
 )
 
-def test_retrieve_legal_provisions_mocked():
+def test_retrieve_legal_provisions_mocked(settings):
+    settings.USE_ZERO_MEMORY_RAG = False
     results = retrieve_legal_provisions("Test query", n_results=3)
     assert len(results) > 0
     assert results[0]["text"] == "Mock provisions/protocols document"
     assert results[0]["distance"] == 0.15
 
-def test_retrieve_medical_protocols_mocked():
+def test_retrieve_medical_protocols_mocked(settings):
+    settings.USE_ZERO_MEMORY_RAG = False
     results = retrieve_medical_protocols("Test query", n_results=2)
     assert len(results) > 0
     assert results[0]["text"] == "Mock provisions/protocols document"
 
-def test_retrieve_similar_incidents_mocked():
+def test_retrieve_similar_incidents_mocked(settings):
+    settings.USE_ZERO_MEMORY_RAG = False
     results = retrieve_similar_incidents("Test query", n_results=3)
     assert isinstance(results, list)
 
-def test_retriever_fails_gracefully(mock_chromadb):
+def test_retriever_fails_gracefully(mock_chromadb, settings):
+    settings.USE_ZERO_MEMORY_RAG = False
     mock_chromadb.get_collection.side_effect = Exception("Database connection lost")
     results = retrieve_legal_provisions("Test query")
     assert results == []
+
+def test_zero_memory_rag_mode_bypasses_model_loading(settings, monkeypatch):
+    """
+    Verify that in zero-memory RAG mode (USE_ZERO_MEMORY_RAG=True):
+    1. retrieve_legal_provisions returns fallback results.
+    2. retrieve_medical_protocols returns fallback results.
+    3. retrieve_similar_incidents returns fallback results.
+    4. get_embedding_function is NEVER called.
+    """
+    settings.USE_ZERO_MEMORY_RAG = True
+    
+    # Monkeypatch get_embedding_function to raise an error if called
+    def fail_if_called():
+        raise RuntimeError("get_embedding_function should NOT be called in zero-memory mode!")
+        
+    monkeypatch.setattr("rag.retriever.get_embedding_function", fail_if_called)
+    monkeypatch.setattr("rag.retriever.get_chroma_client", fail_if_called)
+    
+    # Test legal retrieval
+    legal_res = retrieve_legal_provisions("salary unpaid employee")
+    assert isinstance(legal_res, list)
+    assert len(legal_res) > 0
+    assert "code" in legal_res[0]["metadata"]
+    
+    # Test medical retrieval
+    med_res = retrieve_medical_protocols("heart attack chest pain")
+    assert isinstance(med_res, list)
+    assert len(med_res) > 0
+    assert "title" in med_res[0]["metadata"]
+    
+    # Test similar incidents retrieval
+    similar_res = retrieve_similar_incidents("tenant landlord dispute")
+    assert isinstance(similar_res, list)
 
 def test_module_imports_lazy_rag():
     """

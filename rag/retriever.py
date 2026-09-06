@@ -113,18 +113,20 @@ def _fallback_medical_search(query: str, n_results: int = 3) -> list[dict]:
     """Zero-memory keyword fallback search against VERIFIED_MEDICAL_DATABASE."""
     try:
         from apps.agents.medical_reference import VERIFIED_MEDICAL_DATABASE
-        words = set(re.findall(r'\w+', query.lower())) - {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need"}
+        stop_words = {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need"}
+        words = set(re.findall(r'\w+', query.lower())) - stop_words
         if not words:
             return []
         scored = []
         for key, rec in VERIFIED_MEDICAL_DATABASE.items():
-            text_corpus = f"{rec.get('condition', '')} {rec.get('triage_category', '')} {rec.get('first_aid_steps', '')}".lower()
+            text_corpus = f"{rec.get('title', '')} {rec.get('category', '')} {rec.get('act', '')} {rec.get('statutory_text', '')}".lower()
             score = sum(1 for w in words if w in text_corpus)
             if score > 0:
-                doc_str = f"Medical Condition: {rec.get('condition')}. Triage: {rec.get('triage_category')}. First Aid: {rec.get('first_aid_steps')}"
+                doc_str = f"Medical Protocol: {rec.get('title')}. Category: {rec.get('category')}. Details: {rec.get('statutory_text')}"
                 meta = {
-                    "condition": rec.get("condition"),
-                    "triage": rec.get("triage_category"),
+                    "title": rec.get("title"),
+                    "category": rec.get("category"),
+                    "act": rec.get("act"),
                     "verified": "True"
                 }
                 scored.append({
@@ -144,6 +146,55 @@ def _fallback_medical_search(query: str, n_results: int = 3) -> list[dict]:
         return []
 
 
+def _fallback_similar_incidents_search(query: str,
+                                       n_results: int = 3,
+                                       exclude_id: str = None
+                                       ) -> list[dict]:
+    """Zero-memory SQL/keyword search against Incident DB for similar incidents."""
+    try:
+        from apps.incidents.models import Incident
+        qs = Incident.objects.all()
+        if exclude_id:
+            qs = qs.exclude(id=exclude_id)
+            
+        stop_words = {"the", "a", "an", "is", "and", "or", "in", "on", "of", "to", "for", "with", "my", "me", "i", "without", "need", "report"}
+        raw_words = [w.lower() for w in re.findall(r'\w+', query) if w.lower() not in stop_words]
+        norm_words = {_norm_word(w) for w in raw_words}
+        if not norm_words:
+            return []
+            
+        incidents = list(qs.select_related("signal")[:50])
+        scored = []
+        for inc in incidents:
+            text = f"{inc.situation_brief or ''} {inc.signal.raw_text if inc.signal else ''}".lower()
+            corpus_words = {_norm_word(w) for w in re.findall(r'\w+', text)}
+            overlap = norm_words.intersection(corpus_words)
+            score = len(overlap)
+            if score > 0:
+                sim_score = float(round(min(0.95, score / (len(norm_words) + 1)), 4))
+                scored.append({
+                    "incident_id": str(inc.id),
+                    "situation_brief": inc.situation_brief or (inc.signal.raw_text[:120] if inc.signal else "Civic incident report"),
+                    "domain": inc.domain,
+                    "severity": inc.severity,
+                    "resolved": inc.status in ["resolved", "closed"],
+                    "similarity_score": sim_score,
+                    "score": score
+                })
+        scored.sort(key=lambda x: x["score"], reverse=True)
+        return [{
+            "incident_id": item["incident_id"],
+            "situation_brief": item["situation_brief"],
+            "domain": item["domain"],
+            "severity": item["severity"],
+            "resolved": item["resolved"],
+            "similarity_score": item["similarity_score"]
+        } for item in scored[:n_results]]
+    except Exception as e:
+        logger.warning("Fallback similar incidents search error: %s", e)
+        return []
+
+
 def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
     """
     Retrieve the top n_results most relevant legal provisions for a query.
@@ -156,6 +207,10 @@ def retrieve_legal_provisions(query: str, n_results: int = 3) -> list[dict]:
         list[dict]: List of dicts with keys "text", "metadata", "distance".
     """
     logger.info("Retrieving legal provisions for query: %r", query)
+    if getattr(settings, "USE_ZERO_MEMORY_RAG", True):
+        logger.info("[retrieve_legal_provisions] Zero-memory mode active. Bypassing SentenceTransformer/Chroma.")
+        return _fallback_legal_search(query, n_results)
+
     try:
         client = get_chroma_client()
         try:
@@ -214,6 +269,10 @@ def retrieve_medical_protocols(query: str, n_results: int = 3) -> list[dict]:
         list[dict]: List of dicts with keys "text", "metadata", "distance".
     """
     logger.info("Retrieving medical protocols for query: %r", query)
+    if getattr(settings, "USE_ZERO_MEMORY_RAG", True):
+        logger.info("[retrieve_medical_protocols] Zero-memory mode active. Bypassing SentenceTransformer/Chroma.")
+        return _fallback_medical_search(query, n_results)
+
     try:
         client = get_chroma_client()
         try:
@@ -269,6 +328,10 @@ def retrieve_similar_incidents(query: str,
     optionally excluding a specific incident_id (e.g., the current incident).
     """
     logger.info("Retrieving similar incidents for query: %r (exclude_id: %s)", query, exclude_id)
+    if getattr(settings, "USE_ZERO_MEMORY_RAG", True):
+        logger.info("[retrieve_similar_incidents] Zero-memory mode active. Bypassing SentenceTransformer/Chroma.")
+        return _fallback_similar_incidents_search(query, n_results, exclude_id)
+
     try:
         client = get_chroma_client()
         emb_fn = get_embedding_function()

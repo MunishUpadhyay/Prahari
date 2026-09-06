@@ -291,6 +291,7 @@ def test_call_groq_structured_output_payload(settings, mock_groq_custom):
 
 def test_rag_threshold_filtering(settings, monkeypatch):
     from rag.retriever import retrieve_legal_provisions
+    settings.USE_ZERO_MEMORY_RAG = False
     settings.RAG_LEGAL_DISTANCE_THRESHOLD = 0.5
     settings.RAG_MEDICAL_DISTANCE_THRESHOLD = 0.5
     
@@ -310,8 +311,9 @@ def test_rag_threshold_filtering(settings, monkeypatch):
     assert results[0]["text"] == "Relevant provision"
 
 
-def test_rag_empty_retrieval_behavior(monkeypatch):
+def test_rag_empty_retrieval_behavior(settings, monkeypatch):
     from rag.retriever import retrieve_legal_provisions
+    settings.USE_ZERO_MEMORY_RAG = False
     mock_collection = MagicMock()
     mock_collection.query.return_value = {
         "documents": [[]],

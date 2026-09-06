@@ -223,8 +223,10 @@ CORS_ALLOW_ALL_ORIGINS = False
 CITIZEN_API_KEY = env("CITIZEN_API_KEY", default="prahari_citizen_key_2026")
 
 # ---------------------------------------------------------------------------
-# RAG Relevance Thresholds (L2 Distance limits)
+# RAG Relevance Thresholds & Mode (L2 Distance limits & zero-memory flag)
 # ---------------------------------------------------------------------------
 RAG_LEGAL_DISTANCE_THRESHOLD = 1.45
 RAG_MEDICAL_DISTANCE_THRESHOLD = 1.45
+USE_ZERO_MEMORY_RAG = env.bool("USE_ZERO_MEMORY_RAG", default=True)
+
 
