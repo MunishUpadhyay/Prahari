@@ -1863,7 +1863,7 @@ input:checked + .slider:before {
 /* Print Overrides */
 @media print {
     body { background: #fff !important; color: #000 !important; }
-    header, .toolbar, #loading-card, .lang-selector-bar, footer { display: none !important; }
+    header, .toolbar, #loading-card, .lang-selector-bar, footer, .no-print { display: none !important; }
     main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
     .rs-section { padding: 1.5rem 0 !important; border-bottom: 1px solid #cbd5e1 !important; break-inside: avoid; }
     .action-step-card, .esc-card, .accordion-item, .primary-contact-card, .golden-window-alert, .evidence-item-card { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; color: #000 !important; }
@@ -1982,11 +1982,7 @@ input:checked + .slider:before {
 }
 
 .accordion-trigger .acc-chevron {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.accordion-trigger[aria-expanded="true"] .acc-chevron {
-    transform: rotate(180deg);
+    display: inline-block;
 }
 
 .modal {

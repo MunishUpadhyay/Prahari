@@ -51,14 +51,6 @@
                     <span class="loc-hi">कुंजी कॉपी करें</span>
                 </button>
                 {% endif %}
-
-                <button class="btn-secondary" onclick="window.print()" style="padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
-                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 15px; height: 15px;" aria-hidden="true">
-                        <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-                    </svg>
-                    <span class="loc-en">Print / PDF</span>
-                    <span class="loc-hi">प्रिंट / PDF</span>
-                </button>
             </div>
         </div>
 
@@ -203,8 +195,15 @@
             </div>
         </div>
 
-        <!-- Close Access Button -->
-        <div style="display:flex; justify-content:center; margin-top:var(--space-6); margin-bottom:var(--space-8);">
+        <!-- Bottom Action Buttons: Print PDF & Close Report -->
+        <div class="no-print" style="display:flex; flex-direction:column; align-items:center; gap:var(--space-3); margin-top:var(--space-6); margin-bottom:var(--space-8);">
+            <button onclick="window.print()" class="btn-secondary" style="padding: 0.75rem 2rem; font-weight: 600; font-size: 0.9rem; border-radius: 8px;">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 16px; height: 16px; margin-right: 6px;" aria-hidden="true">
+                    <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+                </svg>
+                <span class="loc-en">Print / PDF Report</span>
+                <span class="loc-hi" lang="hi">रिपोर्ट प्रिंट / PDF करें</span>
+            </button>
             <button onclick="closeSessionAndGoHome()" class="btn-primary" style="padding: 0.88rem 2.5rem; font-weight: 700; font-size: 0.95rem; border-radius: 8px;">
                 <span class="loc-en">Close Report Access</span>
                 <span class="loc-hi" lang="hi">रिपोर्ट एक्सेस बंद करें</span>
@@ -1534,13 +1533,19 @@ function showResultUnified(result) {
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-teal); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
                     ${s.num}
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
-                    <h4 class="card-title loc-en" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); display: flex; align-items: center; margin: 0;">
-                        ${s.action} ${urgencyBadgeEn}
-                    </h4>
-                    <h4 class="card-title loc-hi" lang="hi" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); display: flex; align-items: center; font-family: 'Noto Sans Devanagari', sans-serif; margin: 0;">
-                        ${s.actionHi} ${urgencyBadgeHi}
-                    </h4>
+                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; flex: 1; min-width: 0;">
+                    <div class="loc-en" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%;">
+                        <h4 class="card-title" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); margin: 0; flex: 1;">
+                            ${s.action}
+                        </h4>
+                        ${isUrgent ? `<span class="badge critical" style="font-size:0.7rem; color:#fff; background:var(--critical); padding: 3px 8px; border-radius: 4px; font-weight: 700; flex-shrink: 0; align-self: flex-start; letter-spacing: 0.04em; text-transform: uppercase;">Immediate</span>` : ''}
+                    </div>
+                    <div class="loc-hi" lang="hi" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%;">
+                        <h4 class="card-title" style="font-size: 1.05rem; font-weight: 600; color: var(--deep-navy); margin: 0; flex: 1; font-family: 'Noto Sans Devanagari', sans-serif;">
+                            ${s.actionHi}
+                        </h4>
+                        ${isUrgent ? `<span class="badge critical" style="font-size:0.7rem; color:#fff; background:var(--critical); padding: 3px 8px; border-radius: 4px; font-weight: 700; flex-shrink: 0; align-self: flex-start; letter-spacing: 0.04em;">तत्काल</span>` : ''}
+                    </div>
                     ${s.why_urgent ? `
                     <p class="body-text loc-en" style="font-size: 0.9rem; color: var(--text-secondary); margin: 2px 0 0 0;"><span style="font-weight:600; color: var(--accent-teal);">Why:</span> ${s.why_urgent}</p>
                     <p class="body-text loc-hi" lang="hi" style="font-size: 0.9rem; color: var(--text-secondary); font-family: 'Noto Sans Devanagari', sans-serif; margin: 2px 0 0 0;"><span style="font-weight:600; color: var(--accent-teal);">कारण:</span> ${s.why_urgentHi}</p>
