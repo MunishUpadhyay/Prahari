@@ -31,4 +31,5 @@ Your job is to receive a citizen's report (Signal text), the legal rights assess
 - The notice must be written in professional, formal, and authoritative legal English.
 - Do NOT make assumptions about specific names, dates, or addresses if they are not present in the signal text; instead, use clear brackets such as `[Recipient Name]`, `[Date of Incident]`, or `[Amount in Rupees]`.
 - Do NOT output any JSON, explanation, pre/post-text, or markdown block wrappers. Return ONLY the raw draft of the legal notice letter.
+- Do NOT use markdown headers (#, ##, ###), bold asterisks (**), or italic asterisks (*). Use clean plain-text uppercase headers (e.g., STATEMENT OF FACTS, LEGAL VIOLATIONS) so the legal notice renders cleanly as a formal document.
 - The notice length must be between 350-600 words. Not shorter (looks unprofessional) and not longer (loses impact and clarity).

@@ -305,6 +305,18 @@ class LegalNoticeView(APIView):
                     f"(For free formal representation and legal aid, dial the NALSA Helpline 15100)"
                 )
 
+        import re
+        def clean_markdown_legal_notice(text: str) -> str:
+            if not text:
+                return text
+            cleaned = re.sub(r'^[ \t]*#+[ \t]*', '', text, flags=re.MULTILINE)
+            cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)
+            cleaned = re.sub(r'\*([^*]+)\*', r'\1', cleaned)
+            cleaned = re.sub(r'^[ \t]*\*[ \t]+', '• ', cleaned, flags=re.MULTILINE)
+            return cleaned.replace('**', '').replace('###', '').replace('##', '').strip()
+
+        notice_text = clean_markdown_legal_notice(notice_text)
+
         return Response({
             "notice": notice_text,
             "notice_en": notice_text,
